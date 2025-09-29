@@ -24,3 +24,83 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* === THEME TOKENS (меняешь только здесь) ===================== */
+:root {
+  /* Базовый бренд (синий «Baltic») — замени на любые HEX при желании */
+  --brand-50:  #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-400: #4a6ac3;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e2b4f;
+
+  /* Мягкий фон страницы (небо → свет → тёплый отблеск) */
+  --surface-start: #f0f9ff; /* sky-50 */
+  --surface-end:   #ffffff; /* neutral end */
+}
+
+/* === UI PRIMITIVES =========================================== */
+.page-bg{
+  @apply min-h-screen text-zinc-900;
+  background-image: linear-gradient(to bottom, var(--surface-start), white, var(--surface-end));
+}
+
+.btn{
+  @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors;
+}
+
+.btn-primary{
+  @apply text-white;
+  background-color: var(--brand-400);
+}
+.btn-primary:hover{ background-color: var(--brand-700); }
+
+.btn-outline{
+  @apply border;
+  border-color: var(--brand-200);
+}
+.btn-outline:hover{ background-color: var(--brand-50); }
+
+.badge-primary{
+  @apply px-3 py-2 text-xs rounded-lg shadow;
+  background-color: var(--brand-800);
+  color: #fff;
+}
+
+.link-accent{
+  @apply underline underline-offset-2;
+  color: var(--brand-700);
+}
+.link-accent:hover{ color: var(--brand-600); }
+
+.progress-track{ @apply h-2 rounded-full bg-zinc-200; }
+.progress-fill { @apply h-full rounded-full; background-color: var(--brand-600); }
+
+.surface-accent{
+  background-image: linear-gradient(to bottom right, var(--brand-50), #ffffff);
+}
+
+/* компактные отступы секций */
+.section {
+  padding-top: 2.25rem;   /* 40px */
+  padding-bottom: 2.25rem;
+}
+@media (min-width: 1024px) {
+  .section {
+    padding-top: 3rem;   /* 48px на десктопе */
+    padding-bottom: 3rem;
+  }
+}
+
+/* аккуратный градиент бренда для прогресса/кнопок */
+.brand-gradient{ background-image: linear-gradient(to right, var(--brand-600), var(--brand-700)); }
+
+/* маленькие “чипы” */
+.chip{
+  @apply inline-flex items-center rounded-full border px-2.5 py-1 text-xs;
+  border-color: var(--brand-200);
+  background-color: rgba(255,255,255,.7);
+  backdrop-filter: blur(2px);
+}
