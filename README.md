@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VIGRI Site
 
-## Getting Started
+Лендинг VIGRI на **Next.js (App Router)** с локализацией **EN / RU / ET** и вынесенной конфигурацией.
 
-First, run the development server:
+## Быстрый старт
+1. Установить зависимости:
+    
+    npm install
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. Запустить дев-сервер:
+    
+    npm run dev
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открой: http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Переменные окружения
+Скопируй `.env.example` → `.env.local` и при необходимости обнови значения.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Основные переменные:
+- `NEXT_PUBLIC_SOLANA_CLUSTER` — `devnet` | `testnet` | `mainnet`
+- `NEXT_PUBLIC_TELEGRAM_URL`, `NEXT_PUBLIC_X_URL`, `NEXT_PUBLIC_GITHUB_URL`, `NEXT_PUBLIC_DEX_URL`
+- `NEXT_PUBLIC_CONTRACT_ADDRESS`, `NEXT_PUBLIC_PROGRAM_ID`, `NEXT_PUBLIC_ARWEAVE_URI`
 
-## Learn More
+> Файл `.env.local` **не коммитим** (уже добавлен в `.gitignore`).
 
-To learn more about Next.js, take a look at the following resources:
+## Локализация (i18n)
+- Тексты: `locales/en.json`, `locales/ru.json`, `locales/et.json`
+- Хук: `hooks/useI18n.ts` (использование: `t("key")`)
+- Переключатель языков: `components/LanguageSwitcher.tsx`
+- Новые строки добавляем **одинаковыми ключами** во все языки.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Полезно знать
+- Статика: `public/` (картинки, иконки)
+- Токен-лист для кошельков (план): `public/tokenlist.json`
+- Конфиг: `lib/config.ts` (читает публичные переменные окружения)
+- Главная страница: `app/page.tsx`
+- Глобальные стили: `app/globals.css`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Скрипты
+- `npm run dev` — режим разработки  
+- `npm run build` — сборка продакшен  
+- `npm start` — запуск собранного приложения
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Примечания (архитектура)
+- Проект готов к расширению (личный кабинет, API-роуты, KYC-интеграция).
+- Держим **crypto-agile** подход (слои абстракций под криптографию и конфиг).
