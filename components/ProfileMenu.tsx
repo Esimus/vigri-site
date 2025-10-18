@@ -1,0 +1,307 @@
+// app/components/ProfileMenu.tsx
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { createPortal } from 'react-dom';
+import { useI18n } from '@/hooks/useI18n';
+
+// Build 1–2 initials from user name or email (fallback to "U")
+function makeInitials(name?: string | null, email?: string | null) {
+  if (name && name.trim()) {
+    const parts = name.trim().split(/\s+/).slice(0, 2);
+    const letters = parts.map((p) => p[0] ?? '').join('');
+    const cleaned = letters.replace(/[^A-Za-zА-Яа-яЁё]/g, '');
+    return (cleaned || letters || 'U').toUpperCase();
+  }
+  if (email && email.includes('@')) {
+    const local = email.split('@')[0]!;
+    const cleaned = local.replace(/[^A-Za-zА-Яа-яЁё]/g, '');
+    return (cleaned.slice(0, 2) || 'U').toUpperCase();
+  }
+  return 'U';
+}
+
+// i18n helpers
+const tr = (t: (k: string) => string, k: string, fb: string) => {
+  const v = t(k);
+  return v === k ? fb : v;
+};
+const tChain = (t: (k: string) => string, keys: string[], fb: string) => {
+  for (const k of keys) {
+    const v = t(k);
+    if (v !== k) return v;
+  }
+  return fb;
+};
+
+// Cookie helpers (client-side)
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\]\\^])/g, '\\$1') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+function writeCookie(name: string, value: string, days = 365) {
+  if (typeof document === 'undefined') return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+}
+
+// Theme helpers
+type ThemePref = 'auto' | 'light' | 'dark';
+function getSystemDark(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function applyTheme(pref: ThemePref) {
+  const isDark = pref === 'dark' || (pref === 'auto' && typeof window !== 'undefined'
+      && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const root = document.documentElement;
+
+  // data attribute anyone can use (CSS variables, etc.)
+  root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+  // also toggle Tailwind "dark" class if the project uses class strategy
+  root.classList.toggle('dark', isDark);
+  // persist resolved mode for SSR (no-flash on next load)
+  try {
+    const maxAge = 365 * 24 * 60 * 60;
+    document.cookie = `vigri_theme_resolved=${isDark ? 'dark' : 'light'}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+  } catch {}
+}
+
+export default function ProfileMenu() {
+  const { t } = useI18n();
+
+  const [open, setOpen] = useState(false);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+
+  // avatar initials
+  const [initials, setInitials] = useState('U');
+
+  // preferences
+  const [ccy, setCcy] = useState<'EUR' | 'USD'>(() => (readCookie('vigri_ccy') === 'USD' ? 'USD' : 'EUR'));
+  const [theme, setTheme] = useState<ThemePref>(() => {
+    const v = readCookie('vigri_theme');
+    return v === 'light' || v === 'dark' || v === 'auto' ? v : 'auto';
+  });
+
+  // panel position
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  // localized labels
+  const labelHome = tChain(t, ['common.home', 'nav.home'], 'Home');
+  const labelCurrency = tChain(t, ['common.currency', 'settings.currency', 'profile.currency'], 'Currency');
+  const labelTheme = tChain(t, ['common.theme', 'settings.theme', 'profile.theme'], 'Theme');
+  const labelAuto = tChain(t, ['common.auto', 'settings.theme_auto'], 'Auto');
+  const labelLight = tChain(t, ['common.light', 'settings.theme_light'], 'Light');
+  const labelDark = tChain(t, ['common.dark', 'settings.theme_dark'], 'Dark');
+  const labelLogout = tr(t, 'common.logout', 'Logout');
+
+  useEffect(() => {
+    // portal root (client only)
+    setPortalRoot(document.body);
+    // read user for initials
+    (async () => {
+      try {
+        const r = await fetch('/api/auth/me', { cache: 'no-store' });
+        const j = await r.json().catch(() => null);
+        const name: string | undefined = j?.user?.name ?? undefined;
+        const email: string | undefined = j?.user?.email ?? undefined;
+        setInitials(makeInitials(name, email));
+      } catch {
+        setInitials('U');
+      }
+    })();
+  }, []);
+
+  // apply theme on mount and whenever preference changes
+  useEffect(() => {
+    applyTheme(theme);
+
+    // update on system change when in "auto"
+    if (theme !== 'auto') return;
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    const handler = () => applyTheme('auto');
+    mq?.addEventListener?.('change', handler);
+    return () => {
+      mq?.removeEventListener?.('change', handler);
+    };
+  }, [theme]);
+
+  // open/close with position recalculation
+  const toggle = () => {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      const PANEL_W = 256; // ≈ 16rem * 16px
+      const GAP = 8;
+      const top = r.bottom + GAP;
+      const left = Math.min(window.innerWidth - PANEL_W - 8, r.right - PANEL_W);
+      setPos({ top, left });
+    }
+    setOpen((v) => !v);
+  };
+
+  // close on Esc/resize
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    const onResize = () => setOpen(false);
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open]);
+
+  // preference changers
+  const changeCurrency = (next: 'EUR' | 'USD') => {
+    setCcy(next);
+    writeCookie('vigri_ccy', next, 365);
+    try {
+      window.dispatchEvent(new CustomEvent('vigri:currency', { detail: { currency: next } }));
+    } catch {}
+  };
+  const changeTheme = (next: ThemePref) => {
+    setTheme(next);
+    writeCookie('vigri_theme', next, 365);
+    applyTheme(next);
+    try {
+      window.dispatchEvent(new CustomEvent('vigri:theme', { detail: { theme: next } }));
+    } catch {}
+  };
+
+  const panel =
+    open && (
+      <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)} aria-hidden>
+        {/* menu panel; clicks inside should not close it */}
+        <div
+          role="menu"
+          aria-label="Profile menu"
+          onClick={(e) => e.stopPropagation()}
+          className="fixed w-[16rem] rounded-xl border border-zinc-200 bg-white shadow-md"
+          style={{ top: pos.top, left: pos.left }}
+        >
+          <div className="py-1">
+            {/* Preferences: Currency */}
+            <div className="px-3 py-2 text-xs flex items-center justify-between">
+              <span className="opacity-70">{labelCurrency}</span>
+              <div className="inline-flex overflow-hidden rounded-md border border-zinc-200">
+                <button
+                  type="button"
+                  onClick={() => changeCurrency('EUR')}
+                  className={
+                    'px-2 py-1 text-xs ' +
+                    (ccy === 'EUR' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
+                  }
+                >
+                  EUR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeCurrency('USD')}
+                  className={
+                    'px-2 py-1 text-xs ' +
+                    (ccy === 'USD' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
+                  }
+                >
+                  USD
+                </button>
+              </div>
+            </div>
+
+            {/* Preferences: Theme */}
+            <div className="px-3 py-2 text-xs flex items-center justify-between">
+              <span className="opacity-70">{labelTheme}</span>
+              <div className="inline-flex overflow-hidden rounded-md border border-zinc-200">
+                <button
+                  type="button"
+                  onClick={() => changeTheme('auto')}
+                  className={
+                    'px-2 py-1 text-xs ' +
+                    (theme === 'auto' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
+                  }
+                >
+                  {labelAuto}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeTheme('light')}
+                  className={
+                    'px-2 py-1 text-xs ' +
+                    (theme === 'light' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
+                  }
+                >
+                  {labelLight}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeTheme('dark')}
+                  className={
+                    'px-2 py-1 text-xs ' +
+                    (theme === 'dark' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
+                  }
+                >
+                  {labelDark}
+                </button>
+              </div>
+            </div>
+
+            <div className="my-1 h-px bg-zinc-100" />
+
+            {/* Home */}
+            <Link
+              href="/"
+              className="block px-3 py-2 text-sm hover:bg-zinc-100"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              {labelHome}
+            </Link>
+
+            {/* Logout */}
+            <form action="/api/auth/logout" method="POST">
+              <button
+                type="submit"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100"
+                role="menuitem"
+              >
+                {labelLogout}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="relative">
+      {/* blue-ish outline button to match site style */}
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={toggle}
+        className="btn btn-outline rounded-full px-2.5 py-1.5 gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Open profile menu"
+      >
+        {/* avatar circle with initials */}
+        <span className="grid h-6 w-6 place-items-center rounded-full bg-blue-100 text-[11px] font-semibold text-blue-700">
+          {initials}
+        </span>
+        {/* hamburger icon uses currentColor from btn */}
+        <span aria-hidden className="inline-flex text-current">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+          <rect x="3" y="5" width="14" height="2" rx="1" />
+          <rect x="3" y="9" width="14" height="2" rx="1" />
+          <rect x="3" y="13" width="14" height="2" rx="1" />
+          </svg>
+        </span>
+      </button>
+
+      {open && portalRoot ? createPortal(panel, portalRoot) : null}
+    </div>
+  );
+}

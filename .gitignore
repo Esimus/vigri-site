@@ -9,3 +9,5 @@ npm-debug.log*
 .env
 .env.local
 .env.*.local
+
+/lib/generated/prisma

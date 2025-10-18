@@ -1,0 +1,130 @@
+// app/dashboard/profile/page.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { useI18n } from '@/hooks/useI18n';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StepBar } from '@/components/ui/StepBar';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+
+type KycState = 'none' | 'pending' | 'approved';
+
+export default function ProfilePage() {
+  const { t } = useI18n();
+
+  const [kyc, setKyc] = useState<KycState>('none');
+  const [lum, setLum] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // Read current state
+  const reloadMe = async () => {
+    const r = await api.me();
+    if ((r as any)?.ok) {
+      const k: unknown = (r as any).kyc;
+      let mapped: KycState = 'none';
+      if (k === true || k === 'approved') mapped = 'approved';
+      else if (k === 'pending') mapped = 'pending';
+      setKyc(mapped);
+      setLum(Boolean((r as any).lum));
+    }
+  };
+
+  useEffect(() => {
+    void reloadMe();
+  }, []);
+
+  const toggleLum = async () => {
+    setBusy(true);
+    try {
+      const r = await api.setLum(!lum);
+      if ((r as any)?.ok) setLum(Boolean((r as any).lum));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // DEV helpers for KYC mock
+  const setKycNone = async () => {
+    setBusy(true);
+    try { await api.kyc.reset(); await reloadMe(); }
+    finally { setBusy(false); }
+  };
+  const setKycPending = async () => {
+    setBusy(true);
+    try { await api.kyc.start(); await reloadMe(); }
+    finally { setBusy(false); }
+  };
+  const setKycApproved = async () => {
+    setBusy(true);
+    try { await api.kyc.approve(); await reloadMe(); }
+    finally { setBusy(false); }
+  };
+
+  // Map KYC to progress step: 0 none, 2 pending, 3 approved (3 steps total)
+  const progressCurrent = kyc === 'approved' ? 3 : kyc === 'pending' ? 2 : 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="card p-4 text-sm space-y-3">
+        {/* KYC row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div>
+            {t('profile.status.kyc')}:&nbsp;
+            <StatusBadge status={kyc}>{t(`kyc.status.${kyc}`)}</StatusBadge>
+          </div>
+
+          {kyc !== 'approved' && (
+            <a href="/kyc" className="underline ml-2">
+              {t('kyc.banner.start')}
+            </a>
+          )}
+        </div>
+
+        {/* Visual step progress */}
+        <div className="pt-1">
+          <StepBar
+            steps={[
+              t('kyc.step.start'),
+              t('kyc.step.submit'),
+              t('kyc.step.review'),
+            ]}
+            current={progressCurrent}
+          />
+        </div>
+
+        {/* LUM toggle */}
+        <div className="flex items-center gap-3">
+          <div>
+            {t('profile.status.lum')}: <b>{lum ? t('common.enabled') : t('common.disabled')}</b>
+          </div>
+          <button
+            className="rounded-xl border px-3 py-1 text-xs"
+            onClick={toggleLum}
+            disabled={busy}
+          >
+            {lum ? t('profile.lum.disable') : t('profile.lum.enable')}
+          </button>
+        </div>
+      </div>
+
+      <ProfileForm />
+
+      {/* DEV: KYC toggles (mock) */}
+      <div className="rounded-xl border p-3 text-xs space-y-2">
+        <div className="font-medium">Dev: KYC mock</div>
+        <div className="flex flex-wrap gap-2">
+          <button className="rounded-xl border px-3 py-1" onClick={setKycNone} disabled={busy}>
+            Set none
+          </button>
+          <button className="rounded-xl border px-3 py-1" onClick={setKycPending} disabled={busy}>
+            Set pending
+          </button>
+          <button className="rounded-xl border px-3 py-1" onClick={setKycApproved} disabled={busy}>
+            Set approved
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

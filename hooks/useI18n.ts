@@ -1,47 +1,75 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { DEFAULT_LANG, detectLang, type Lang } from "../lib/i18n";
-import en from "../locales/en.json";
+import { useMemo, useSyncExternalStore } from 'react';
+import type { Lang } from '@/lib/i18n';
+import en from '@/locales/en.json';
+import ru from '@/locales/ru.json';
+import et from '@/locales/et.json';
 
-type Messages = Record<string, string>;
+// -------- helpers --------
+const STORAGE_KEY = 'lang';
+const dicts: Record<Lang, Record<string, string>> = { en, ru, et };
 
-export function useI18n() {
-  // ВАЖНО: на сервере и на первом клиентском рендере всегда EN,
-  // чтобы не было расхождения HTML.
-  const [lang, setLang] = useState<Lang>(DEFAULT_LANG);
-  const [messages, setMessages] = useState<Messages>(en as Messages);
+function canon(x: string | null | undefined): Lang {
+  const v = (x ?? '').toLowerCase();
+  if (v.startsWith('ru')) return 'ru';
+  if (v.startsWith('et') || v.startsWith('est')) return 'et';
+  return 'en';
+}
 
-  // После монтирования читаем сохранённый/детектed язык и обновляем состояние
-  useEffect(() => {
-    const stored = (typeof window !== "undefined"
-      ? (localStorage.getItem("lang") as Lang | null)
-      : null);
-    const next = stored ?? detectLang(); // ru/et/en
-    if (next !== lang) setLang(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+// -------- global store (works across the whole app) --------
+let currentLang: Lang = 'en';
+if (typeof window !== 'undefined') {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    currentLang = canon(saved);
+  } else {
+    // first visit: pick from browser, save
+    const nav = (navigator.language || 'en').toLowerCase();
+    currentLang = canon(nav);
+    try { localStorage.setItem(STORAGE_KEY, currentLang); } catch {}
+  }
+}
 
-  // Подгружаем JSON локали при смене языка + сохраняем выбор
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      if (lang === "en") {
-        if (!cancelled) setMessages(en as Messages);
-        return;
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((l) => l());
+
+function setLang(next: Lang) {
+  const n = canon(next);
+  if (n === currentLang) return;
+  currentLang = n;
+  try { localStorage.setItem(STORAGE_KEY, n); } catch {}
+  emit();
+}
+
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+
+// keep tabs/windows in sync
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY && e.newValue) {
+      const n = canon(e.newValue);
+      if (n !== currentLang) {
+        currentLang = n;
+        emit();
       }
-      const mod = await import(`../locales/${lang}.json`);
-      if (!cancelled) setMessages(mod.default as Messages);
     }
-    load();
-    try { localStorage.setItem("lang", lang); } catch {}
-    return () => { cancelled = true; };
-  }, [lang]);
+  });
+}
 
-  const t = useMemo(
-    () => (key: string) => messages[key] ?? (en as Messages)[key] ?? key,
-    [messages]
+// -------- hook --------
+export function useI18n() {
+  // IMPORTANT: third arg = getServerSnapshot to be SSR/hydration-safe
+  const lang = useSyncExternalStore(
+    subscribe,
+    () => currentLang,
+    () => 'en' as Lang // server snapshot: stable during SSR
   );
 
+  const dict = useMemo(() => dicts[lang] ?? en, [lang]);
+  const t = (k: string) => dict[k] ?? en[k as keyof typeof en] ?? k;
   return { lang, setLang, t };
 }

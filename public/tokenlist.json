@@ -1,0 +1,22 @@
+{
+  "name": "VIGRI Token List",
+  "timestamp": "2025-09-30T00:00:00Z",
+  "version": { "major": 1, "minor": 0, "patch": 0 },
+  "tags": {},
+  "logoURI": "/vigri-logo.png",
+  "tokens": [
+    {
+      "chainId": 103,
+      "address": "JEBshY8kHWUT1PgicBzemrKJ4Gh64ZTQNFnwCLYF81cF",
+      "symbol": "VIGRI",
+      "name": "VIGRI",
+      "decimals": 9,
+      "logoURI": "/vigri-logo.png",
+      "extensions": {
+        "website": "https://vigri.ee",
+        "description": "Utility token powering the VIGRI platform.",
+        "arweave": "https://arweave.net/ii-tUAV4V1SloIb2fQ0XPB0G1Q2T2YJ8lYYYVCjdxR0"
+      }
+    }
+  ]
+}

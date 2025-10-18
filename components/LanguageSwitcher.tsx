@@ -12,9 +12,11 @@ export function LanguageSwitcher({
   onChange: (l: Lang) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
-  // клик вне — закрыть; Esc — закрыть
+  // клик вне / Esc — закрыть
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (!ref.current) return;
@@ -29,21 +31,36 @@ export function LanguageSwitcher({
     };
   }, []);
 
+  // решаем, раскрывать вверх или вниз
+  useEffect(() => {
+    if (!open || !ref.current) return;
+    const triggerRect = ref.current.getBoundingClientRect();
+    const approxPanelH = panelRef.current?.getBoundingClientRect().height ?? 120;
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    setOpenUp(spaceBelow < approxPanelH + 12);
+  }, [open]);
+
   return (
     <div className="relative" ref={ref}>
+      {/* триггер как обычная текстовая ссылка */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="btn btn-outline px-3 py-1.5 rounded-xl text-sm"
+        className="inline-flex items-center gap-1 text-sm leading-tight focus:outline-none"
         aria-haspopup="listbox"
         aria-expanded={open}
         title="Change language"
+        type="button"
       >
-        {lang.toUpperCase()}
-        <span aria-hidden className="ml-1">▾</span>
+        {lang.toUpperCase()} <span aria-hidden className={`transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-zinc-200 bg-white shadow-md z-50">
+        <div
+          ref={panelRef}
+          className={`absolute right-0 z-50 inline-block
+                      ${openUp ? "bottom-full mb-2" : "top-full mt-2"}
+                      rounded-xl border border-zinc-200 bg-white shadow-md`}
+        >
           <ul role="listbox" className="py-1">
             {LANGS.map((l) => (
               <li key={l.code}>
@@ -57,8 +74,9 @@ export function LanguageSwitcher({
                   }`}
                   role="option"
                   aria-selected={l.code === lang}
+                  type="button"
                 >
-                  {l.label} ({l.code.toUpperCase()})
+                  {l.code.toUpperCase()}
                 </button>
               </li>
             ))}

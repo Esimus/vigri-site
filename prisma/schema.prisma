@@ -1,0 +1,100 @@
+// prisma/schema.prisma
+
+// -- Datasource & Generator
+datasource db {
+  provider = "sqlite" // dev-only; will switch to postgres in prod
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -- Core auth models (Lucia-compatible minimal set)
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  keys          Key[]
+  verifyTokens  VerifyEmailToken[]
+  resetTokens   ResetPasswordToken[] // <-- added
+}
+
+// Key = identity credential (password or OAuth). For password, store hash here.
+model Key {
+  id             String   @id // recommended format: "providerId:providerUserId"
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hashedPassword String?  // present for "password" provider
+  primary        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Session with rolling expiry (active/idle) as 64-bit integers
+model Session {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeExpires BigInt
+  idleExpires   BigInt
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Email verification token (single-use)
+model VerifyEmailToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   // sha256 of the raw token
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([tokenHash])
+  @@index([userId])
+}
+
+model ResetPasswordToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   // sha256 of raw token
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([tokenHash])
+  @@index([userId])
+}
+
+// Password reset token (single-use)
+model ResetPasswordToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   // sha256 of the raw token
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([tokenHash])
+  @@index([userId])
+}
+
+// (Next steps) 2FA TOTP secret stored encrypted-at-rest (will be added later)
+// model TotpSecret { ... }
+
+// (Next steps) Recovery codes stored as hashes (will be added later)
+// model RecoveryCode { ... }
+
+// (Next steps) WebAuthn credentials (will be added later)
+// model WebAuthnCredential { ... }
