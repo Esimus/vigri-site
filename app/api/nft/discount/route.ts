@@ -1,42 +1,69 @@
+// app/api/nft/discount/route.ts
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getCookie } from '@/lib/cookies';
 
-const COOKIE = 'vigri_nfts';
-const TGE_PRICE_EUR = 0.0008;
+const COOKIE = 'vigri_nft_discount';
 
-function readState(): any {
-  const raw = cookies().get(COOKIE)?.value;
-  if (!raw) return {};
-  try { return JSON.parse(raw); } catch { return {}; }
+type DiscountState = {
+  // percent in [0..100]
+  percent: number;
+  // unix ms when updated
+  ts?: number;
+};
+
+function defaultState(): DiscountState {
+  return { percent: 0 };
 }
 
-export async function POST(req: Request) {
-  const { id, eurAmount } = await req.json().catch(() => ({ id: '', eurAmount: 0 }));
-  if (!id) return NextResponse.json({ ok: false, error: 'Bad request' }, { status: 400 });
-
-  const store = cookies();
-  if (!store.get('vigri_session')?.value) {
-    return NextResponse.json({ ok: false }, { status: 401 });
+function readState(): DiscountState {
+  const raw = getCookie(COOKIE);
+  if (!raw) return defaultState();
+  try {
+    const parsed = JSON.parse(raw) as Partial<DiscountState>;
+    const pct = Number(parsed.percent);
+    return {
+      percent: Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct : 0,
+      ts: typeof parsed.ts === 'number' ? parsed.ts : undefined,
+    };
+  } catch {
+    return defaultState();
   }
+}
 
-  const rightsRes = await fetch(new URL('/api/nft/rights', req.url), { cache: 'no-store' });
-  const rights = await rightsRes.json();
-  const me = rights.items?.find((x: any) => x.id === id);
-  if (!me) return NextResponse.json({ ok: false, error: 'Unknown NFT' }, { status: 400 });
-
-  const maxEur = Math.max(0, me.discountBudgetEur - me.discountUsedEur);
-  const spend = Math.min(maxEur, Math.max(0, Number(eurAmount) || 0));
-  if (spend <= 0) return NextResponse.json({ ok: false, error: 'Nothing to spend' }, { status: 400 });
-
-  // Цена покупки с учётом скидки: TGE / (1 - discountPct)
-  const unitPrice = TGE_PRICE_EUR * (1 - me.discountPctEffective);
-  const vigriBought = spend / unitPrice;
-
-  const state = readState();
-  state.discountUsedEur = state.discountUsedEur || {};
-  state.discountUsedEur[id] = (state.discountUsedEur[id] || 0) + spend;
-
-  const res = NextResponse.json({ ok: true, id, eurSpent: spend, vigriBought, unitEur: unitPrice });
-  res.cookies.set({ name: COOKIE, value: JSON.stringify(state), path: '/', sameSite: 'lax', httpOnly: false, maxAge: 60 * 60 * 24 * 30 });
+function writeState(s: DiscountState) {
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set({
+    name: COOKIE,
+    value: JSON.stringify(s),
+    path: '/',
+    sameSite: 'lax',
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 30,
+  });
   return res;
+}
+
+// Return current discount percent
+export async function GET() {
+  const s = readState();
+  return NextResponse.json({ ok: true, percent: s.percent, ts: s.ts });
+}
+
+// Update discount percent (expects JSON: { percent: number })
+export async function POST(req: Request) {
+  let bodyUnknown: unknown = {};
+  try {
+    bodyUnknown = await req.json();
+  } catch {
+    // ignore malformed JSON
+  }
+  const pct = Number((bodyUnknown as { percent?: number }).percent);
+  const next = Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct : 0;
+
+  const s: DiscountState = { percent: next, ts: Date.now() };
+  const res = writeState(s);
+  return NextResponse.json(
+    { ok: true, percent: s.percent, ts: s.ts },
+    { headers: res.headers }
+  );
 }

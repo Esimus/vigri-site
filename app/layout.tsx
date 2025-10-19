@@ -4,11 +4,12 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
-  title: "VIGRI — утилитарный токен экосистемы Lumiros (Solana)",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  title: "VIGRI is the utility token of the Lumiros ecosystem.",
   icons: { icon: "/favicon.ico" },
   description:
-    "VIGRI — утилитарный SPL-токен для сервисов клубов и городских проектов экосистемы Lumiros. Быстро, дёшево, удобно.",
-};
+    "$VIGRI is a utility token on Solana for payments, discounts, and access to services and experiences from sports clubs and dance studios. Part of the Lumiros ecosystem.",
+  };
 
 // Reads cookie value across Next versions (string | { value })
 function getCookieVal(

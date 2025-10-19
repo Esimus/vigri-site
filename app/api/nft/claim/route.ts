@@ -1,48 +1,58 @@
+// app/api/nft/claim/route.ts
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getCookie } from '@/lib/cookies';
 
-const COOKIE = 'vigri_nfts';
-const TGE_PRICE_EUR = 0.0008;
+const COOKIE = 'vigri_nft_claim';
 
-type State = {
-  claimUsedEur?: Record<string, number>;
+type ClaimState = {
+  claimed: boolean;
+  ts?: number; // unix ms when claimed
 };
 
-function readState(): any {
-  const raw = cookies().get(COOKIE)?.value;
-  if (!raw) return {};
-  try { return JSON.parse(raw); } catch { return {}; }
+function defaultState(): ClaimState {
+  return { claimed: false };
 }
 
-export async function POST(req: Request) {
-  const { id, eurAmount } = await req.json().catch(() => ({ id: '', eurAmount: 0 }));
-  if (!id) return NextResponse.json({ ok: false, error: 'Bad request' }, { status: 400 });
-
-  const store = cookies();
-  if (!store.get('vigri_session')?.value) {
-    return NextResponse.json({ ok: false }, { status: 401 });
+function readState(): ClaimState {
+  const raw = getCookie(COOKIE);
+  if (!raw) return defaultState();
+  try {
+    const parsed = JSON.parse(raw) as Partial<ClaimState>;
+    return {
+      claimed: Boolean(parsed.claimed),
+      ts: typeof parsed.ts === 'number' ? parsed.ts : undefined,
+    };
+  } catch {
+    return defaultState();
   }
+}
 
-  // Узнаём доступно (запросом к rights)
-  const rightsRes = await fetch(new URL('/api/nft/rights', req.url), { cache: 'no-store' });
-  const rights = await rightsRes.json();
-  const me = rights.items?.find((x: any) => x.id === id);
-  if (!me) return NextResponse.json({ ok: false, error: 'Unknown NFT' }, { status: 400 });
-
-  const maxEur = Math.max(0, me.claimBudgetEur - me.claimUsedEur);
-  const spend = Math.min(maxEur, Math.max(0, Number(eurAmount) || maxEur));
-  if (spend <= 0) return NextResponse.json({ ok: false, error: 'Nothing to claim' }, { status: 400 });
-
-  const state = readState();
-  state.claimUsedEur = state.claimUsedEur || {};
-  state.claimUsedEur[id] = (state.claimUsedEur[id] || 0) + spend;
-
-  const res = NextResponse.json({
-    ok: true,
-    id,
-    eurClaimed: spend,
-    vigriClaimed: spend / TGE_PRICE_EUR
+function writeState(s: ClaimState) {
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set({
+    name: COOKIE,
+    value: JSON.stringify(s),
+    path: '/',
+    sameSite: 'lax',
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 30,
   });
-  res.cookies.set({ name: COOKIE, value: JSON.stringify(state), path: '/', sameSite: 'lax', httpOnly: false, maxAge: 60 * 60 * 24 * 30 });
   return res;
+}
+
+// Return current claim status
+export async function GET() {
+  const state = readState();
+  return NextResponse.json({ ok: true, ...state });
+}
+
+// Mark as claimed (idempotent)
+export async function POST() {
+  const state = readState();
+  if (!state.claimed) {
+    state.claimed = true;
+    state.ts = Date.now();
+  }
+  const res = writeState(state);
+  return NextResponse.json({ ok: true, ...state }, { headers: res.headers });
 }

@@ -1,33 +1,33 @@
+// app/api/kyc/route.ts
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getCookie } from '@/lib/cookies';
 
-type Kyc = 'none' | 'pending' | 'approved';
+type Kyc = 'none' | 'pending' | 'approved' | 'rejected';
 
+// Read current KYC status from cookie (or 'none' if absent)
 export async function GET() {
-  const status = (cookies().get('vigri_kyc')?.value as Kyc) ?? 'none';
+  const status = (getCookie('vigri_kyc') as Kyc | null) ?? 'none';
   return NextResponse.json({ ok: true, status });
 }
 
+// Update KYC status (simple demo endpoint that stores to cookie)
 export async function POST(req: Request) {
-  const { action } = await req.json().catch(() => ({} as { action?: string }));
-  let status: Kyc;
-
-  switch (action) {
-    case 'start':   status = 'pending';  break;
-    case 'approve': status = 'approved'; break;
-    case 'reset':   status = 'none';     break;
-    default:
-      return NextResponse.json({ ok: false, error: 'Invalid action' }, { status: 400 });
+  let bodyUnknown: unknown = {};
+  try {
+    bodyUnknown = await req.json();
+  } catch {
+    // ignore malformed JSON
   }
+  const next = (bodyUnknown as { status?: Kyc }).status ?? 'pending';
 
-  const res = NextResponse.json({ ok: true, status });
+  const res = NextResponse.json({ ok: true, status: next });
   res.cookies.set({
     name: 'vigri_kyc',
-    value: status,
-    httpOnly: false,
-    sameSite: 'lax',
+    value: next,
     path: '/',
-    maxAge: 60 * 60 * 24 * 7,
+    sameSite: 'lax',
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 30,
   });
   return res;
 }

@@ -2,16 +2,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LanguageSwitcher } from '@/components/nav';
 import DashboardKycBanner from '@/components/DashboardKycBanner';
-import DashboardNav from '@/components/DashboardNav';
+import { DashboardNav } from '@/components/layout';
 import { useI18n } from '@/hooks/useI18n';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { CONFIG } from '@/lib/config';
 import Link from 'next/link';
-import ProfileMenu from '@/components/ProfileMenu';
-import NotificationsBell from '@/components/NotificationsBell';
+import ProfileMenu from '@/components/nav/ProfileMenu';
+import { NotificationsBell } from '@/components/notifications';
 
 const Sep = () => <span aria-hidden className="mx-1 select-none">—</span>;
 

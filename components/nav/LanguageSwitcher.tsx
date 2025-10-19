@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LANGS, type Lang } from "../lib/i18n";
+import { LANGS, type Lang } from "@/lib/i18n";
 
 export function LanguageSwitcher({
   lang,
@@ -16,7 +16,7 @@ export function LanguageSwitcher({
   const ref = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  // клик вне / Esc — закрыть
+  // Click outside / Esc - close
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (!ref.current) return;
@@ -31,7 +31,7 @@ export function LanguageSwitcher({
     };
   }, []);
 
-  // решаем, раскрывать вверх или вниз
+  // we decide whether to open up or down
   useEffect(() => {
     if (!open || !ref.current) return;
     const triggerRect = ref.current.getBoundingClientRect();
@@ -42,7 +42,7 @@ export function LanguageSwitcher({
 
   return (
     <div className="relative" ref={ref}>
-      {/* триггер как обычная текстовая ссылка */}
+      {/* trigger as a regular text link */}
       <button
         onClick={() => setOpen((v) => !v)}
         className="inline-flex items-center gap-1 text-sm leading-tight focus:outline-none"
@@ -86,3 +86,4 @@ export function LanguageSwitcher({
     </div>
   );
 }
+export default LanguageSwitcher;

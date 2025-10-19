@@ -1,6 +1,7 @@
+// components/DashboardLanguage.tsx
 'use client';
 
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LanguageSwitcher } from '@/components/nav';
 import { useI18n } from '@/hooks/useI18n';
 import type { Lang } from '@/lib/i18n';
 

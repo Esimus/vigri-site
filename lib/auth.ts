@@ -1,5 +1,5 @@
 // lib/auth.ts
-import { cookies } from 'next/headers';
+import { getCookie } from '@/lib/cookies';
 import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE } from '@/lib/session';
 
@@ -26,6 +26,6 @@ export async function getAuthUserBySid(sid: string | null): Promise<SafeUser | n
 
 /** Read sid from cookie and delegate to getAuthUserBySid. */
 export async function getAuthUser(): Promise<SafeUser | null> {
-  const sid = cookies().get(SESSION_COOKIE)?.value ?? null;
+  const sid = getCookie(SESSION_COOKIE);
   return sid ? getAuthUserBySid(sid) : null;
 }

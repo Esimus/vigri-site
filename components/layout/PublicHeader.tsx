@@ -3,7 +3,7 @@
 // All comments in English
 import Image from 'next/image';
 import Link from 'next/link';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LanguageSwitcher } from '@/components/nav/LanguageSwitcher';
 import { useI18n } from '@/hooks/useI18n';
 import { CONFIG } from '@/lib/config';
 

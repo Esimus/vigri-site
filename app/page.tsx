@@ -4,15 +4,14 @@ import { useState, useEffect } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { CONFIG, explorerQS, isMainnet, clusterLabel } from '../lib/config';
 import './home.css';
-import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import Link from 'next/link';
 import Image from 'next/image';
 import BeyondDigital from '@/components/BeyondDigital';
 import HashDropdown from '@/components/HashDropdown';
 import AuthModal from '@/components/AuthModal';
-import ProfileMenu from '@/components/ProfileMenu';
+import { LanguageSwitcher, ProfileMenu } from '@/components/nav';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import NotificationsBell from '@/components/NotificationsBell';
+import { NotificationsBell } from '@/components/notifications';
 import VerifyBanner from '@/components/VerifyBanner';
 
 

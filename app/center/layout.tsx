@@ -1,7 +1,6 @@
 // Server component layout for /center (no 'use client')
 
-import PublicHeader from '@/components/PublicHeader';
-import PublicBreadcrumbs from '@/components/PublicBreadcrumbs';
+import { PublicHeader } from '@/components/layout';
 
 export default function CenterLayout({ children }: { children: React.ReactNode }) {
   return (

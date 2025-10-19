@@ -1,9 +1,9 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import DashboardShell from '@/components/DashboardShell';
+import { getCookie } from '@/lib/cookies';
+import { DashboardShell } from '@/components/layout';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = cookies().get('vigri_session')?.value;
+  const session = getCookie('vigri_session');
   if (!session) redirect('/login');
 
   return <DashboardShell>{children}</DashboardShell>;

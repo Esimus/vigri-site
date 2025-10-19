@@ -1,30 +1,34 @@
+// app/api/assets/route.ts
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getCookie } from '@/lib/cookies';
 
 const COOKIE = 'vigri_assets';
 
-// мок-цены (EUR)
+// mock prices (EUR)
 const PRICES: Record<string, number> = {
   VIGRI: 0.0008,
   SOL: 135.2,
   USDC: 0.94,
 };
+
 const NAMES: Record<string, string> = {
   VIGRI: 'Vigri Token',
   SOL: 'Solana',
   USDC: 'USD Coin',
 };
 
+type HistoryItem = {
+  id: string;
+  ts: number;
+  type: 'buy_vigri' | 'reset' | 'airdrop' | 'claim' | 'discount';
+  symbol: string;
+  amount: number;   // positive = received / negative = spent
+  eurPrice: number; // price per unit in EUR
+};
+
 type State = {
   balances: Record<string, number>;
-  history: Array<{
-    id: string;
-    ts: number;
-    type: 'buy_vigri' | 'reset' | 'airdrop' | 'claim' | 'discount';
-    symbol: string;
-    amount: number;   // + получено / - списано
-    eurPrice: number; // цена за 1 ед. в EUR
-  }>;
+  history: HistoryItem[];
 };
 
 function defaultState(): State {
@@ -35,11 +39,11 @@ function defaultState(): State {
 }
 
 function readState(): State {
-  const raw = cookies().get(COOKIE)?.value;
+  const raw = getCookie(COOKIE);
   if (!raw) return defaultState();
   try {
     const s = JSON.parse(raw) as State;
-    if (!s.balances) return defaultState();
+    if (!s?.balances) return defaultState();
     s.history ||= [];
     return s;
   } catch {
@@ -77,10 +81,12 @@ function positionsOf(s: State) {
 }
 
 export async function GET() {
-  const store = cookies();
-  if (!store.get('vigri_session')?.value) {
+  // auth guard
+  const session = getCookie('vigri_session');
+  if (!session) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
+
   const s = readState();
   const { positions, totalValueEUR } = positionsOf(s);
   return NextResponse.json({
@@ -92,13 +98,27 @@ export async function GET() {
   });
 }
 
+type PostBody = {
+  action?: string;
+  amount?: number;
+};
+
 export async function POST(req: Request) {
-  const store = cookies();
-  if (!store.get('vigri_session')?.value) {
+  // auth guard
+  const session = getCookie('vigri_session');
+  if (!session) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
-  const body = await req.json().catch(() => ({} as any));
-  const action = String(body?.action || '');
+
+  // safe JSON parsing without `any`
+  let bodyUnknown: unknown = {};
+  try {
+    bodyUnknown = await req.json();
+  } catch {
+    bodyUnknown = {};
+  }
+  const body = bodyUnknown as PostBody;
+  const action = String(body.action ?? '');
 
   let s = readState();
 
@@ -121,7 +141,7 @@ export async function POST(req: Request) {
   }
 
   if (action === 'buy_vigri') {
-    const amount = Math.max(1, Math.floor(Number(body?.amount) || 0));
+    const amount = Math.max(1, Math.floor(Number(body.amount) || 0));
     const priceV = PRICES.VIGRI;
     const costEUR = amount * priceV;
     const usdcUnit = PRICES.USDC;
