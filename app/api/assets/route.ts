@@ -5,11 +5,11 @@ import { getCookie } from '@/lib/cookies';
 const COOKIE = 'vigri_assets';
 
 // mock prices (EUR)
-const PRICES: Record<string, number> = {
+const PRICES = {
   VIGRI: 0.0008,
-  SOL: 135.2,
+  SOL: 195.2,
   USDC: 0.94,
-};
+} satisfies Record<'VIGRI' | 'SOL' | 'USDC', number>;
 
 const NAMES: Record<string, string> = {
   VIGRI: 'Vigri Token',
@@ -67,10 +67,10 @@ function writeState(s: State) {
 function positionsOf(s: State) {
   const positions = Object.keys(s.balances).map((sym) => {
     const amount = s.balances[sym] || 0;
-    const price = PRICES[sym] || 0;
+    const price = (sym in PRICES ? PRICES[sym as keyof typeof PRICES] : 0);
     return {
       symbol: sym,
-      name: NAMES[sym] || sym,
+      name: (sym in NAMES ? NAMES[sym as keyof typeof NAMES] : sym),
       amount,
       priceEUR: price,
       valueEUR: +(amount * price).toFixed(2),
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
       );
     }
 
-    s.balances.USDC -= needUSDC;
+    s.balances.USDC = s.balances.USDC ?? 0;
     s.balances.VIGRI = (s.balances.VIGRI || 0) + amount;
 
     s.history.unshift({

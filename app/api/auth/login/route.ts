@@ -7,8 +7,21 @@ import { assertRateLimit, RateLimitError } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
+type LoginBody = {
+  email?: string;
+  password?: string;
+};
+
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({} as any));
+  // Safe JSON parsing without `any`
+  let bodyUnknown: unknown = {};
+  try {
+    bodyUnknown = await req.json();
+  } catch {
+    // ignore malformed JSON
+  }
+  const body = bodyUnknown as LoginBody;
+
   const email = (body?.email ?? '').trim().toLowerCase();
   const password = (body?.password ?? '').trim();
 
@@ -16,7 +29,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'bad_request' }, { status: 400 });
   }
 
-  // rate limit
+  // Rate limit
   try {
     await assertRateLimit('login', req);
   } catch (e) {
@@ -28,7 +41,7 @@ export async function POST(req: Request) {
     throw e;
   }
 
-  // find user
+  // Find user
   const user = await prisma.user.findUnique({
     where: { email },
     select: { id: true, emailVerified: true },
@@ -37,7 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'invalid_creds' }, { status: 401 });
   }
 
-  // read password key
+  // Read password key
   const key = await prisma.key.findUnique({
     where: { id: `password:${user.id}` },
     select: { hashedPassword: true },
@@ -46,18 +59,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'invalid_creds' }, { status: 401 });
   }
 
-  // verify password
+  // Verify password
   const ok = await verifyPassword(key.hashedPassword, password);
   if (!ok) {
     return NextResponse.json({ ok: false, error: 'invalid_creds' }, { status: 401 });
   }
 
-  // require verified email
+  // Require verified email
   if (!user.emailVerified) {
     return NextResponse.json({ ok: false, error: 'email_unverified' }, { status: 403 });
   }
 
-  // create session and set cookie
+  // Create session and set cookie
   const { id: sid, expiresAt } = await createSession(user.id);
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, sid, cookieOptionsWithExpiry(expiresAt));

@@ -10,6 +10,20 @@ import { ProfileForm } from '@/components/profile/ProfileForm';
 
 type KycState = 'none' | 'pending' | 'approved';
 
+type MeOk = {
+  ok: true;
+  signedIn: boolean;
+  kyc: boolean | 'none' | 'pending' | 'approved';
+  lum: unknown;
+  user?: { id: string; email: string } | null;
+};
+type MeFail = { ok: false; error?: string };
+type MeResp = MeOk | MeFail;
+
+function isMeOk(r: unknown): r is MeOk {
+  return typeof r === 'object' && r !== null && (r as { ok?: unknown }).ok === true;
+}
+
 export default function ProfilePage() {
   const { t } = useI18n();
 
@@ -19,14 +33,14 @@ export default function ProfilePage() {
 
   // Read current state
   const reloadMe = async () => {
-    const r = await api.me();
-    if ((r as any)?.ok) {
-      const k: unknown = (r as any).kyc;
+    const r = (await api.me()) as MeResp;
+    if (isMeOk(r)) {
+      const k = r.kyc;
       let mapped: KycState = 'none';
       if (k === true || k === 'approved') mapped = 'approved';
       else if (k === 'pending') mapped = 'pending';
       setKyc(mapped);
-      setLum(Boolean((r as any).lum));
+      setLum(Boolean(r.lum));
     }
   };
 
@@ -37,8 +51,11 @@ export default function ProfilePage() {
   const toggleLum = async () => {
     setBusy(true);
     try {
-      const r = await api.setLum(!lum);
-      if ((r as any)?.ok) setLum(Boolean((r as any).lum));
+      const resp = await api.setLum(!lum); // API returns { ok: true } only
+      if ((resp as { ok?: boolean }).ok) {
+        setLum(!lum);
+        // опционально можно перечитать me: await reloadMe();
+      }
     } finally {
       setBusy(false);
     }
@@ -47,18 +64,30 @@ export default function ProfilePage() {
   // DEV helpers for KYC mock
   const setKycNone = async () => {
     setBusy(true);
-    try { await api.kyc.reset(); await reloadMe(); }
-    finally { setBusy(false); }
+    try {
+      await api.kyc.reset();
+      await reloadMe();
+    } finally {
+      setBusy(false);
+    }
   };
   const setKycPending = async () => {
     setBusy(true);
-    try { await api.kyc.start(); await reloadMe(); }
-    finally { setBusy(false); }
+    try {
+      await api.kyc.start();
+      await reloadMe();
+    } finally {
+      setBusy(false);
+    }
   };
   const setKycApproved = async () => {
     setBusy(true);
-    try { await api.kyc.approve(); await reloadMe(); }
-    finally { setBusy(false); }
+    try {
+      await api.kyc.approve();
+      await reloadMe();
+    } finally {
+      setBusy(false);
+    }
   };
 
   // Map KYC to progress step: 0 none, 2 pending, 3 approved (3 steps total)
@@ -84,11 +113,7 @@ export default function ProfilePage() {
         {/* Visual step progress */}
         <div className="pt-1">
           <StepBar
-            steps={[
-              t('kyc.step.start'),
-              t('kyc.step.submit'),
-              t('kyc.step.review'),
-            ]}
+            steps={[t('kyc.step.start'), t('kyc.step.submit'), t('kyc.step.review')]}
             current={progressCurrent}
           />
         </div>

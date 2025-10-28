@@ -1,3 +1,4 @@
+// app/dashboard/layout.tsx
 import { redirect } from 'next/navigation';
 import { getCookie } from '@/lib/cookies';
 import { DashboardShell } from '@/components/layout';

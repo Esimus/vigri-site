@@ -7,11 +7,11 @@ import DashboardKycBanner from '@/components/DashboardKycBanner';
 import { DashboardNav } from '@/components/layout';
 import { useI18n } from '@/hooks/useI18n';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
 import { CONFIG } from '@/lib/config';
 import Link from 'next/link';
 import ProfileMenu from '@/components/nav/ProfileMenu';
 import { NotificationsBell } from '@/components/notifications';
+import VigriLogo from "@/components/VigriLogo";
 
 const Sep = () => <span aria-hidden className="mx-1 select-none">—</span>;
 
@@ -109,20 +109,20 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         e.preventDefault();
         return;
       }
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
+      const first = focusables[0]!;
+      const last = focusables[focusables.length - 1]!;
       const active = document.activeElement as HTMLElement | null;
 
       // Shift+Tab on first => jump to last
       if (e.shiftKey && active === first) {
         e.preventDefault();
-        last.focus();
+        last?.focus?.();
         return;
       }
       // Tab on last => jump to first
       if (!e.shiftKey && active === last) {
         e.preventDefault();
-        first.focus();
+        first?.focus?.();
         return;
       }
     };
@@ -150,7 +150,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const topHref = sectionHref(pathname);
 
   const segs = pathname.split('/').filter(Boolean);
-  const lastSeg = segs.length > 2 ? decodeURIComponent(segs[segs.length - 1]) : null;
+  const lastSegRaw = segs.length > 2 ? segs[segs.length - 1] : undefined;
+  const lastSeg = lastSegRaw ? decodeURIComponent(lastSegRaw) : null;
   const pretty = (s: string) => s.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   const deepLabel = lastSeg ? pretty(lastSeg) : null;
   const hasDeep = !!deepLabel && pathname !== topHref;
@@ -164,27 +165,21 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const dashboardLabel = t('dashboard.header.title').replace(/^VIGRI\s+—\s+/i, '').trim();
 
   return (
-    <div className="page-bg min-h-screen">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-zinc-200">
         <div className="mx-auto max-w-6xl px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Brand */}
-            <a href="/" className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className="h-11 w-11 overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white">
-                <Image
-                  src="/vigri-logo.png"
-                  alt="VIGRI logo"
-                  width={44}
-                  height={44}
-                  className="h-full w-full object-cover"
-                />
+                <VigriLogo className="shrink-0 size-11" />             {/* 44px */}
               </div>
               <div>
                 <div className="font-semibold tracking-tight">VIGRI</div>
                 <div className="text-xs text-zinc-500">Solana Utility Token</div>
               </div>
-            </a>
+            </Link>
 
             <div className="flex items-center gap-3">
               {/* Profile menu (avatar + hamburger) */}
@@ -195,12 +190,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
               {/* Actions */}
               <LanguageSwitcher lang={lang} onChange={setLang} />
-              <a href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline">
+              <Link href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline">
                 {t('btn_telegram')}
-              </a>
-              <a href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary">
+              </Link>
+              <Link href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary">
                 {t('btn_trade')}
-              </a>
+              </Link>
             </div>
           </div>
         </div>

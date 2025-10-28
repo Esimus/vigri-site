@@ -18,6 +18,10 @@ function readCookie(header: string | null, name: string): string | null {
   return null;
 }
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 export async function POST(req: Request) {
   try {
     let userId: string | null = null;
@@ -39,8 +43,16 @@ export async function POST(req: Request) {
 
     // 2) fallback: email from body (no enumeration; always return ok)
     if (!userId) {
-      const body = await req.json().catch(() => ({} as any));
-      const email = (body?.email ?? '').trim().toLowerCase();
+      let bodyUnknown: unknown = {};
+      try {
+        bodyUnknown = await req.json();
+      } catch {
+        // ignore malformed JSON
+      }
+      const body = isObject(bodyUnknown) ? bodyUnknown : {};
+      const email =
+        typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+
       if (email) {
         const u = await prisma.user.findUnique({
           where: { email },

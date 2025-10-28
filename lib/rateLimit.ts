@@ -36,10 +36,10 @@ export async function assertRateLimit(route: RouteKey, req: Request) {
   const list = buckets.get(key)?.filter(ts => ts > windowStart) ?? [];
 
   if (list.length >= RATE_LIMIT_MAX) {
-    const earliest = list[0];
-    const retryAfterMs = earliest + RATE_LIMIT_WINDOW_MS - now;
-    const retryAfter = Math.max(1, Math.ceil(retryAfterMs / 1000));
-    throw new RateLimitError(retryAfter);
+  const earliest = typeof list[0] === 'number' ? list[0] : now; // assert for TS
+  const retryAfterMs = Math.max(0, earliest + RATE_LIMIT_WINDOW_MS - now);
+  const retryAfter = Math.max(1, Math.ceil(retryAfterMs / 1000));
+  throw new RateLimitError(retryAfter);
   }
 
   list.push(now);

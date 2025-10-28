@@ -1,8 +1,9 @@
+// app/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { CONFIG, explorerQS, isMainnet, clusterLabel } from '../lib/config';
+import { CONFIG, explorerQS, isMainnet, clusterLabel, PRESALE_END_ISO } from '../lib/config';
 import './home.css';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,12 +14,7 @@ import { LanguageSwitcher, ProfileMenu } from '@/components/nav';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { NotificationsBell } from '@/components/notifications';
 import VerifyBanner from '@/components/VerifyBanner';
-
-
-// Presale settings (edit anytime)
-const PRESALE_END_ISO = '2025-11-15T18:00:00Z'; // UTC ISO
-const PRESALE_TARGET_EUR = 400_000;
-let   PRESALE_CURRENT_EUR = 0;
+import VigriLogo from "@/components/VigriLogo";
 
 export default function Home() {
   const { lang, setLang, t } = useI18n();
@@ -40,13 +36,11 @@ export default function Home() {
   // verification banner state
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyNote, setVerifyNote] = useState<string | null>(null);
-  // smooth close flag
-  const [verifyClosing, setVerifyClosing] = useState(false);
 
   const tf = (k: string, fb: string) => {
-  const v = t(k);
-  return v === k ? fb : v;
-};
+    const v = t(k);
+    return v === k ? fb : v;
+  };
 
   const copy = async (text: string, label: string) => {
     try {
@@ -75,34 +69,11 @@ export default function Home() {
   const sp = useSearchParams();
   const verify = (sp.get('verify') as 'sent' | 'ok' | 'invalid' | null) ?? null;
 
-  const verifyMsg =
-    verify === 'sent'
-      ? tf('auth.verify_sent', 'We’ve sent a verification email to your inbox.')
-      : verify === 'ok'
-      ? tf('auth.verify_ok', 'Email verified! You can sign in now.')
-      : verify === 'invalid'
-      ? tf('auth.verify_invalid', 'The link is invalid or expired. Request a new email.')
-      : null;
-
-  const verifyTone =
-    verify === 'ok'
-      ? 'bg-green-50 text-green-800 border-green-200'
-      : verify === 'sent'
-      ? 'bg-blue-50 text-blue-800 border-blue-200'
-      : 'bg-amber-50 text-amber-800 border-amber-200';
-
-  const closeVerify = () => {
-    // start animation
-    setVerifyClosing(true);
-    // after animation ends, remove query
-    setTimeout(() => {
-      const q = new URLSearchParams(sp.toString());
-      q.delete('verify');
-      router.replace(`${pathname}?${q.toString()}`, { scroll: false });
-      // reset flag for next time
-      setVerifyClosing(false);
-    }, 360); // ~360ms feels snappy
-  };
+  const closeVerify = useCallback(() => {
+    const q = new URLSearchParams(sp.toString());
+    q.delete('verify');
+    router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+  }, [pathname, router, sp]);
 
   useEffect(() => {
     if (verify === 'sent' || verify === 'ok') {
@@ -111,41 +82,33 @@ export default function Home() {
       }, 12000);
       return () => clearTimeout(id);
     }
-  }, [verify]);
-
+  }, [verify, closeVerify]);
 
   const openAuth = (mode: 'login' | 'signup') => {
-  const q = new URLSearchParams(sp?.toString() || '');
-  q.set('auth', mode);
-  router.push(`${pathname}?${q.toString()}`, { scroll: false });
+    const q = new URLSearchParams(sp?.toString() || '');
+    q.set('auth', mode);
+    router.push(`${pathname}?${q.toString()}`, { scroll: false });
   };
-  
+
   return (
-    <main className="page-bg">
+    <main>
       {verify && (
-    <VerifyBanner
-      verify={verify}
-      tf={tf}
-      loading={verifyLoading}
-      note={verifyNote}
-      onResend={resendVerify}
-      onClose={closeVerify}
-    />
-  )}
-  
+        <VerifyBanner
+          verify={verify}
+          tf={tf}
+          loading={verifyLoading}
+          note={verifyNote}
+          onResend={resendVerify}
+          onClose={closeVerify}
+        />
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-zinc-200">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
           <a href="#home" className="flex items-center gap-3">
             <div className="h-11 w-11 overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white">
-              <Image
-                src="/vigri-logo.png"
-                alt="VIGRI logo"
-                width={44}
-                height={44}
-                className="h-full w-full object-cover"
-                priority
-              />
+              <VigriLogo className="shrink-0 size-11" />             {/* 44px */}
             </div>
             <div>
               <div className="font-semibold tracking-tight">VIGRI</div>
@@ -190,48 +153,52 @@ export default function Home() {
 
       <AuthModal />
 
-          {/* Floating auth strip under header (global, no layout shift) */}
-          <div className="relative z-20">
-          <div className="mx-auto max-w-6xl px-4">
+      {/* Floating auth strip under header (global, no layout shift) */}
+      <div className="relative z-20">
+        <div className="mx-auto max-w-6xl px-4">
           {/* zero-height wrapper so this doesn't push content */}
-            <div className="relative h-0">
-              <div className="absolute right-4 md:right-0 top-2 md:top-4 flex items-center gap-2 floating-auth px-2 py-1">
-                <a href={CONFIG.TELEGRAM_URL} target="_blank"
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm hover:bg-zinc-100">
-                  {t('btn_telegram')}
-                </a>
+          <div className="relative h-0">
+            <div className="absolute right-4 md:right-0 top-2 md:top-4 flex items-center gap-2 floating-auth px-2 py-1">
+              <a
+                href={CONFIG.TELEGRAM_URL}
+                target="_blank"
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm hover:bg-zinc-100"
+              >
+                {t('btn_telegram')}
+              </a>
 
-                <a href={CONFIG.DEX_URL} target="_blank"
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm text-white brand-gradient shadow">
-                  {t('btn_trade')} <span aria-hidden>→</span>
-                </a>
-              </div>
+              <a
+                href={CONFIG.DEX_URL}
+                target="_blank"
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm text-white brand-gradient shadow"
+              >
+                {t('btn_trade')} <span aria-hidden>→</span>
+              </a>
             </div>
           </div>
         </div>
+      </div>
 
       {/* Hero */}
-      <section
-        id="home"
-        className="relative overflow-hidden -mt-6 md:-mt-8 hero-blobs"
-        >
-
+      <section id="home" className="relative overflow-hidden -mt-6 md:-mt-8 hero-blobs">
         <div className="relative z-10 mx-auto max-w-6xl px-4 pt-16 pb-10 md:pt-20 md:pb-12 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
               {t('hero_title')}
             </h1>
-            <p className="mt-5 text-lg text-zinc-600">
-              {t('hero_subtitle')}
-            </p>
+            <p className="mt-5 text-lg text-zinc-600">{t('hero_subtitle')}</p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <a href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary rounded-2xl">{t('btn_buy_on_dex')}</a>
-              <a href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline rounded-2xl">{t('btn_community')}</a>
-              <a href="#tokenomics" className="btn btn-outline rounded-2xl">{t('btn_tokenomics')}</a>
+              <a href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary rounded-2xl">
+                {t('btn_buy_on_dex')}
+              </a>
+              <a href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline rounded-2xl">
+                {t('btn_community')}
+              </a>
+              <a href="#tokenomics" className="btn btn-outline rounded-2xl">
+                {t('btn_tokenomics')}
+              </a>
             </div>
-            <div className="mt-6 text-xs text-zinc-500">
-              {t('disclaimer')}
-            </div>
+            <div className="mt-6 text-xs text-zinc-500">{t('disclaimer')}</div>
           </div>
 
           <div className="relative">
@@ -251,14 +218,12 @@ export default function Home() {
       {/* Utility */}
       <section id="utility" className="relative mx-auto max-w-6xl px-4 section">
         <h2 className="text-2xl font-bold tracking-tight">{t('why_title')}</h2>
-        <p className="mt-3 text-zinc-600 max-w-3xl">
-          {t('why_intro')}
-        </p>
+        <p className="mt-3 text-zinc-600 max-w-3xl">{t('why_intro')}</p>
 
         {/* Mobile figure (football) */}
         <div className="xl:hidden mt-6 flex justify-center">
           <Image
-            src="/figure-football.png"
+            src="/images/figures/figure-football.png"
             alt=""
             width={360}
             height={360}
@@ -270,27 +235,23 @@ export default function Home() {
 
         {/* Decorative figure (desktop only) */}
         <Image
-          src="/figure-football.png"
+          src="/images/figures/figure-football.png"
           alt=""
           width={360}
           height={360}
           priority={false}
           aria-hidden
-          className="
-            hidden xl:block
-            pointer-events-none select-none
-            absolute -top-10 right-12 translate-x-10
-            drop-shadow-xl"
+          className="hidden xl:block pointer-events-none select-none absolute -top-10 right-12 translate-x-10 drop-shadow-xl"
           sizes="(min-width:1280px) 360px, 0px"
         />
 
         <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { t: t('why_card_payments_title'),  d: t('why_card_payments_desc') },
-            { t: t('why_card_passes_title'),    d: t('why_card_passes_desc') },
-            { t: t('why_card_crowd_title'),     d: t('why_card_crowd_desc') },
-            { t: t('why_card_merch_title'),     d: t('why_card_merch_desc') },
-            { t: t('why_card_status_title'),    d: t('why_card_status_desc') },
+            { t: t('why_card_payments_title'), d: t('why_card_payments_desc') },
+            { t: t('why_card_passes_title'), d: t('why_card_passes_desc') },
+            { t: t('why_card_crowd_title'), d: t('why_card_crowd_desc') },
+            { t: t('why_card_merch_title'), d: t('why_card_merch_desc') },
+            { t: t('why_card_status_title'), d: t('why_card_status_desc') },
             { t: t('why_card_clubpages_title'), d: t('why_card_clubpages_desc') },
           ].map((x) => (
             <div key={x.t} className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
@@ -300,9 +261,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="mt-8 text-sm text-zinc-500">
-          {t('why_social_fund')}
-        </div>
+        <div className="mt-8 text-sm text-zinc-500">{t('why_social_fund')}</div>
       </section>
 
       {/* Why name + Tokenomics with right image column (compact spacing) */}
@@ -312,9 +271,7 @@ export default function Home() {
             {/* Why the name card */}
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
               <div className="text-sm font-semibold tracking-tight">{t('why_name_title')}</div>
-              <p className="mt-2 text-sm text-zinc-600">
-                {t('why_name_text')}
-              </p>
+              <p className="mt-2 text-sm text-zinc-600">{t('why_name_text')}</p>
               <div className="mt-2">
                 <Link href="/story/vigri-1980" className="inline-flex items-center gap-1 text-xs font-normal link-accent">
                   {t('learn_more')} <span aria-hidden>→</span>
@@ -334,9 +291,7 @@ export default function Home() {
               </div>
 
               <div className="mt-4 p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
-                <div className="text-sm text-zinc-600">
-                  {t('tokenomics_note')}
-                </div>
+                <div className="text-sm text-zinc-600">{t('tokenomics_note')}</div>
               </div>
             </div>
           </div>
@@ -345,7 +300,7 @@ export default function Home() {
           <div className="relative hidden xl:block -mt-30">
             <div className="sticky top-8">
               <Image
-                src="/figure-sailing.png"
+                src="/images/figures/figure-sailing.png"
                 alt=""
                 width={832}
                 height={832}
@@ -361,7 +316,7 @@ export default function Home() {
         {/* Mobile yacht */}
         <div className="xl:hidden mt-6 flex justify-center">
           <Image
-            src="/figure-sailing.png"
+            src="/images/figures/figure-sailing.png"
             alt=""
             width={832}
             height={832}
@@ -378,9 +333,7 @@ export default function Home() {
         <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[t('how_step1'), t('how_step2'), t('how_step3'), t('how_step4')].map((step, i) => (
             <li key={i} className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
-              <div
-                className="inline-flex items-center rounded-full px-2.5 py-[3px] font-semibold uppercase tracking-wide text-[#1e40af] bg-[#dbeafe] ring-1 ring-[#93c5fd] text-[12px] lg:text-[12px]"
-              >
+              <div className="inline-flex items-center rounded-full px-2.5 py-[3px] font-semibold uppercase tracking-wide text-[#1e40af] bg-[#dbeafe] ring-1 ring-[#93c5fd] text-[12px] lg:text-[12px]">
                 {t('step')} {i + 1}
               </div>
               <div className="mt-1 font-medium">{step}</div>
@@ -399,7 +352,7 @@ export default function Home() {
         {/* Mobile ballet image */}
         <div className="xl:hidden mb-4 flex justify-center">
           <Image
-            src="/figure-ballet3.png"
+            src="/images/figures/figure-ballet3.png"
             alt=""
             width={768}
             height={768}
@@ -413,7 +366,7 @@ export default function Home() {
           <div className="relative hidden xl:block mt-[6rem]">
             <div className="sticky top-[12rem]">
               <Image
-                src="/figure-ballet3.png"
+                src="/images/figures/figure-ballet3.png"
                 alt=""
                 width={1024}
                 height={1024}
@@ -486,9 +439,7 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-4 py-10 grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-8">
           <div>
             <div className="font-semibold">VIGRI • Lumiros</div>
-            <div className="mt-2 text-sm text-zinc-600 max-w-md">
-              {t('footer_note')}
-            </div>
+            <div className="mt-2 text-sm text-zinc-600 max-w-md">{t('footer_note')}</div>
           </div>
 
           <div className="md:pl-6">
@@ -496,9 +447,21 @@ export default function Home() {
               <div className="min-w-0">
                 <div className="font-semibold text-zinc-900 mb-1">{t('footer_social')}</div>
                 <ul className="space-y-1">
-                  <li><a className="hover:underline" href={CONFIG.TELEGRAM_URL} target="_blank" rel="noreferrer">Telegram</a></li>
-                  <li><a className="hover:underline" href={CONFIG.X_URL} target="_blank" rel="noreferrer">X (Twitter)</a></li>
-                  <li><a className="hover:underline" href={CONFIG.GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></li>
+                  <li>
+                    <a className="hover:underline" href={CONFIG.TELEGRAM_URL} target="_blank" rel="noreferrer">
+                      Telegram
+                    </a>
+                  </li>
+                  <li>
+                    <a className="hover:underline" href={CONFIG.X_URL} target="_blank" rel="noreferrer">
+                      X (Twitter)
+                    </a>
+                  </li>
+                  <li>
+                    <a className="hover:underline" href={CONFIG.GITHUB_URL} target="_blank" rel="noreferrer">
+                      GitHub
+                    </a>
+                  </li>
                 </ul>
               </div>
 
@@ -524,8 +487,16 @@ export default function Home() {
               <div className="min-w-0">
                 <div className="font-semibold text-zinc-900 mb-1">{t('footer_legal')}</div>
                 <ul className="space-y-1">
-                  <li><a className="hover:underline" href="#" rel="noreferrer">{t('footer_privacy')}</a></li>
-                  <li><a className="hover:underline" href="#" rel="noreferrer">{t('footer_terms')}</a></li>
+                  <li>
+                    <a className="hover:underline" href="#" rel="noreferrer">
+                      {t('footer_privacy')}
+                    </a>
+                  </li>
+                  <li>
+                    <a className="hover:underline" href="#" rel="noreferrer">
+                      {t('footer_terms')}
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -549,70 +520,10 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Card({
-  title,
-  value,
-  onCopy,
-  copied,
-}: {
-  title: string;
-  value: string;
-  onCopy: () => void;
-  copied: boolean;
-}) {
-  return (
-    <div className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      <div className="text-xs text-zinc-500">{title}</div>
-      <div className="mt-1 font-mono text-sm break-all select-all">{value}</div>
-      <div className="mt-3">
-        <button onClick={onCopy} className="btn btn-outline text-xs">
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Links({ explorerQS }: { explorerQS: string }) {
-  return (
-    <div className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      <div className="text-xs text-zinc-500">Links</div>
-      <ul className="mt-2 text-sm space-y-1">
-        <li>
-          <a
-            className="hover:underline"
-            href={`https://solscan.io/token/${CONFIG.CONTRACT_ADDRESS}${explorerQS}`}
-            target="_blank"
-          >
-            Solscan (token)
-          </a>
-        </li>
-        <li>
-          <a
-            className="hover:underline"
-            href={`https://explorer.solana.com/address/${CONFIG.PROGRAM_ID}${explorerQS}`}
-            target="_blank"
-          >
-            Solana Explorer (Program)
-          </a>
-        </li>
-        <li>
-          <a className="hover:underline" href={CONFIG.ARWEAVE_URI} target="_blank">
-            Arweave Metadata
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
-}
-
 function ProgressDot({ value }: { value?: number }) {
   if (value == null) {
     return (
-      <div
-        className="h-8 w-8 shrink-0 rounded-full border border-zinc-300 grid place-items-center"
-        aria-hidden="true"
-      >
+      <div className="h-8 w-8 shrink-0 rounded-full border border-zinc-300 grid place-items-center" aria-hidden="true">
         <span className="text-zinc-400">•</span>
       </div>
     );
@@ -632,9 +543,11 @@ function ProgressDot({ value }: { value?: number }) {
 }
 
 function PresaleWidget({ t }: { t: (k: string) => string }) {
+  // End moment comes from lib/config (UTC ISO with Z)
   const end = new Date(PRESALE_END_ISO);
   const endStr = end.toUTCString().slice(5, 16);
 
+  // Live ticker (same step as homepage)
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
     setNow(new Date());
@@ -652,25 +565,81 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
 
   const pad = (n: number | null) => (n == null ? '--' : String(n).padStart(2, '0'));
 
-  const fmt = new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
-  const pct = Math.max(0, Math.min(100, Math.round((PRESALE_CURRENT_EUR / PRESALE_TARGET_EUR) * 100)));
+  // ---- Dynamic presale totals (computed from /api/nft) ----
+  const [targetEur, setTargetEur] = useState<number>(0);
+  const [currentEur, setCurrentEur] = useState<number>(0); // placeholder for real raised amount
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/nft', { cache: 'no-store' });
+        const j = await r.json();
+        if (r.ok && j?.ok && Array.isArray(j.items)) {
+          // Target = sum(price * limited) for saleable items
+          // Current = sum(price * sold) where sold = min(minted, limited)
+          let target = 0;
+          let current = 0;
+
+          for (const it of j.items) {
+            const price = typeof it.eurPrice === 'number' ? it.eurPrice : 0;
+            const lim = Number.isFinite(it.limited) ? (it.limited || 0) : 0;
+            const minted = Number.isFinite(it.minted) ? (it.minted || 0) : 0;
+
+            const forSale = price > 0 && lim > 0;         // exclude invite-only / WS-20
+            if (!forSale) continue;
+
+            const sold = Math.min(minted, lim);
+            target += price * lim;
+            current += price * sold;
+          }
+
+          setTargetEur(target);
+          setCurrentEur(current);
+        } else {
+          setTargetEur(0);
+          setCurrentEur(0);
+        }
+      } catch {
+        setTargetEur(0);
+        setCurrentEur(0);
+      }
+    })();
+  }, []);
+
+
+  const fmt = new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  });
+
+  const pct =
+    targetEur > 0
+      ? Math.max(0, Math.min(100, Math.round((currentEur / targetEur) * 100)))
+      : 0;
 
   return (
     <div className="h-full w-full rounded-2xl bg-transparent">
       <div className="flex items-center justify-between">
-        <div className="text-base md:text-lg font-semibold uppercase tracking-wide">{t('presale_title')}</div>
-        <div className="text-xs md:text-sm text-zinc-500">{t('live_until')} {endStr}</div>
+        <div className="text-base md:text-lg font-semibold uppercase tracking-wide">
+          {t('presale_title')}
+        </div>
+        <div className="text-xs md:text-sm text-zinc-500">
+          {t('live_until')} {endStr}
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
         <span className="chip">{t('accepted')}: SOL • USDC</span>
-        <span className="chip">{t('target')}: {fmt.format(PRESALE_TARGET_EUR)}</span>
+        <span className="chip">
+          {t('target')}: {fmt.format(targetEur)}
+        </span>
       </div>
 
       <div className="mt-4 grid grid-cols-4 gap-2 text-center">
         {[
-          { v: pad(days),    l: t('label_days') },
-          { v: pad(hours),   l: t('label_hours') },
+          { v: pad(days), l: t('label_days') },
+          { v: pad(hours), l: t('label_hours') },
           { v: pad(minutes), l: t('label_min') },
           { v: pad(seconds), l: t('label_sec') },
         ].map(({ v, l }) => (
@@ -686,8 +655,12 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
 
       <div className="mt-5">
         <div className="flex items-baseline justify-between text-sm">
-          <div className="font-medium">{fmt.format(PRESALE_CURRENT_EUR)} {t('raised')}</div>
-          <div className="text-zinc-500">{pct}% {t('of')} {fmt.format(PRESALE_TARGET_EUR)}</div>
+          <div className="font-medium">
+            {fmt.format(currentEur)} {t('raised')}
+          </div>
+          <div className="text-zinc-500">
+            {pct}% {t('of')} {fmt.format(targetEur)}
+          </div>
         </div>
         <div className="mt-2 progress-track">
           <div className="progress-fill brand-gradient" style={{ width: `${pct}%` }} />
@@ -695,8 +668,12 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <a href="/presale" className="btn btn-primary">{t('join_presale')}</a>
-        <a href="/docs/litepaper" className="btn btn-outline">{t('read_litepaper')}</a>
+        <a href="/presale" className="btn btn-primary">
+          {t('join_presale')}
+        </a>
+        <a href="/docs/litepaper" className="btn btn-outline">
+          {t('read_litepaper')}
+        </a>
       </div>
 
       <div className="mt-3 text-[11px] text-zinc-500">{t('numbers_note')}</div>
@@ -740,9 +717,7 @@ function CardCompact({
   return (
     <div className="relative p-4 rounded-xl border border-zinc-200 bg-white shadow-sm">
       <div className="text-[16px] leading-none text-zinc-500">{title}</div>
-      <div className="mt-1 font-mono text-[14px] leading-tight break-all pr-8 select-all">
-        {value}
-      </div>
+      <div className="mt-1 font-mono text-[14px] leading-tight break-all pr-8 select-all">{value}</div>
 
       <button
         onClick={onCopy}
@@ -758,13 +733,7 @@ function CardCompact({
   );
 }
 
-function LinksCompact({
-  explorerQS,
-  t,
-}: {
-  explorerQS: string;
-  t: (k: string) => string;
-}) {
+function LinksCompact({ explorerQS, t }: { explorerQS: string; t: (k: string) => string }) {
   return (
     <div className="p-4 rounded-xl border border-zinc-200 bg-white shadow-sm">
       <div className="text-[16px] leading-none text-zinc-500">{t('links_title')}</div>

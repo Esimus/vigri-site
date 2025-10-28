@@ -11,3 +11,9 @@ npm-debug.log*
 .env.*.local
 
 /lib/generated/prisma
+
+# Windows ADS tails
+*:[Zz]one.[Ii]dentifier
+
+# TS incremental build
+*.tsbuildinfo

@@ -1,3 +1,4 @@
+// components/AuthModal.tsx
 'use client';
 
 import { useEffect, useRef, useState, useCallback, type FormEvent } from 'react';
@@ -6,19 +7,32 @@ import { useI18n } from '@/hooks/useI18n';
 
 type Mode = 'login' | 'signup' | 'forgot' | 'reset' | null;
 
+type ApiOk = { ok: true };
+type ApiFail = { ok: false; error?: string };
+type ApiResp = ApiOk | ApiFail;
+
+function hasOk(v: unknown): v is ApiResp {
+  if (typeof v !== 'object' || v === null) return false;
+  const r = v as Record<string, unknown>;
+  return typeof r.ok === 'boolean';
+}
+function getErrorCode(v: unknown): string | undefined {
+  if (typeof v !== 'object' || v === null) return undefined;
+  const r = v as Record<string, unknown>;
+  return typeof r.error === 'string' ? r.error : undefined;
+}
+
 export default function AuthModal() {
   const { t } = useI18n();
   const sp = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
 
-  // i18n helper with fallback
   const tf = (k: string, fb: string) => {
     const v = t(k);
     return v === k ? fb : v;
   };
 
-  // ---- URL-derived mode & reset token ----
   const mode = (sp.get('auth') as Mode) ?? null;
   const isSignup = mode === 'signup';
   const isForgot = mode === 'forgot';
@@ -27,7 +41,6 @@ export default function AuthModal() {
 
   const open = mode === 'login' || isSignup || isForgot || isReset;
 
-  // ---- Form state ----
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -35,23 +48,17 @@ export default function AuthModal() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Unverified (login only)
   const [canResend, setCanResend] = useState(false);
   const [resending, setResending] = useState(false);
 
-  // Forgot flow success
   const [forgotSent, setForgotSent] = useState(false);
-
-  // Reset flow success
   const [resetDone, setResetDone] = useState(false);
 
-  // ---- a11y & focus ----
   const panelRef = useRef<HTMLDivElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
   const titleId = 'auth-modal-title';
 
-  // ---- Validation ----
   const [emailTouched, setEmailTouched] = useState(false);
   const [passTouched, setPassTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
@@ -66,7 +73,6 @@ export default function AuthModal() {
   const confirmMismatch =
     (isSignup || isReset) && confirmTouched && confirm.length > 0 && confirm !== pass;
 
-  // Password helper
   const passTooShort = pass.length > 0 && pass.length < 8;
   const passHelp =
     pass.length === 0
@@ -88,13 +94,11 @@ export default function AuthModal() {
     'focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30 ' +
     'focus:border-[var(--brand-600)] transition';
 
-  // ---- helpers to change mode via URL ?auth=... ----
   const setMode = useCallback(
     (m: Exclude<Mode, null> | null) => {
       const params = new URLSearchParams(sp.toString());
       if (m) params.set('auth', m);
       else params.delete('auth');
-      // when leaving reset mode, also drop token
       if (m !== 'reset') params.delete('token');
       const href = params.size ? `${pathname}?${params}` : pathname;
       router.replace(href, { scroll: false });
@@ -104,7 +108,6 @@ export default function AuthModal() {
 
   const close = useCallback(() => setMode(null), [setMode]);
 
-  // ---- lifecycle: mount/unmount per open ----
   useEffect(() => {
     if (!open) return;
     prevFocusRef.current =
@@ -148,18 +151,18 @@ export default function AuthModal() {
         panelRef.current.querySelectorAll<HTMLElement>(sel)
       ).filter((el) => el.offsetParent !== null);
       if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
+      const first = focusables[0] as HTMLElement | undefined;
+      const last = focusables[focusables.length - 1] as HTMLElement | undefined;
       const active = document.activeElement as HTMLElement | null;
       if (e.shiftKey) {
         if (active === first || !panelRef.current.contains(active)) {
           e.preventDefault();
-          last.focus();
+          if (last) last.focus();
         }
       } else {
         if (active === last || !panelRef.current.contains(active)) {
           e.preventDefault();
-          first.focus();
+          if (first) first.focus();
         }
       }
     };
@@ -177,7 +180,6 @@ export default function AuthModal() {
         } catch {}
       }
 
-      // reset per-open state
       setEmail('');
       setPass('');
       setConfirm('');
@@ -195,7 +197,6 @@ export default function AuthModal() {
 
   if (!open) return null;
 
-  // ---- titles & labels by mode ----
   const title = isSignup
     ? tf('auth.signup_title', 'Create account')
     : isForgot
@@ -219,7 +220,6 @@ export default function AuthModal() {
       ? tf('auth.no_account', "Don't have an account? Create one")
       : tf('auth.back_to_login', 'Back to sign in');
 
-  // ---- resend email verify (login only) ----
   async function resendVerify() {
     setResending(true);
     try {
@@ -234,7 +234,6 @@ export default function AuthModal() {
     }
   }
 
-  // ---- submit handlers ----
   async function onSubmitAuth(e: FormEvent) {
     e.preventDefault();
     setEmailTouched(true);
@@ -253,10 +252,10 @@ export default function AuthModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: pass }),
       });
-      const j = await r.json().catch(() => ({} as any));
+      const j: unknown = await r.json().catch(() => ({} as unknown));
 
-      if (!r.ok || !j?.ok) {
-        if (r.status === 429 || j?.error === 'rate_limited') {
+      if (!r.ok || !hasOk(j) || !j.ok) {
+        if (r.status === 429 || getErrorCode(j) === 'rate_limited') {
           const ra = parseInt(r.headers.get('Retry-After') ?? '0', 10);
           const n = Number.isFinite(ra) && ra > 0 ? ra : 60;
           setErr(
@@ -269,7 +268,7 @@ export default function AuthModal() {
           return;
         }
 
-        const code = j?.error as string | undefined;
+        const code = getErrorCode(j);
         if (code === 'email_unverified') setCanResend(true);
 
         setErr(
@@ -290,6 +289,8 @@ export default function AuthModal() {
       if (isSignup) {
         window.location.replace('/?verify=sent');
       } else {
+        // === THE ONLY CHANGE: set one-shot post-login flag ===
+        try { sessionStorage.setItem('vigri_postlogin', '1'); } catch {}
         window.location.replace('/dashboard');
       }
     } catch {
@@ -311,10 +312,9 @@ export default function AuthModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      // Always show success regardless of whether the email exists
       setForgotSent(true);
     } catch {
-      // soft ignore
+      /* ignore */
     } finally {
       setLoading(false);
     }
@@ -334,10 +334,10 @@ export default function AuthModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: resetToken, password: pass }),
       });
-      const j = await r.json().catch(() => ({} as any));
+      const j: unknown = await r.json().catch(() => ({} as unknown));
 
-      if (!r.ok || !j?.ok) {
-        const code = j?.error as string | undefined;
+      if (!r.ok || !hasOk(j) || !j.ok) {
+        const code = getErrorCode(j);
         setErr(
           code === 'weak_password'
             ? tf('auth.error_password', 'Password must be at least 8 characters')
@@ -349,7 +349,6 @@ export default function AuthModal() {
         return;
       }
 
-      // Success: show success state, propose to sign in
       setResetDone(true);
     } catch {
       setErr(tf('auth.error_generic', 'Something went wrong. Try again.'));
@@ -358,7 +357,6 @@ export default function AuthModal() {
     }
   }
 
-  // ---- shared chunks ----
   const emailInput = (
     <div>
       <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
@@ -407,21 +405,15 @@ export default function AuthModal() {
           onClick={() => setShowPass((v) => !v)}
           className="absolute inset-y-0 right-2 flex items-center px-2 text-zinc-500 hover:text-zinc-700
                      focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30 rounded-md"
-          aria-label={
-            showPass
-              ? tf('auth.hide_password', 'Hide password')
-              : tf('auth.show_password', 'Show password')
-          }
+          aria-label={showPass ? tf('auth.hide_password', 'Hide password') : tf('auth.show_password', 'Show password')}
           tabIndex={0}
         >
           {showPass ? (
-            // eye (visible)
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
           ) : (
-            // eye-off (hidden)
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.29 20.29 0 0 1 5.06-5.94" />
               <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
@@ -436,15 +428,9 @@ export default function AuthModal() {
           {passHelp}
         </p>
       )}
-
-      {/* forgot link only in login mode */}
       {mode === 'login' && (
         <div className="mt-2 text-right">
-          <button
-            type="button"
-            onClick={() => setMode('forgot')}
-            className="text-xs text-zinc-600 hover:text-zinc-900 hover:underline"
-          >
+          <button type="button" onClick={() => setMode('forgot')} className="text-xs text-zinc-600 hover:text-zinc-900 hover:underline">
             {tf('auth.forgot', 'Forgot password?')}
           </button>
         </div>
@@ -475,14 +461,9 @@ export default function AuthModal() {
           onClick={() => setShowPass((v) => !v)}
           className="absolute inset-y-0 right-2 flex items-center px-2 text-zinc-500 hover:text-zinc-700
                      focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30 rounded-md"
-          aria-label={
-            showPass
-              ? tf('auth.hide_password', 'Hide password')
-              : tf('auth.show_password', 'Show password')
-          }
+          aria-label={showPass ? tf('auth.hide_password', 'Hide password') : tf('auth.show_password', 'Show password')}
           tabIndex={0}
         >
-          {/* same icons as above */}
           {showPass ? (
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -506,15 +487,9 @@ export default function AuthModal() {
     </div>
   ) : null;
 
-  // ---- Render ----
   return (
     <div className="fixed inset-0 z-50">
-      {/* backdrop */}
-      <div
-        className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
-        onClick={close}
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={close} aria-hidden />
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <div
           ref={panelRef}
@@ -528,9 +503,7 @@ export default function AuthModal() {
                      border border-zinc-200/60 dark:border-zinc-800/50 outline-none"
         >
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-gradient-to-b from-white/70 to-transparent dark:from-zinc-900/70">
-            <div id={titleId} className="text-lg font-semibold">
-              {title}
-            </div>
+            <div id={titleId} className="text-lg font-semibold">{title}</div>
             <button
               onClick={close}
               className="rounded-lg p-2.5 text-zinc-500 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60
@@ -542,7 +515,6 @@ export default function AuthModal() {
             </button>
           </div>
 
-          {/* FORMS */}
           {isForgot ? (
             <form onSubmit={onSubmitForgot} className="px-5 py-5 space-y-4">
               {forgotSent ? (
@@ -554,11 +526,7 @@ export default function AuthModal() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setMode('login')}
-                      className="btn btn-primary"
-                    >
+                    <button type="button" onClick={() => setMode('login')} className="btn btn-primary">
                       {tf('auth.back_to_login', 'Back to sign in')}
                     </button>
                     <button type="button" onClick={close} className="btn">
@@ -578,11 +546,7 @@ export default function AuthModal() {
                     {loading ? tf('auth.loading', 'Please wait…') : submitLabel}
                   </button>
                   <div className="text-xs text-center text-zinc-600 dark:text-zinc-400">
-                    <button
-                      type="button"
-                      onClick={() => setMode('login')}
-                      className="hover:underline"
-                    >
+                    <button type="button" onClick={() => setMode('login')} className="hover:underline">
                       {altLinkLabel}
                     </button>
                   </div>
@@ -593,7 +557,6 @@ export default function AuthModal() {
             <form onSubmit={onSubmitReset} className="px-5 py-5 space-y-4">
               {!resetDone ? (
                 <>
-                  {/* New password + confirm */}
                   {passwordInput}
                   {confirmInput}
                   {err && <div className="text-sm text-red-600">{err}</div>}
@@ -605,11 +568,7 @@ export default function AuthModal() {
                     {loading ? tf('auth.loading', 'Please wait…') : submitLabel}
                   </button>
                   <div className="text-xs text-center text-zinc-600 dark:text-zinc-400">
-                    <button
-                      type="button"
-                      onClick={() => setMode('login')}
-                      className="hover:underline"
-                    >
+                    <button type="button" onClick={() => setMode('login')} className="hover:underline">
                       {tf('auth.back_to_login', 'Back to sign in')}
                     </button>
                   </div>
@@ -620,11 +579,7 @@ export default function AuthModal() {
                     {tf('auth.reset_done', 'Password has been changed. You can sign in now.')}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setMode('login')}
-                      className="btn btn-primary"
-                    >
+                    <button type="button" onClick={() => setMode('login')} className="btn btn-primary">
                       {tf('auth.back_to_login', 'Back to sign in')}
                     </button>
                     <button type="button" onClick={close} className="btn">
@@ -639,7 +594,6 @@ export default function AuthModal() {
               {emailInput}
               {passwordInput}
               {confirmInput}
-              {/* error + resend (login, unverified) */}
               {err && (
                 <div className="text-sm text-red-600">
                   {err}

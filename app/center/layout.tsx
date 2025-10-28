@@ -4,7 +4,7 @@ import { PublicHeader } from '@/components/layout';
 
 export default function CenterLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="page-bg min-h-screen">
+    <div className="min-h-screen">
       <PublicHeader />
 
       {/* Keep page content as-is (it already has its own max-width) */}

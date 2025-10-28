@@ -1,10 +1,12 @@
+// app/dashboard/assets/page.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/useI18n';
 
 type Position = { symbol: string; name: string; amount: number; priceEUR: number; valueEUR: number };
-type GetResp = { ok: boolean; positions: Position[]; totalValueEUR: number; history: any[] };
+type HistoryEntry = { id: string; ts: number; type: string; symbol: string; amount: number; eurPrice: number };
+type GetResp = { ok: boolean; positions: Position[]; totalValueEUR: number; history: HistoryEntry[] };
 type PostResp = GetResp & { error?: string };
 
 export default function AssetsPage() {
@@ -12,31 +14,31 @@ export default function AssetsPage() {
   const [data, setData] = useState<GetResp | null>(null);
   const [buyAmount, setBuyAmount] = useState<number>(1000);
   const [msg, setMsg] = useState<string | null>(null);
+
   const ACTIVITY_KEYS: Record<string, string> = {
-  buy_vigri: 'activity.buy_vigri',
-  sell_vigri: 'activity.sell_vigri',
-  deposit:   'activity.deposit',
-  withdraw:  'activity.withdraw',
-  buy_nft:   'activity.buy_nft',
-  reward:    'activity.reward',
-};
+    buy_vigri: 'activity.buy_vigri',
+    sell_vigri: 'activity.sell_vigri',
+    deposit:   'activity.deposit',
+    withdraw:  'activity.withdraw',
+    buy_nft:   'activity.buy_nft',
+    reward:    'activity.reward',
+  };
 
-const ACTIVITY_ICONS: Record<string, string> = {
-  buy_vigri: '🟢',
-  sell_vigri:'🔴',
-  deposit:   '⬇️',
-  withdraw:  '⬆️',
-  buy_nft:   '🧾',
-  reward:    '🎁',
-};
+  const ACTIVITY_ICONS: Record<string, string> = {
+    buy_vigri: '🟢',
+    sell_vigri:'🔴',
+    deposit:   '⬇️',
+    withdraw:  '⬆️',
+    buy_nft:   '🧾',
+    reward:    '🎁',
+  };
 
-const activityLabel = (type: string) => {
-  const key = ACTIVITY_KEYS[type] ?? 'activity.unknown';
-  const v = t(key);
-  return v === key ? type : v; // fallback to raw type if no key
-};
-const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
-
+  const activityLabel = (type: string) => {
+    const key = ACTIVITY_KEYS[type] ?? 'activity.unknown';
+    const v = t(key);
+    return v === key ? type : v; // fallback to raw type if no key
+  };
+  const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
 
   const cf = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }), []);
 
@@ -142,13 +144,13 @@ const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
         <div className="text-sm font-medium mb-2">{t('assets.history')}</div>
         {data?.history?.length ? (
           <ul className="text-sm space-y-1">
-            {data.history.slice(0, 10).map((h: any) => (
+            {data.history.slice(0, 10).map((h) => (
               <li key={h.id} className="flex items-center justify-between">
                 <span>{new Date(h.ts).toLocaleString()}</span>
                 <span className="opacity-70">
                   <span aria-hidden className="mr-1">{activityIcon(h.type)}</span>
-                    {activityLabel(h.type)}
-                  </span>
+                  {activityLabel(h.type)}
+                </span>
                 <span className="font-mono">{h.symbol} {h.amount > 0 ? '+' : ''}{h.amount}</span>
                 <span className="opacity-70">{cf.format(h.eurPrice)}/u</span>
               </li>

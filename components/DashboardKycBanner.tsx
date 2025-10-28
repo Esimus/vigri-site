@@ -1,3 +1,4 @@
+// components/DashboardKycBanner.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,6 +7,21 @@ import { api } from '@/lib/api';
 import { useI18n } from '@/hooks/useI18n';
 
 type KycState = 'none' | 'pending' | 'approved' | 'loading';
+
+type MeOk = {
+  ok: true;
+  kyc: boolean | 'none' | 'pending' | 'approved';
+  lum: unknown;
+};
+type MeFail = { ok: false; error?: string };
+type MeResp = MeOk | MeFail;
+
+function mapKyc(v: MeResp): KycState {
+  if (!v.ok) return 'none';
+  if (v.kyc === true || v.kyc === 'approved') return 'approved';
+  if (v.kyc === 'pending') return 'pending';
+  return 'none';
+}
 
 // helper: fallback to readable text if a key is missing
 const tr = (t: (k: string) => string, k: string, fb: string) => {
@@ -20,14 +36,9 @@ export default function DashboardKycBanner() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const r = await api.me();
-      if (!alive || !r?.ok) {
-        setKyc('none');
-        return;
-      }
-      // api.me() returns boolean kyc → map to flat keys: kyc.status.none/approved
-      const kycBool = Boolean((r as any)?.kyc);
-      setKyc(kycBool ? 'approved' : 'none');
+      const r = (await api.me()) as MeResp;
+      if (!alive) return;
+      setKyc(mapKyc(r));
     })();
     return () => { alive = false; };
   }, []);

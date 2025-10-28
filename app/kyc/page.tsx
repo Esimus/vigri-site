@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 
 type Kyc = 'none' | 'pending' | 'approved';
+type KycOk = { ok: true; status: Kyc };
+type KycFail = { ok: false; error?: string };
+type KycResp = KycOk | KycFail;
 
 export default function KycPage() {
   const [status, setStatus] = useState<Kyc>('none');
@@ -15,14 +18,14 @@ export default function KycPage() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await api.kyc.get();
-        if ((r as any).ok) {
-          setStatus((r as any).status as Kyc);
+        const r = (await api.kyc.get()) as KycResp;
+        if (r.ok) {
+          setStatus(r.status);
         } else {
           setErr('Failed to load KYC status');
         }
-      } catch (e: any) {
-        setErr(e?.message || 'Failed to load KYC status');
+      } catch (e: unknown) {
+        setErr(e instanceof Error ? e.message : 'Failed to load KYC status');
       } finally {
         setLoading(false);
       }
@@ -36,12 +39,11 @@ export default function KycPage() {
       else if (action === 'approve') await api.kyc.approve();
       else await api.kyc.reset();
 
-      // re-read status
-      const r = await api.kyc.get();
-      if ((r as any).ok) setStatus((r as any).status as Kyc);
+      const r = (await api.kyc.get()) as KycResp;
+      if (r.ok) setStatus(r.status);
       else setErr('Failed to refresh status');
-    } catch (e: any) {
-      setErr(e?.message || 'Action failed');
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'Action failed');
     }
   };
 
@@ -61,26 +63,17 @@ export default function KycPage() {
       </ol>
 
       {status === 'none' && (
-        <button
-          className="rounded-xl border px-3 py-2 text-sm"
-          onClick={() => act('start')}
-        >
+        <button className="rounded-xl border px-3 py-2 text-sm" onClick={() => act('start')}>
           Start KYC (mock → pending)
         </button>
       )}
 
       {status === 'pending' && (
         <div className="space-x-2">
-          <button
-            className="rounded-xl border px-3 py-2 text-sm"
-            onClick={() => act('approve')}
-          >
+          <button className="rounded-xl border px-3 py-2 text-sm" onClick={() => act('approve')}>
             Submit &amp; Approve (mock)
           </button>
-          <button
-            className="rounded-xl border px-3 py-2 text-sm"
-            onClick={() => act('reset')}
-          >
+          <button className="rounded-xl border px-3 py-2 text-sm" onClick={() => act('reset')}>
             Cancel
           </button>
         </div>
@@ -89,10 +82,7 @@ export default function KycPage() {
       {status === 'approved' && (
         <div className="space-x-2">
           <span className="text-sm">✅ KYC approved.</span>
-          <button
-            className="rounded-xl border px-3 py-2 text-sm"
-            onClick={() => act('reset')}
-          >
+          <button className="rounded-xl border px-3 py-2 text-sm" onClick={() => act('reset')}>
             Reset (mock)
           </button>
         </div>

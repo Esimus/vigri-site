@@ -32,9 +32,6 @@ export async function sendMail(input: MailInput): Promise<void> {
   const env = process.env.NODE_ENV || 'development';
 
   if (env !== 'production') {
-    // Dev stub: do not actually send
-    // Keep this log — it is handy during local testing
-    // eslint-disable-next-line no-console
     console.info('[mail:dev] not sent', { from, to, subject, text, html });
     return;
   }

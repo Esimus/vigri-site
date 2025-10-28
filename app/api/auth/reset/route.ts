@@ -10,11 +10,21 @@ function sha256hex(s: string) {
   return createHash('sha256').update(s).digest('hex');
 }
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({} as any));
-    const token = (body?.token ?? '').trim();
-    const password = (body?.password ?? '').trim();
+    let bodyUnknown: unknown = {};
+    try {
+      bodyUnknown = await req.json();
+    } catch {
+      // ignore malformed JSON
+    }
+    const body = isObject(bodyUnknown) ? bodyUnknown : {};
+    const token = typeof body.token === 'string' ? body.token.trim() : '';
+    const password = typeof body.password === 'string' ? body.password.trim() : '';
 
     if (!token || !password) {
       return NextResponse.json({ ok: false, error: 'bad_request' }, { status: 400 });

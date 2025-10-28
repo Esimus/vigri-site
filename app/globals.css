@@ -63,266 +63,291 @@
 }
 
 /* =================================================================== */
-/*                               BASE                                   */
+/*                                  BASE                                */
 /* =================================================================== */
-html, body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html, body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  html { scrollbar-gutter: stable; }
+
+  /* Smooth theme transitions */
+  * {
+    transition: background-color .15s ease, color .15s ease,
+                border-color .15s ease, box-shadow .15s ease;
+  }
 }
-html { scrollbar-gutter: stable both-edges; }
 
 /* Light surface gradient; in dark we flatten to --bg */
-.page-bg {
-  @apply min-h-screen;
-  background-image: linear-gradient(to bottom, var(--surface-start), white, var(--surface-end));
+@layer components {
+  .page-bg {
+    @apply min-h-screen;
+    background-color: var(--bg);
+    background-image: linear-gradient(
+      to bottom,
+      var(--surface-start) 0%,
+      #f4f8ff 36%,
+      #f9fbff 72%,
+      var(--surface-end) 100%
+    );
+    background-repeat: no-repeat;
+  }
 }
 :root[data-theme="dark"] .page-bg { background: var(--bg); background-image: none; }
-
-/* Smooth theme transitions */
-* { transition: background-color .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease; }
 
 /* =================================================================== */
 /*                           UI PRIMITIVES                              */
 /* =================================================================== */
-.btn {
-  @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors;
-  color: var(--fg);
-}
-.btn-primary { @apply text-white; background-color: var(--accent); }
-.btn-primary:hover { filter: brightness(0.95); }
-.btn-outline  { @apply border; border-color: var(--border); }
-.btn-outline:hover { background-color: rgba(37, 99, 235, 0.08); } /* blue-600 @ 8% */
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors;
+    color: var(--fg);
+  }
+  .btn-primary { @apply text-white; background-color: var(--accent); }
+  .btn-primary:hover { filter: brightness(0.95); }
+  .btn-outline  { @apply border; border-color: var(--border); }
+  .btn-outline:hover { background-color: rgba(37, 99, 235, 0.08); } /* blue-600 @ 8% */
 
-/* Chips / badges */
-.badge-primary { @apply px-3 py-2 text-xs rounded-lg shadow; background-color: var(--brand-800); color: #fff; }
+  /* Chips / badges */
+  .badge-primary { @apply px-3 py-2 text-xs rounded-lg shadow; background-color: var(--brand-800); color: #fff; }
 
-/* Links */
-.link-accent { @apply underline underline-offset-2; color: var(--brand-700); }
-.link-accent:hover { color: var(--brand-600); }
+  /* Links */
+  .link-accent { @apply underline underline-offset-2; color: var(--brand-700); }
+  .link-accent:hover { color: var(--brand-600); }
 
-/* Progress */
-.progress-track { @apply h-2 rounded-full bg-zinc-200; }
-.progress-fill  { @apply h-full rounded-full; background-color: var(--accent); }
+  /* Progress */
+  .progress-track { @apply h-2 rounded-full bg-zinc-200; }
+  .progress-fill  { @apply h-full rounded-full; background-color: var(--accent); }
 
-/* Cards */
-.card { @apply rounded-xl border shadow-sm; background: var(--card); border-color: var(--border); }
-
-/* Brand helpers */
-.text-brand  { color: var(--brand-700); }
-.bg-brand-100{ background: var(--brand-100); }
-
-/* Sections */
-.section { padding-top: 2.25rem; padding-bottom: 2.25rem; }
-@media (min-width: 1024px) { .section { padding-top: 3rem; padding-bottom: 3rem; } }
-
-/* Nice gradient helper */
-.brand-gradient { background-image: linear-gradient(to right, var(--brand-600), var(--brand-700)); }
-
-/* Chips */
-.chip {
-  @apply inline-flex items-center rounded-full border px-2.5 py-1 text-xs;
-  border-color: var(--border);
-  background-color: rgba(255,255,255,.7);
-  backdrop-filter: blur(2px);
-}
-:root[data-theme="dark"] .chip { background-color: rgba(255,255,255,.06); }
-:root[data-theme="dark"] .btn-outline:hover { background-color: #ffffff24; }
-
-/* =================================================================== */
-/*                 DARK MODE OVERRIDES FOR COMMON CLASSES              */
-/* =================================================================== */
-
-/* Panels & translucent header */
-:root[data-theme="dark"] .bg-white     { background-color: var(--card) !important; }
-:root[data-theme="dark"] .bg-white\/70 { background-color: rgba(15,22,35,.7) !important; }
-
-/* Borders */
-:root[data-theme="dark"] .border-zinc-200,
-:root[data-theme="dark"] .border-zinc-300 { border-color: var(--border) !important; }
-
-/* Sidebar: use dedicated border token */
-.sidebar-nav .border,
-.sidebar-nav a { border-color: var(--sidebar-border) !important; }
-/* Sidebar hover */
-.sidebar-nav a:not([aria-current="page"]):hover {
-  background-color: var(--sidebar-hover) !important;
-}
+  /* Cards */
+  .card { @apply rounded-xl border shadow-sm; background: var(--card); border-color: var(--border); }
 
 
-/* Active state — тоже на sidebar token */
-.sidebar-nav a[aria-current="page"],
-.sidebar-nav [data-active="true"] {
-  border-color: var(--sidebar-border) !important;
-}
+  /* Chip: fixed font-size; size controlled by padding/height */
+  .chip {
+    @apply inline-flex items-center rounded-full text-xs;
+    /* geometry */
+    --chip-px: .75rem;   /* horizontal padding */
+    --chip-py: .40rem;   /* vertical padding */
+    --chip-gap: .4rem;
 
-/* Text tone mapping */
-:root[data-theme="dark"] .text-zinc-700 { color: var(--fg)    !important; }
-:root[data-theme="dark"] .text-zinc-600,
-:root[data-theme="dark"] .text-zinc-500,
-:root[data-theme="dark"] .text-zinc-400 { color: var(--muted) !important; }
+    padding: var(--chip-py) var(--chip-px);
+    gap: var(--chip-gap);
+    line-height: 1;
+    min-height: 2rem;
 
-/* Opacity utilities are too dim on dark; lift them a bit */
-:root[data-theme="dark"] .opacity-70 { opacity: .90 !important; }
-:root[data-theme="dark"] .opacity-60 { opacity: .86 !important; }
-:root[data-theme="dark"] .opacity-50 { opacity: .82 !important; }
+    /* colors (light) */
+    background-color: color-mix(in srgb, var(--card) 88%, transparent) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--fg) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 6%, transparent);
+  }
 
-/* Neutral hover tint still visible on dark */
-:root[data-theme="dark"] .hover\:bg-zinc-100:hover { background-color: #ffffff14 !important; }
+  /* Dark theme overrides */
+  :root[data-theme="dark"] .chip {
+    background-color: rgba(255,255,255,.06) !important;
+    border-color: #2a3446 !important;
+    color: #e6edf7 !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  }
 
-/* Stronger shadow for separation in dark */
-:root[data-theme="dark"] .shadow-lg {
-  box-shadow: 0 8px 24px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.02);
-}
+  /* Optional size variants (geometry only; font-size stays the same) */
+  .chip--sm { --chip-px: .55rem; --chip-py: .30rem; min-height: 1.6rem; }
+  .chip--md { --chip-px: .75rem; --chip-py: .40rem; min-height: 2rem; }   /* default */
+  .chip--lg { --chip-px: 1rem;   --chip-py: .55rem; min-height: 2.3rem; }
 
-/* --- Tables in dark: fix light zebra rows & headers --- */
-:root[data-theme="dark"] .bg-zinc-50 { background-color: #101a29 !important; }
-:root[data-theme="dark"] .bg-zinc-100 { background-color: #0e1624 !important; }
 
-/* If zebra utilities are used (odd:bg-... / even:bg-...) override them too */
-:root[data-theme="dark"] .odd\:bg-zinc-50:nth-child(odd)  { background-color: #101a29 !important; }
-:root[data-theme="dark"] .even\:bg-zinc-50:nth-child(even){ background-color: #101a29 !important; }
-:root[data-theme="dark"] .odd\:bg-zinc-100:nth-child(odd) { background-color: #0e1624 !important; }
-:root[data-theme="dark"] .even\:bg-zinc-100:nth-child(even){ background-color: #0e1624 !important; }
+    /* Sections helper */
+    .section { padding-top: 2.25rem; padding-bottom: 2.25rem; }
+  }
 
-/* Make sure text stays readable on those rows */
-:root[data-theme="dark"] .text-zinc-900,
-:root[data-theme="dark"] .text-zinc-800 { color: var(--fg) !important; }
+  /* Larger paddings on lg+ */
+  @media (min-width: 1024px) { .section { padding-top: 3rem; padding-bottom: 3rem; } }
 
-/* Divider inside tables a bit brighter */
-:root[data-theme="dark"] .divide-zinc-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--border) !important;
-}
+  /* Nice gradient helper */
+  .brand-gradient { background-image: linear-gradient(to right, var(--brand-600), var(--brand-700)); }
 
-/* Dark fix for white-border utility used in timer cards */
-:root[data-theme="dark"] .border-white\/60 {
-  border-color: var(--border) !important;
-}
+  /* Brand helpers */
+  .text-brand  { color: var(--brand-700); }
+  .bg-brand-100{ background: var(--brand-100); }
 
-/* Hero decorative blobs (light & dark) */
-.hero-blobs{
-  --blob-a: var(--brand-200);
-  --blob-b: var(--brand-100);
-  background-image:
-    radial-gradient(closest-side, color-mix(in srgb, var(--blob-a) 88%, transparent), transparent 80%),
-    radial-gradient(closest-side, color-mix(in srgb, var(--blob-b) 88%, transparent), transparent 80%);
-  background-position: right -6rem top -10rem, left -8rem bottom -7rem;
-  background-size: 28rem 28rem, 32rem 32rem;
-  background-repeat: no-repeat, no-repeat;
-}
-:root[data-theme="dark"] .hero-blobs{
-  --blob-a: #0f2547; /* darker denim */
-  --blob-b: #0b1b33; /* deep navy */
-  opacity: .55;
-}
+  /* =================================================================== */
+  /*                 DARK MODE OVERRIDES FOR COMMON CLASSES              */
+  /* =================================================================== */
 
-/* --- Sidebar active (dark): выразительнее, но не слепит --- */
-:root[data-theme="dark"] .sidebar-nav a[aria-current="page"],
-:root[data-theme="dark"] .sidebar-nav [data-active="true"]{
-  background: linear-gradient(180deg,#303b80 0%, #122034 100%) !important;
-  border-color: #2a3446 !important;
-  color: #fff0e6 !important; /* чуть светлее, не "disabled" */
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
-}
-/* hover для неактивных пунктов */
-:root[data-theme="dark"] .sidebar-nav a:not([aria-current="page"]):hover{
-  background-color:#0e1624 !important;
-}
+  /* Panels & translucent header */
+  :root[data-theme="dark"] .bg-white     { background-color: var(--card) !important; }
+  :root[data-theme="dark"] .bg-white\/70 { background-color: rgba(15,22,35,.7) !important; }
 
-/* Brand helpers  */
-:root[data-theme="dark"] .bg-brand-100   { background-color: #284782 !important; }
-:root[data-theme="dark"] .text-brand     { color: #ffecd9 !important; }
-:root[data-theme="dark"] .border-brand-200 { border-color: var(--border) !important; }
+  /* Borders */
+  :root[data-theme="dark"] .border-zinc-200,
+  :root[data-theme="dark"] .border-zinc-300 { border-color: var(--border) !important; }
 
-:root[data-theme="dark"] .sidebar-nav a[aria-current="page"],
-:root[data-theme="dark"] .sidebar-nav [data-active="true"]{
-  background-color:#23140f !important;
-  border-color:#749ae2 !important;
-  color:#ffd9d9 !important;
-}
-:root[data-theme="dark"] .sidebar-nav a:not([aria-current="page"]):hover{
-  background-color:#1b2865 !important;
-}
+  /* Sidebar: use dedicated border token */
+  .sidebar-nav .border,
+  .sidebar-nav a { border-color: var(--sidebar-border) !important; }
+  /* Sidebar hover */
+  .sidebar-nav a:not([aria-current="page"]):hover {
+    background-color: var(--sidebar-hover) !important;
+  }
 
-:root {
-  /* ... */
-  --border: #e5e7eb;
-  --accent: #2563eb;
+  /* Active state — тоже на sidebar token */
+  .sidebar-nav a[aria-current="page"],
+  .sidebar-nav [data-active="true"] {
+    border-color: var(--sidebar-border) !important;
+  }
 
-  /* NEW: sidebar-only border (light) */
-  --sidebar-border: var(--border);
-}
+  /* Text tone mapping */
+  :root[data-theme="dark"] .text-zinc-700 { color: var(--fg)    !important; }
+  :root[data-theme="dark"] .text-zinc-600,
+  :root[data-theme="dark"] .text-zinc-500,
+  :root[data-theme="dark"] .text-zinc-400 { color: var(--muted) !important; }
 
-:root[data-theme="dark"] {
-  /* ... */
-  --border: #2a3446;
-  --accent: #2f4fc4;
+  /* Opacity utilities are too dim on dark; lift them a bit */
+  :root[data-theme="dark"] .opacity-70 { opacity: .90 !important; }
+  :root[data-theme="dark"] .opacity-60 { opacity: .86 !important; }
+  :root[data-theme="dark"] .opacity-50 { opacity: .82 !important; }
 
-  /* NEW: sidebar-only border (dark) — можешь менять как угодно */
-  --sidebar-border: #243049; /* поумереннее, чем общий --border */
-}
+  /* Neutral hover tint still visible on dark */
+  :root[data-theme="dark"] .hover\:bg-zinc-100:hover { background-color: #ffffff14 !important; }
 
-/* Hide native password reveal/clear buttons (Edge/IE) */
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear { display: none; }
+  /* Stronger shadow for separation in dark */
+  :root[data-theme="dark"] .shadow-lg {
+    box-shadow: 0 8px 24px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.02);
+  }
 
-/* Hide WebKit decorations that can overlap (Safari/Chrome) */
-input[type="password"]::-webkit-textfield-decoration-container { display: none; }
-input[type="password"]::-webkit-clear-button { display: none; }
-input[type="password"]::-webkit-credentials-auto-fill-button { display: none; }
-input[type="password"]::-webkit-contacts-auto-fill-button { display: none; }
+  /* --- Tables in dark: fix light zebra rows & headers --- */
+  :root[data-theme="dark"] .bg-zinc-50 { background-color: #101a29 !important; }
+  :root[data-theme="dark"] .bg-zinc-100 { background-color: #0e1624 !important; }
 
-/* =================================================================== */
-/*                          FORM CONTROLS (NEW)                        */
-/* =================================================================== */
-.label {
-  @apply block text-sm font-medium mb-1;
-  color: var(--fg);
-}
-.form-help { @apply mt-1 text-xs block; color: var(--muted); }
-.form-error { @apply mt-1 text-xs; color: #dc2626; } /* red-600 */
+  :root[data-theme="dark"] .odd\:bg-zinc-50:nth-child(odd)  { background-color: #101a29 !important; }
+  :root[data-theme="dark"] .even\:bg-zinc-50:nth-child(even){ background-color: #101a29 !important; }
+  :root[data-theme="dark"] .odd\:bg-zinc-100:nth-child(odd) { background-color: #0e1624 !important; }
+  :root[data-theme="dark"] .even\:bg-zinc-100:nth-child(even){ background-color: #0e1624 !important; }
 
-.input, .textarea {
-  @apply w-full rounded-xl border px-3 py-2 text-sm outline-none;
-  background: var(--card);
-  color: var(--fg);
-  border-color: var(--border);
-}
-.select {
-  @apply rounded-xl border px-3 py-2 text-sm outline-none inline-flex items-center;
-  background: var(--card);
-  color: var(--fg);
-  border-color: var(--border);
-}
+  /* Make sure text stays readable on those rows */
+  :root[data-theme="dark"] .text-zinc-900,
+  :root[data-theme="dark"] .text-zinc-800 { color: var(--fg) !important; }
 
-.textarea { @apply min-h-[92px] resize-y; }
+  /* Divider inside tables a bit brighter */
+  :root[data-theme="dark"] .divide-zinc-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--border) !important;
+  }
 
-.input::placeholder,
-.textarea::placeholder { color: color-mix(in srgb, var(--muted) 82%, transparent); }
+  /* Dark fix for white-border utility used in timer cards */
+  :root[data-theme="dark"] .border-white\/60 { border-color: var(--border) !important; }
 
-.input:focus, .select:focus, .textarea:focus {
-  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
-}
+  /* Hero decorative blobs (light & dark) */
+  .hero-blobs{
+    --blob-a: var(--brand-200);
+    --blob-b: var(--brand-100);
+    background-image:
+      radial-gradient(closest-side, color-mix(in srgb, var(--blob-a) 88%, transparent), transparent 80%),
+      radial-gradient(closest-side, color-mix(in srgb, var(--blob-b) 88%, transparent), transparent 80%);
+    background-position: right -6rem top -10rem, left -8rem bottom -7rem;
+    background-size: 28rem 28rem, 32rem 32rem;
+    background-repeat: no-repeat, no-repeat;
+  }
+  :root[data-theme="dark"] .hero-blobs{
+    --blob-a: #0f2547; /* darker denim */
+    --blob-b: #0b1b33; /* deep navy */
+    opacity: .55;
+  }
 
-.input[disabled], .select[disabled], .textarea[disabled] {
-  @apply cursor-not-allowed opacity-70;
-  background: color-mix(in srgb, var(--card) 92%, transparent);
-}
+  /* Brand helpers  */
+  :root[data-theme="dark"] .bg-brand-100   { background-color: #284782 !important; }
+  :root[data-theme="dark"] .text-brand     { color: #ffecd9 !important; }
+  :root[data-theme="dark"] .border-brand-200 { border-color: var(--border) !important; }
 
-.input-error, .select-error, .textarea-error {
-  border-color: #dc2626 !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, #dc2626 18%, transparent) !important;
-}
+  :root[data-theme="dark"] .sidebar-nav a[aria-current="page"],
+  :root[data-theme="dark"] .sidebar-nav [data-active="true"]{
+    background-color:#23140f !important;
+    border-color:#749ae2 !important;
+    color:#ffd9d9 !important;
+  }
+  :root[data-theme="dark"] .sidebar-nav a:not([aria-current="page"]):hover{
+    background-color:#1b2865 !important;
+  }
 
-/* Native select normalize (keeps Tailwind utilities working) */
-.select {
-  appearance: none;
-  background-image: none;
-  background-position: right .75rem center;
-  background-repeat: no-repeat;
-  padding-right: .75rem; 
-}
+  /* Sidebar-only border tokens */
+  :root {
+    --border: #e5e7eb;
+    --accent: #2563eb;
+    --sidebar-border: var(--border);
+  }
+  :root[data-theme="dark"] {
+    --border: #2a3446;
+    --accent: #2f4fc4;
+    --sidebar-border: #243049;
+  }
 
-/* Placeholder tone for empty selects/buttons */
-.select[data-empty="true"] { color: var(--muted); }
+  /* Hide native password reveal/clear buttons (Edge/IE) */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear { display: none; }
+
+  /* Hide WebKit decorations that can overlap (Safari/Chrome) */
+  input[type="password"]::-webkit-textfield-decoration-container { display: none; }
+  input[type="password"]::-webkit-clear-button { display: none; }
+  input[type="password"]::-webkit-credentials-auto-fill-button { display: none; }
+  input[type="password"]::-webkit-contacts-auto-fill-button { display: none; }
+
+  /* =================================================================== */
+  /*                          FORM CONTROLS (NEW)                        */
+  /* =================================================================== */
+  @layer components {
+    .label {
+      @apply block text-sm font-medium mb-1;
+      color: var(--fg);
+    }
+    .form-help { @apply mt-1 text-xs block; color: var(--muted); }
+    .form-error { @apply mt-1 text-xs; color: #dc2626; } /* red-600 */
+
+    .input, .textarea {
+      @apply w-full rounded-xl border px-3 py-2 text-sm outline-none;
+      background: var(--card);
+      color: var(--fg);
+      border-color: var(--border);
+    }
+    .select {
+      @apply rounded-xl border px-3 py-2 text-sm outline-none inline-flex items-center;
+      background: var(--card);
+      color: var(--fg);
+      border-color: var(--border);
+    }
+
+    .textarea { @apply min-h-[92px] resize-y; }
+
+    .input[disabled], .select[disabled], .textarea[disabled] {
+      @apply cursor-not-allowed opacity-70;
+      background: color-mix(in srgb, var(--card) 92%, transparent);
+    }
+  }
+
+  /* Placeholders & focus styles (обычный CSS — без @apply) */
+  .input::placeholder,
+  .textarea::placeholder { color: color-mix(in srgb, var(--muted) 82%, transparent); }
+  .input:focus, .select:focus, .textarea:focus {
+    border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .input-error, .select-error, .textarea-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #dc2626 18%, transparent) !important;
+  }
+
+  /* Native select normalize (keeps Tailwind utilities working) */
+  .select {
+    appearance: none;
+    background-image: none;
+    background-position: right .75rem center;
+    background-repeat: no-repeat;
+    padding-right: .75rem;
+  }
+
+  /* Placeholder tone for empty selects/buttons */
+  .select[data-empty="true"] { color: var(--muted); }
+
+  /* Fade curtain that follows the card color (works in light & dark) */
+  .fade-curtain { background: linear-gradient(to bottom, transparent, var(--card)); }

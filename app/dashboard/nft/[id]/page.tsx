@@ -1,3 +1,4 @@
+// app/dashboard/nft/[id]/page.tsx
 import NftDetails from '@/components/NftDetails';
 
 export default function NftDetailsPage({ params }: { params: { id: string } }) {

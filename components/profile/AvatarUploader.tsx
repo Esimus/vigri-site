@@ -39,6 +39,27 @@ export function AvatarUploader({
     inputRef.current?.click();
   };
 
+  const handleFile = useCallback(
+    async (file: File) => {
+      setError(null);
+      if (!file.type.startsWith('image/')) {
+        setError('Only images are allowed (JPG/PNG/WEBP).');
+        return;
+      }
+      setBusy(true);
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        const processed = await resizeAndCompress(dataUrl, size, maxKB);
+        onChange(processed);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'Failed to process image.');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [size, maxKB, onChange]
+  );
+
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       if (disabled) return;
@@ -46,26 +67,8 @@ export function AvatarUploader({
       const f = e.dataTransfer.files?.[0];
       if (f) handleFile(f);
     },
-    [disabled]
+    [disabled, handleFile]
   );
-
-  const handleFile = async (file: File) => {
-    setError(null);
-    if (!file.type.startsWith('image/')) {
-      setError('Only images are allowed (JPG/PNG/WEBP).');
-      return;
-    }
-    setBusy(true);
-    try {
-      const dataUrl = await readFileAsDataURL(file);
-      const processed = await resizeAndCompress(dataUrl, size, maxKB);
-      onChange(processed);
-    } catch (e: any) {
-      setError(e?.message || 'Failed to process image.');
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -98,7 +101,8 @@ export function AvatarUploader({
         aria-busy={busy}
       >
         {value ? (
-          // Image preview
+          // Image preview (data URL; <img> уместен — отключаем линт от next/image)
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={value}
             alt=""
@@ -200,8 +204,7 @@ async function resizeAndCompress(
 
   // try WEBP → JPEG, reduce quality until <= maxKB
   const limit = maxKB * 1024;
-  const tryEncode = (type: string, q: number) =>
-    canvas.toDataURL(type, q);
+  const tryEncode = (type: string, q: number) => canvas.toDataURL(type, q);
 
   // Quality ladder
   const ladder = [0.92, 0.85, 0.8, 0.72, 0.65, 0.58, 0.5, 0.42, 0.36, 0.3];

@@ -1,3 +1,4 @@
+// components/profile/ProfileForm.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -7,6 +8,31 @@ import { useI18n } from '@/hooks/useI18n';
 import { CountrySelect } from '@/components/ui/CountrySelect';
 import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import { PHONE_CODES, getDialByCountry, getIsoByDial, formatLocalByIso } from '@/constants/phoneCodes';
+
+/** Narrow utility types to avoid `any` */
+type Empty = Record<string, never>;
+type ApiOk<T extends object = Empty> = { ok: true } & T;
+type ApiErr = { ok: false; error?: string };
+type GetProfileResp = ApiOk<{ profile: Partial<Profile> & { phone?: string; country?: string } }> | ApiErr;
+type SaveProfileResp = ApiOk | ApiErr;
+
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+function hasOkFlag(v: unknown): v is { ok: boolean } {
+  return isObject(v) && typeof (v as { ok?: unknown }).ok === 'boolean';
+}
+function isGetProfileResp(v: unknown): v is GetProfileResp {
+  if (!hasOkFlag(v)) return false;
+  if (v.ok) {
+    const p = (v as { profile?: unknown }).profile;
+    return isObject(p);
+  }
+  return true;
+}
+function isSaveProfileResp(v: unknown): v is SaveProfileResp {
+  return hasOkFlag(v);
+}
 
 const EMPTY: Profile = {
   firstName: '',
@@ -21,7 +47,8 @@ const EMPTY: Profile = {
   addressRegion: '',
   addressCity: '',
   addressPostal: '',
-  photo: null as any,
+  // keep field shape but avoid `any`
+  photo: null as unknown as Profile['photo'],
 };
 
 function Req({ children }: { children: React.ReactNode }) {
@@ -30,12 +57,13 @@ function Req({ children }: { children: React.ReactNode }) {
 
 function normalizeDate(v?: string): string {
   if (!v) return '';
+  v = v.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
   const m = v.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
   if (m) {
-    const d = m[1].padStart(2, '0');
-    const mo = m[2].padStart(2, '0');
-    const y = m[3];
+    const d  = m[1]!.padStart(2, '0');
+    const mo = m[2]!.padStart(2, '0');
+    const y  = m[3]!;
     return `${y}-${mo}-${d}`;
   }
   return v.slice(0, 10);
@@ -53,7 +81,7 @@ function splitPhone(full?: string): { code: string; local: string } {
     return { code: found.dial, local: rest.trim() };
   }
   const m = s.match(/^(\+\d{1,4})\s*(.*)$/);
-  if (m) return { code: m[1], local: (m[2] || '').trim() };
+  if (m) return { code: m[1] ?? '', local: (m[2] ?? '').trim() };
   return { code: '', local: s };
 }
 
@@ -82,10 +110,19 @@ export function ProfileForm() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await api.profile.get();
-        if ((r as any)?.ok) {
-          const prof = { ...EMPTY, ...(r as any).profile };
-          if (!prof.countryResidence && (prof as any).country) prof.countryResidence = (prof as any).country;
+        const raw = (await api.profile.get()) as unknown;
+        if (isGetProfileResp(raw) && raw.ok) {
+          const prof = { ...EMPTY, ...raw.profile };
+
+          // legacy `country` fallback if present
+          const legacyCountry = (() => {
+            const p = (raw as { profile?: unknown }).profile;
+            return isObject(p) && typeof p.country === 'string' ? p.country : undefined;
+          })();
+          if (!prof.countryResidence && legacyCountry) {
+            prof.countryResidence = legacyCountry;
+          }
+
           if (prof.birthDate) prof.birthDate = normalizeDate(prof.birthDate);
           if (!prof.language) prof.language = 'en';
           setData(prof);
@@ -100,8 +137,8 @@ export function ProfileForm() {
         } else {
           setError(t('profile.form.loadError'));
         }
-      } catch (e: any) {
-        setError(e?.message || t('profile.form.loadError'));
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : t('profile.form.loadError'));
       } finally {
         setLoading(false);
       }
@@ -171,15 +208,15 @@ export function ProfileForm() {
       const local = phoneLocalMasked.trim();
       const composedPhone = (phoneCode ? phoneCode.trim() + (local ? ' ' : '') : '') + local;
       const payload: Profile = { ...data, birthDate: normalizeDate(data.birthDate), phone: composedPhone };
-      const r = await api.profile.save(payload);
-      if ((r as any)?.ok) {
+      const raw = (await api.profile.save(payload)) as unknown;
+      if (isSaveProfileResp(raw) && raw.ok) {
         setSaved(true);
         setInitial(payload);
       } else {
         setError(t('profile.form.saveError'));
       }
-    } catch (e: any) {
-      setError(e?.message || t('profile.form.saveError'));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t('profile.form.saveError'));
     } finally {
       setSaving(false);
     }
@@ -314,50 +351,51 @@ export function ProfileForm() {
               </label>
 
               {/* Phone */}
-                <label className="label min-w-0">
-                  <span>{t('profile.form.phone')}</span>
-                    <div className="flex min-w-0 w-full gap-2 flex-nowrap">
-                    <select
-                      className="select w-[84px] lg:w-[96px] basis-[84px] lg:basis-[96px] shrink-0 truncate"
-                      value={phoneCode}
-                      onChange={(e) => onPhoneCodeChange(e.target.value)}
-                      data-empty={phoneCode === ''}   /* grey placeholder "Code" */
-                    >
-                      <option value="">{t('profile.form.phoneCode')}</option>
-                      {PHONE_CODES.map((pc) => (
-                        <option key={`${pc.code}-${pc.dial}`} value={pc.dial}>
-                          {pc.label}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      className="input flex-1 min-w-0 w-full"
-                      placeholder={t('profile.form.placeholder.phone')}
-                      value={phoneLocalMasked}
-                      onChange={(e) => onPhoneLocalChange(e.target.value)}
-                      maxLength={200}
-                    />
-                    </div>
-                </label>
-            
-            {/* Language */}
-            <div className="min-w-0">
               <label className="label min-w-0">
-                <span>{t('profile.form.languagePreferred')}</span>
-                <div className="space-y-1 w-full">
+                <span>{t('profile.form.phone')}</span>
+                <div className="flex min-w-0 w-full gap-2 flex-nowrap">
                   <select
-                    className="select w-full"
-                    value={data.language ?? 'en'}
-                    onChange={onChange('language')}
+                    className="select w-[84px] lg:w-[96px] basis-[84px] lg:basis-[96px] shrink-0 truncate"
+                    value={phoneCode}
+                    onChange={(e) => onPhoneCodeChange(e.target.value)}
+                    data-empty={phoneCode === ''}   /* grey placeholder "Code" */
                   >
-                    <option value="en">{t('lang.en')}</option>
-                    <option value="ru">{t('lang.ru')}</option>
-                    <option value="et">{t('lang.et')}</option>
+                    <option value="">{t('profile.form.phoneCode')}</option>
+                    {PHONE_CODES.map((pc) => (
+                      <option key={`${pc.code}-${pc.dial}`} value={pc.dial}>
+                        {pc.label}
+                      </option>
+                    ))}
                   </select>
-                  <span className="form-help">{t('profile.form.languageHelp')}</span>
+                  <input
+                    className="input flex-1 min-w-0 w-full"
+                    placeholder={t('profile.form.placeholder.phone')}
+                    value={phoneLocalMasked}
+                    onChange={(e) => onPhoneLocalChange(e.target.value)}
+                    maxLength={200}
+                  />
                 </div>
               </label>
-            </div></div>
+
+              {/* Language */}
+              <div className="min-w-0">
+                <label className="label min-w-0">
+                  <span>{t('profile.form.languagePreferred')}</span>
+                  <div className="space-y-1 w-full">
+                    <select
+                      className="select w-full"
+                      value={data.language ?? 'en'}
+                      onChange={onChange('language')}
+                    >
+                      <option value="en">{t('lang.en')}</option>
+                      <option value="ru">{t('lang.ru')}</option>
+                      <option value="et">{t('lang.et')}</option>
+                    </select>
+                    <span className="form-help">{t('profile.form.languageHelp')}</span>
+                  </div>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </div>

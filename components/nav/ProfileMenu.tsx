@@ -1,4 +1,4 @@
-// app/components/ProfileMenu.tsx
+// app/components/nav/ProfileMenu.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -38,8 +38,13 @@ const tChain = (t: (k: string) => string, keys: string[], fb: string) => {
 // Cookie helpers (client-side)
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
-  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\]\\^])/g, '\\$1') + '=([^;]*)'));
-  return m ? decodeURIComponent(m[1]) : null;
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\\^])/g, '\\$1') + '=([^;]*)'));
+  if (!m || typeof m[1] !== 'string') return null;
+  try {
+    return decodeURIComponent(m[1]);
+  } catch {
+    return null;
+  }
 }
 function writeCookie(name: string, value: string, days = 365) {
   if (typeof document === 'undefined') return;
@@ -49,12 +54,13 @@ function writeCookie(name: string, value: string, days = 365) {
 
 // Theme helpers
 type ThemePref = 'auto' | 'light' | 'dark';
-function getSystemDark(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
 function applyTheme(pref: ThemePref) {
-  const isDark = pref === 'dark' || (pref === 'auto' && typeof window !== 'undefined'
-      && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const isDark =
+    pref === 'dark' ||
+    (pref === 'auto' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
   const root = document.documentElement;
 
   // data attribute anyone can use (CSS variables, etc.)
@@ -294,9 +300,9 @@ export default function ProfileMenu() {
         {/* hamburger icon uses currentColor from btn */}
         <span aria-hidden className="inline-flex text-current">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-          <rect x="3" y="5" width="14" height="2" rx="1" />
-          <rect x="3" y="9" width="14" height="2" rx="1" />
-          <rect x="3" y="13" width="14" height="2" rx="1" />
+            <rect x="3" y="5" width="14" height="2" rx="1" />
+            <rect x="3" y="9" width="14" height="2" rx="1" />
+            <rect x="3" y="13" width="14" height="2" rx="1" />
           </svg>
         </span>
       </button>

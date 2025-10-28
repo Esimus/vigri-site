@@ -1,9 +1,11 @@
+// components/DashboardOverview.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/useI18n';
 import StatCarousel from '@/components/ui/StatCarousel';
+import MyNftsStrip from '@/components/MyNftsStrip';
 
 type Rights = {
   id: string;
@@ -31,8 +33,15 @@ type MeResp = {
 // cookie helper (client-only)
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
-  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\]\\^])/g, '\\$1') + '=([^;]*)'));
-  return m ? decodeURIComponent(m[1]) : null;
+  const raw = document.cookie;
+  if (!raw) return null;
+
+  const parts = raw.split('; ');
+  for (const part of parts) {
+    const [k, ...rest] = part.split('=');
+    if (k === name) return decodeURIComponent(rest.join('='));
+  }
+  return null;
 }
 
 function StatCard({ title, value, hint }: { title: string; value: string; hint?: string }) {
@@ -45,12 +54,7 @@ function StatCard({ title, value, hint }: { title: string; value: string; hint?:
   );
 }
 
-export default function DashboardOverview() {
-  const { t } = useI18n();
-  const [me, setMe] = useState<MeResp | null>(null);
-  const [rights, setRights] = useState<Rights[]>([]);
-  const [history, setHistory] = useState<AssetsResp['history']>([]);
-  const ACTIVITY_KEYS: Record<string, string> = {
+const ACTIVITY_KEYS: Record<string, string> = {
   buy_vigri: 'activity.buy_vigri',
   sell_vigri: 'activity.sell_vigri',
   deposit: 'activity.deposit',
@@ -58,27 +62,29 @@ export default function DashboardOverview() {
   buy_nft: 'activity.buy_nft',
   reward: 'activity.reward',
 };
-
-const activityLabel = (type: string) => {
+const ACTIVITY_ICONS: Record<string, string> = {
+  buy_vigri: '🟢',
+  sell_vigri: '🔴',
+  deposit: '⬇️',
+  withdraw: '⬆️',
+  buy_nft: '🧾',
+  reward: '🎁',
+};
+const activityLabel = (type: string, t: (k: string) => string) => {
   const key = ACTIVITY_KEYS[type] ?? 'activity.unknown';
   const v = t(key);
-  return v === key ? type : v; 
-};
-
-const ACTIVITY_ICONS: Record<string, string> = {
-  buy_vigri: '🟢',   // buy
-  sell_vigri:'🔴',   // sell
-  deposit:  '⬇️',
-  withdraw: '⬆️',
-  buy_nft:  '🧾',
-  reward:   '🎁',
+  return v === key ? type : v;
 };
 const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
 
+export default function DashboardOverview() {
+  const { t } = useI18n();
+  const [me, setMe] = useState<MeResp | null>(null);
+  const [rights, setRights] = useState<Rights[]>([]);
+  const [history, setHistory] = useState<AssetsResp['history']>([]);
 
   // IMPORTANT: start with EUR to match SSR markup and avoid hydration mismatch
   const [ccy, setCcy] = useState<'EUR' | 'USD'>('EUR');
-  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -87,10 +93,10 @@ const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
       const mj: MeResp | null = await mr.json().catch(() => null);
 
       const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
-      const rj: RightsResp = await rr.json().catch(() => ({ ok: false, items: [], tgePriceEur: 0 } as any));
+      const rj: RightsResp = await rr.json().catch(() => ({ ok: false, items: [], tgePriceEur: 0 }));
 
       const ar = await fetch('/api/assets', { cache: 'no-store' });
-      const aj: AssetsResp = await ar.json().catch(() => ({ ok: false, history: [] } as any));
+      const aj: AssetsResp = await ar.json().catch(() => ({ ok: false, history: [] }));
 
       if (!alive) return;
       if (mr.ok && mj?.ok) setMe(mj);
@@ -99,7 +105,6 @@ const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
     })();
 
     // after mount: read saved currency and subscribe to changes
-    setHydrated(true);
     const saved = readCookie('vigri_ccy');
     if (saved === 'USD' || saved === 'EUR') setCcy(saved as 'EUR' | 'USD');
 
@@ -145,7 +150,6 @@ const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
     return Math.min(...lefts);
   }, [rights]);
 
-  // formatter depends on currency; on first SSR/hydration we render EUR
   const cf = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency: ccy }),
     [ccy]
@@ -221,27 +225,8 @@ const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
         />
       </div>
 
-
-      {/* Quick actions */}
-      <div className="card p-4">
-        <div className="text-sm font-medium mb-3">{t('overview.quick')}</div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/nft" className="btn btn-primary">
-            {t('overview.go_nft')}
-          </Link>
-          <Link href="/dashboard/assets" className="btn btn-outline">
-            {t('overview.go_assets')}
-          </Link>
-          {kycKey !== 'approved' && (
-            <Link href="/kyc" className="btn btn-outline">
-              {t('kyc.banner.start')}
-            </Link>
-          )}
-          <Link href="/dashboard/rewards" className="btn btn-outline">
-            {t('overview.go_rewards')}
-          </Link>
-        </div>
-      </div>
+      {/* My NFTs */}
+      <MyNftsStrip />
 
       {/* Recent activity */}
       <div className="card p-4">
@@ -250,15 +235,15 @@ const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
           <ul className="text-sm space-y-1">
             {history.slice(0, 5).map((h) => (
               <li key={h.id} className="flex items-center justify-between">
-  <span>{new Date(h.ts).toLocaleString()}</span>
-  <span className="opacity-70">
-    <span aria-hidden className="mr-1">{activityIcon(h.type)}</span>
-    {activityLabel(h.type)}
-  </span>
-  <span className="font-mono">
-    {h.symbol} {h.amount > 0 ? '+' : ''}{h.amount}
-  </span>
-</li>
+                <span>{new Date(h.ts).toLocaleString()}</span>
+                <span className="opacity-70">
+                  <span aria-hidden className="mr-1">{activityIcon(h.type)}</span>
+                  {activityLabel(h.type, t)}
+                </span>
+                <span className="font-mono">
+                  {h.symbol} {h.amount > 0 ? '+' : ''}{h.amount}
+                </span>
+              </li>
             ))}
           </ul>
         ) : (

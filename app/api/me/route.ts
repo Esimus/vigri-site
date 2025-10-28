@@ -47,8 +47,12 @@ type Profile = {
   phone?: string;
 };
 
-function sanitizeProfile(p: any): Profile {
-  if (!p || typeof p !== 'object') return {};
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+function sanitizeProfile(p: unknown): Profile {
+  if (!isObject(p)) return {};
   const out: Profile = {};
   const put = (k: keyof Profile) => {
     if (typeof p[k] === 'string') out[k] = (p[k] as string).slice(0, 200);
@@ -112,15 +116,21 @@ export async function GET(req: Request) {
 
 // POST: accept { lum } and/or { kyc } and/or { profile } and write cookies
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({} as any));
+  let bodyUnknown: unknown = {};
+  try {
+    bodyUnknown = await req.json();
+  } catch {
+    // ignore malformed JSON
+  }
+  const body = isObject(bodyUnknown) ? bodyUnknown : {};
 
   // validate inputs
-  const hasLum = typeof body?.lum !== 'undefined';
-  const kycIncoming = body?.kyc as unknown;
+  const hasLum = Object.prototype.hasOwnProperty.call(body, 'lum');
+  const kycIncoming = (body as { kyc?: unknown }).kyc;
   const isKycValid =
     kycIncoming === 'none' || kycIncoming === 'pending' || kycIncoming === 'approved';
 
-  const profileIncoming = sanitizeProfile(body?.profile);
+  const profileIncoming = sanitizeProfile((body as { profile?: unknown }).profile);
   const hasProfile = Object.keys(profileIncoming).length > 0;
 
   if (!hasLum && !isKycValid && !hasProfile) {
@@ -131,7 +141,9 @@ export async function POST(req: Request) {
 
   // write LUM
   if (hasLum) {
-    const serialized = typeof body.lum === 'string' ? body.lum : JSON.stringify(body.lum);
+    const lumVal = (body as { lum?: unknown }).lum;
+    const serialized =
+      typeof lumVal === 'string' ? lumVal : JSON.stringify(lumVal);
     res.cookies.set(LUM_COOKIE, serialized, {
       path: '/',
       sameSite: 'lax',
@@ -154,7 +166,8 @@ export async function POST(req: Request) {
 
   // write PROFILE (merge with existing)
   if (hasProfile) {
-    const current = sanitizeProfile(parseJson<Profile>(req.headers.get('cookie') && readCookie(req.headers.get('cookie'), PROFILE_COOKIE)));
+    const currentRaw = readCookie(req.headers.get('cookie'), PROFILE_COOKIE);
+    const current = sanitizeProfile(parseJson<Profile>(currentRaw));
     const merged = { ...current, ...profileIncoming };
     res.cookies.set(PROFILE_COOKIE, JSON.stringify(merged), {
       path: '/',

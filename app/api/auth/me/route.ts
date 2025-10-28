@@ -11,6 +11,10 @@ const PROFILE_COOKIE = 'vigri_profile';
 const isProd = process.env.NODE_ENV === 'production';
 const THIRTY_DAYS = 60 * 60 * 24 * 30;
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 function readCookie(header: string | null, name: string): string | null {
   if (!header) return null;
   const parts = header.split(';');
@@ -58,8 +62,8 @@ function clipLong(v: unknown, n = 200_000): string | undefined {
   return typeof v === 'string' ? v.slice(0, n) : undefined;
 }
 
-function sanitizeProfile(p: any): Profile {
-  if (!p || typeof p !== 'object') return {};
+function sanitizeProfile(p: unknown): Profile {
+  if (!isObject(p)) return {};
   const out: Profile = {};
   out.firstName        = clip(p.firstName);
   out.middleName       = clip(p.middleName);
@@ -113,13 +117,21 @@ export async function GET(req: Request) {
 
 // POST
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({} as any));
+  let bodyUnknown: unknown = {};
+  try {
+    bodyUnknown = await req.json();
+  } catch {
+    // ignore malformed JSON
+  }
 
-  const hasLum = typeof body?.lum !== 'undefined';
-  const kycIncoming = body?.kyc as unknown;
+  type MePostBody = { lum?: unknown; kyc?: unknown; profile?: unknown };
+  const body: MePostBody = isObject(bodyUnknown) ? (bodyUnknown as MePostBody) : {};
+
+  const hasLum = typeof body.lum !== 'undefined';
+  const kycIncoming = body.kyc as unknown;
   const isKycValid = kycIncoming === 'none' || kycIncoming === 'pending' || kycIncoming === 'approved';
 
-  const profileIncoming = sanitizeProfile(body?.profile);
+  const profileIncoming = sanitizeProfile(body.profile);
   const hasProfile = Object.keys(profileIncoming).length > 0;
 
   if (!hasLum && !isKycValid && !hasProfile) {

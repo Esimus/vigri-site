@@ -7,10 +7,20 @@ import { randomBytes, createHash } from 'crypto';
 
 export const runtime = 'nodejs';
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({} as any));
-  const email = (body?.email ?? '').trim().toLowerCase();
-  const password = (body?.password ?? '').trim();
+  let bodyUnknown: unknown = {};
+  try {
+    bodyUnknown = await req.json();
+  } catch {
+    // ignore malformed JSON
+  }
+  const body = isObject(bodyUnknown) ? bodyUnknown : {};
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const password = typeof body.password === 'string' ? body.password.trim() : '';
 
   if (!email || !password) {
     return NextResponse.json({ ok: false, error: 'bad_request' }, { status: 400 });

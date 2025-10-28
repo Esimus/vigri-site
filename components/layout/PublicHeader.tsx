@@ -1,11 +1,11 @@
 'use client';
 
 // All comments in English
-import Image from 'next/image';
 import Link from 'next/link';
 import { LanguageSwitcher } from '@/components/nav/LanguageSwitcher';
 import { useI18n } from '@/hooks/useI18n';
 import { CONFIG } from '@/lib/config';
+import VigriLogo from "@/components/VigriLogo";
 
 export default function PublicHeader() {
   const { lang, setLang, t } = useI18n();
@@ -17,13 +17,7 @@ export default function PublicHeader() {
           {/* Brand — same look as dashboard */}
           <Link href="/" className="flex items-center gap-3">
             <div className="h-11 w-11 overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white">
-              <Image
-                src="/vigri-logo.png"          // use same path as DashboardShell
-                alt="VIGRI logo"
-                width={44}
-                height={44}
-                className="h-full w-full object-cover"
-              />
+              <VigriLogo className="shrink-0 size-11" />             {/* 44px */}
             </div>
             <div>
               <div className="font-semibold tracking-tight">VIGRI</div>

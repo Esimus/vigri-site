@@ -39,15 +39,12 @@ export default function StatCarousel({ items }: { items: Item[] }) {
           aria-label="Previous"
           onClick={() => scrollByOne(-1)}
           className="
-            absolute inset-y-0 left-0 w-7 z-10
-            grid place-items-center
-            bg-gradient-to-r from-white/95 to-transparent dark:from-black/45
-            ring-1 ring-black/5 dark:ring-white/10
-            shadow-sm hover:shadow transition
-            rounded-l-xl
+            absolute inset-y-0 left-0 w-7 z-10 grid place-items-center rounded-l-xl border 
+            hover:brightness-110 active:brightness-95 transition
           "
+          style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--fg)' }}
         >
-          <span className="text-xl leading-none select-none">‹</span>
+          <span aria-hidden className="text-xl leading-none select-none">‹</span>
         </button>
 
         {/* Right paddle (full height) */}
@@ -56,15 +53,12 @@ export default function StatCarousel({ items }: { items: Item[] }) {
           aria-label="Next"
           onClick={() => scrollByOne(1)}
           className="
-            absolute inset-y-0 right-0 w-7 z-10
-            grid place-items-center
-            bg-gradient-to-l from-white/95 to-transparent dark:from-black/45
-            ring-1 ring-black/5 dark:ring-white/10
-            shadow-sm hover:shadow transition
-            rounded-r-xl
+            absolute inset-y-0 right-0 w-7 z-10 grid place-items-center rounded-r-xl border 
+            hover:brightness-110 active:brightness-95 transition
           "
+          style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--fg)' }}
         >
-          <span className="text-xl leading-none select-none">›</span>
+          <span aria-hidden className="text-xl leading-none select-none">›</span>
         </button>
 
         {/* Track (native swipe + wheel; scrollbar hidden) */}

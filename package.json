@@ -6,8 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
-    "backup": "scripts/backup.sh"
+    "lint": "eslint . --max-warnings=0",
+    "backup": "scripts/backup.sh",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",

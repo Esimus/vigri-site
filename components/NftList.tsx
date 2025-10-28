@@ -1,9 +1,12 @@
+// components/NftList.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { api } from '@/lib/api';
 import { useI18n } from '@/hooks/useI18n';
 import Link from 'next/link';
+import Image from 'next/image';
+import { PRESALE_END_ISO, presaleRemainingMs, formatRemaining } from '@/lib/config';
 
 type Item = {
   id: string;
@@ -15,138 +18,248 @@ type Item = {
   limited?: number;
   vesting?: string | null;
   ownedQty?: number;
-  invited?: boolean; // для Founding-20
+  invited?: boolean; // for WS-20
+  summaryKeys?: string[];
+  minted?: number;
 };
+
+function pngNameFor(id: string): string {
+  switch (id) {
+    case 'nft-tree-steel':  return '1_mb_wood_stell.webp';
+    case 'nft-bronze':      return '2_mb_bronze.webp';
+    case 'nft-silver':      return '3_mb_silver.webp';
+    case 'nft-gold':        return '4_mb_gold.webp';
+    case 'nft-platinum':    return '5_mb_platinum.webp';
+    case 'nft-ws-20':       return '6_mb_ws.webp';
+    default:                return '6_mb_ws.webp';
+  }
+}
+
+/** Compact presale countdown: 4 cells (D/H/M/S). */
+function usePresaleCountdown() {
+  const [tick, setTick] = useState(() => formatRemaining(presaleRemainingMs()));
+  useEffect(() => {
+    const id = setInterval(() => setTick(formatRemaining(presaleRemainingMs())), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return {
+    isPresale: presaleRemainingMs() > 0,
+    d: String(tick.d),
+    h: pad(tick.h),
+    m: pad(tick.m),
+    s: pad(tick.s),
+  };
+}
 
 export default function NftList() {
   const { t } = useI18n();
   const [items, setItems] = useState<Item[]>([]);
-  const [qty, setQty]   = useState<Record<string, number>>({});
-  const [msg, setMsg]   = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const load = async () => {
     const r = await api.nft.list();
-    if (r.ok) {
-      setItems(r.items as Item[]);
-      const q: Record<string, number> = {};
-      (r.items as Item[]).forEach(i => { q[i.id] = 1; });
-      setQty(q);
-    }
+    if (r.ok) setItems(r.items as Item[]);
   };
-
   useEffect(() => { load(); }, []);
 
-  const buy = async (id: string) => {
-    setMsg(null);
-    const isFounding = id === 'nft-founding-20';
-    const amount = isFounding ? 1 : (qty[id] ?? 1);
-    try {
-      const r = await api.nft.buy(id, amount);
-      if (!r.ok) { setMsg(r.error || t('nft.msg.failed')); return; }
-      setItems(prev => prev.map(i => i.id === id ? { ...i, ownedQty: (r as any).qty } : i));
-      setMsg(t('nft.msg.done'));
-    } catch (e: any) {
-      setMsg(e?.message || t('nft.msg.failed'));
-    }
-  };
+  const cf = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }), []);
+  const afterDateLabel = useMemo(() => {
+    const d = new Date(PRESALE_END_ISO);
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const yyyy = d.getUTCFullYear();
+    return `${dd}.${mm}.${yyyy}`;
+  }, []);
 
-  const cf = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' });
+  // Compute presale countdown once per list render (Rules of Hooks safe)
+  const presale = usePresaleCountdown();
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         {msg ? <div className="text-sm">{msg}</div> : <div />}
         <div className="flex items-center gap-2">
-          {/* dev-кнопки — можно убрать позже */}
-          <button className="rounded-xl border px-3 py-1 text-xs" onClick={async()=>{await api.nft.invite(true); await load();}}>
+          <button
+            className="btn btn-outline px-3 py-1 text-xs"
+            onClick={async () => { await api.nft.invite(true); await load(); setMsg(t('nft.dev.invite_grant')); }}
+          >
             {t('nft.dev.invite_grant')}
           </button>
-          <button className="rounded-xl border px-3 py-1 text-xs" onClick={async()=>{await api.nft.invite(false); await load();}}>
+          <button
+            className="btn btn-outline px-3 py-1 text-xs"
+            onClick={async () => { await api.nft.invite(false); await load(); setMsg(t('nft.dev.invite_revoke')); }}
+          >
             {t('nft.dev.invite_revoke')}
           </button>
           <form action="/api/nft/reset" method="POST">
-            <button className="rounded-xl border px-3 py-1 text-xs">{t('nft.reset')}</button>
+            <button className="btn btn-outline px-3 py-1 text-xs">{t('nft.reset')}</button>
           </form>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {items.map(i => {
-          const isFounding = i.id === 'nft-founding-20';
+      {/* 2 cols on mobile, 3 on md+ */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        {items.map((i) => {
           const owned = (i.ownedQty || 0) > 0;
+          const src = `/images/nft/${pngNameFor(i.id)}`;
+          const showCountdown = presale.isPresale && i.id !== 'nft-ws-20';
+
+          // Availability calc
+          const total = Number.isFinite(i.limited) ? (i.limited || 0) : 0;
+          const sold = Math.min(i.minted || 0, total);
+          const left = Math.max(total - sold, 0);
+          const pct = total > 0 ? Math.round((sold / total) * 100) : 0;
+          const showAvailability = i.id !== 'nft-ws-20' && total > 0;
+
+          // Vesting yes/no
+          const vestingYesNo = i.vesting ? t('nft.yes') : t('nft.no');
+
+          // Features + resume (last key is 💬)
+          const keys = Array.isArray(i.summaryKeys) ? i.summaryKeys : [];
+          const hasResume = keys.length > 0;
+          const resumeKey = hasResume ? keys[keys.length - 1] : undefined;
+          const featureKeys = hasResume ? keys.slice(0, keys.length - 1) : [];
+
+          // Progress color: green → amber → red
+          const progressColor = pct > 70 ? '#EF4444' : pct >= 30 ? '#F59E0B' : '#10B981';
+
 
           return (
-            <div key={i.id} className="border rounded-2xl p-4 grid grid-cols-1 md:grid-cols-[minmax(220px,320px)_1fr] gap-4">
-              {/* Левая колонка: превью 3:4 */}
-              <div className="w-full">
-                <div className="relative w-full" style={{ aspectRatio: '3 / 4' }}>
-                  <div className="absolute inset-0 rounded-xl border flex items-center justify-center text-sm opacity-70">
-                    3:4 Preview
+            <div key={i.id} className="card p-3 md:p-4 flex flex-col rounded-2xl">
+              {/* Preview with overlays */}
+              <div className="relative w-full mb-3" style={{ aspectRatio: '3 / 4' }}>
+                <Image
+                  src={src}
+                  alt={i.name}
+                  fill
+                  sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 320px"
+                  className="object-cover rounded-xl border"
+                  priority={false}
+                />
+
+                {/* Owned chip (top-right) */}
+                {owned && (
+                  <div className="absolute top-2 right-2 chip shadow">
+                    {t('nft.owned')}: <b className="ml-1">{i.ownedQty}</b>
                   </div>
-                </div>
+                )}
+
+                {/* Micro countdown (bottom-left) */}
+                {showCountdown && (
+                  <div className="absolute left-2 bottom-2 text-white text-shadow-sm">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide mb-0.5 drop-shadow">
+                      {t('nft.badge.presale')}
+                    </div>
+                    <div className="flex gap-2">
+                      {[ // 4 tiny cells
+                        { v: presale.d, l: t('nft.timer.d') },
+                        { v: presale.h, l: t('nft.timer.h') },
+                        { v: presale.m, l: t('nft.timer.m') },
+                        { v: presale.s, l: t('nft.timer.s') },
+                      ].map(({ v, l }) => (
+                        <div key={l} className="flex flex-col items-center leading-none drop-shadow">
+                          <div className="text-[11px] font-semibold tabular-nums">{v}</div>
+                          <div className="text-[8px] font-light opacity-90 leading-[0.95]">{l}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Правая колонка: контент */}
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-3">
+              {/* Title row + supply */}
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="font-semibold text-sm md:text-base">{i.name}</div>
+                {typeof i.limited === 'number' && i.limited > 0 && (
+                  <div className="chip shrink-0" title={t('nft.total')}>
+                    {t('nft.total')}: {i.limited}
+                  </div>
+                )}
+              </div>
+
+              {/* Collapsible features */}
+              {featureKeys.length > 0 ? (
+                <details
+                  className="mb-2 rounded-lg"
+                  open={!!expanded[i.id]}
+                  onToggle={(e) =>
+                    setExpanded((s) => ({ ...s, [i.id]: (e.target as HTMLDetailsElement).open }))
+                  }
+                >
+                  <summary className="cursor-pointer select-none text-[11px] md:text-xs opacity-80 underline underline-offset-4">
+                    {expanded[i.id] ? (t('nft.hide') ?? 'Hide features') : (t('nft.show') ?? 'Show features')}
+                  </summary>
+                  <ul className="mt-2 text-[10px] md:text-xs opacity-80 list-disc pl-4 space-y-1">
+                    {featureKeys.map((k, idx) => (
+                      <li key={idx}>{t(k)}</li>
+                    ))}
+                  </ul>
+                </details>
+              ) : (
+                <div className="text-xs md:text-sm opacity-70 mb-2">{i.blurb}</div>
+              )}
+
+              {/* Short resume (💬) */}
+              {resumeKey && (
+                <div className="text-[11px] md:text-xs opacity-80 mb-2">
+                  {t(resumeKey)}
+                </div>
+              )}
+
+              {/* Price + after-date pill */}
+              {i.eurPrice > 0 ? (
+                <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
                   <div>
-                    <div className="text-lg font-semibold">{i.name}</div>
-                    <div className="text-sm opacity-70">{i.blurb}</div>
+                    {t('nft.price')}: <b>{cf.format(i.eurPrice)}</b>
                   </div>
-                  {owned && <div className="text-xs shrink-0">{t('nft.owned')}: <b>{i.ownedQty}</b></div>}
+                  <span className="chip">
+                    {t('nft.after')} {afterDateLabel}: {cf.format(i.eurPrice * 2)}
+                  </span>
                 </div>
+              ) : (
+                <div className="text-xs md:text-sm opacity-70 mb-2">{t('nft.badge.invite')}</div>
+              )}
 
-                {/* Цена / статусы */}
-                {i.eurPrice > 0 ? (
-                  <div className="text-sm">
-                    {t('nft.price')}: <b>{cf.format(i.eurPrice)}</b> (~{i.vigriPrice.toLocaleString()} VIGRI)
+              {/* Availability */}
+              {showAvailability && (
+                <div className="space-y-1.5 mb-3">
+                  <div className="text-[11px] md:text-xs opacity-80">{t('nft.availability')}</div>
+                  <div className="progress-track">
+                    <div
+                      className="progress-fill"
+                      style={{ width: `${pct}%`, backgroundColor: progressColor }}
+                    />
                   </div>
-                ) : (
-                  <div className="text-sm opacity-70">{t('nft.invite_only')}</div>
-                )}
-                <div className="flex flex-wrap gap-3 text-xs opacity-70">
-                  {i.vesting && <span>{t('nft.vesting')}: {i.vesting}</span>}
-                  {i.kycRequired && <span>{t('nft.kyc')}</span>}
-                  {i.limited && <span>{t('nft.limited')}: {i.limited}</span>}
+                  <div className="flex items-center justify-between text-[11px] md:text-xs opacity-80">
+                    <span>
+                      {t('nft.sold_short')}: <b>{sold}</b> ({pct}%)
+                    </span>
+                    <span>
+                      {t('nft.available_short')}: <b>{left}</b>
+                    </span>
+                  </div>
                 </div>
+              )}
 
-                {/* Управление покупкой */}
-                {!isFounding && (
-                  <div className="flex items-end gap-2">
-                    <div>
-                      <label className="block text-xs mb-1">{t('nft.qty')}</label>
-                      <input
-                        type="number"
-                        min={1}
-                        step={1}
-                        className="border rounded-md p-2 w-24 text-sm"
-                        value={qty[i.id] ?? 1}
-                        onChange={(e) => setQty(q => ({ ...q, [i.id]: Math.max(1, Math.floor(Number(e.target.value) || 1)) }))}
-                      />
-                    </div>
-                    <button className="rounded-xl border px-3 py-2 text-sm bg-brand-100 border-brand-200 text-brand hover:bg-brand-200 disabled:opacity-50" onClick={() => buy(i.id)}>
-                      {t('nft.buy')}
-                    </button>
-                  </div>
+              {/* Meta chips */}
+              <div className="flex flex-wrap gap-2 text-[10px] md:text-xs opacity-70 mb-3">
+                {i.kycRequired && (
+                  <span className="chip" title={t('nft.kyc')} aria-label="KYC">🔒 {t('nft.kyc')}</span>
                 )}
-
-                {/* Founding-20: без Qty, активна только по инвайту */}
-                {isFounding && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="rounded-xl border px-3 py-2 text-sm bg-brand-100 border-brand-200 text-brand hover:bg-brand-200 disabled:opacity-50"
-                      onClick={() => buy(i.id)}
-                      disabled={owned || !i.invited}
-                    >
-                      {owned ? t('nft.owned_btn') : (i.invited ? t('nft.claim') : t('nft.invite_only'))}
-                    </button>
-                  </div>
+                {(i.eurPrice <= 0 || i.id === 'nft-ws-20') && (
+                  <span className="chip" title={t('nft.badge.invite')} aria-label="Invite">🔑 {t('nft.badge.invite')}</span>
                 )}
+                <span className="chip" title={i.vesting || 'No vesting'}>
+                  {t('nft.vesting')}: {vestingYesNo}
+                </span>
+              </div>
 
-                {<Link href={`/dashboard/nft/${i.id}`} className="text-sm underline">
+              <div className="mt-auto">
+                <Link href={`/dashboard/nft/${i.id}`} className="btn btn-outline w-full justify-center rounded-2xl">
                   {t('nft.details')}
-                </Link>}
-                {/* <Link href={`/dashboard/nft/${i.id}`} className="text-sm underline">{t('nft.details')}</Link> */}
+                </Link>
               </div>
             </div>
           );

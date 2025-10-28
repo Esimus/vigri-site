@@ -15,11 +15,13 @@ type Nft = {
   vesting?: string | null;
   designs: Design[];
   // New fields
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'founding';
-  discountPct: number;            // 0.25..0.50
+  tier: 'tree' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'ws';
+  discountPct: number;            // 0..0.50 (0 allowed for Tree/Steel)
   activationType: 'flex' | 'fixed' | 'none';
-  fixedClaimPct?: number;         // for fixed (gold/platinum)
+  fixedClaimPct?: number;         // for fixed (gold/platinum/tree)
   fixedDiscountPct?: number;      // for fixed
+  /** i18n keys for compact feature list (rendered on the catalog grid) */
+  summaryKeys?: string[];
 };
 
 // Allowed activation values saved per NFT id
@@ -30,8 +32,9 @@ type State = {
   designs?: Record<string, Record<string, number>>;
   upgrades?: Record<string, { rare: number; ultra: number }>;
   activation?: Record<string, ActivationKind>;
-  lum?: boolean;                                   // opt-in to the ecosystem
-  expires?: Record<string, string>;                // ISO date when Discount right expires
+  lum?: boolean;
+  expires?: Record<string, string>;
+  minted?: Record<string, number>;
 };
 
 type RespItem = Nft & {
@@ -41,19 +44,19 @@ type RespItem = Nft & {
   userActivation?: ActivationKind | null;
   upgrades?: { rare: number; ultra: number };
   expiresAt?: string | null;
+  minted?: number;
 };
 
 const TGE_PRICE_EUR = 0.0008;
 const COOKIE = 'vigri_nfts';
-const COOKIE_FOUNDING_INVITED = 'vigri_founding_invited';
+const COOKIE_WS_INVITED = 'vigri_ws_invited';
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 /** ---- Helpers ---- */
 const eurToVigri = (eur: number) => Math.round(eur / TGE_PRICE_EUR);
 
-// Safe cookie-backed state
 function emptyState(): State {
-  return { bag: {}, designs: {}, upgrades: {}, activation: {}, expires: {} };
+  return { bag: {}, designs: {}, upgrades: {}, activation: {}, expires: {}, minted: {} };
 }
 
 function isObject(x: unknown): x is Record<string, unknown> {
@@ -68,7 +71,6 @@ function readState(): State {
     const parsedUnknown: unknown = JSON.parse(raw);
     if (!isObject(parsedUnknown)) return emptyState();
 
-    // Back-compat: older shape { owned: string[] }
     if ('owned' in parsedUnknown && Array.isArray((parsedUnknown as { owned: unknown }).owned)) {
       const bag: Record<string, number> = {};
       for (const id of (parsedUnknown as { owned: string[] }).owned) {
@@ -77,7 +79,6 @@ function readState(): State {
       return { ...emptyState(), bag };
     }
 
-    // Merge partial State with defaults
     const p = parsedUnknown as Partial<State>;
     return {
       bag: (p.bag ?? {}) as Record<string, number>,
@@ -86,6 +87,7 @@ function readState(): State {
       activation: (p.activation ?? {}) as Record<string, ActivationKind>,
       lum: Boolean(p.lum),
       expires: (p.expires ?? {}) as Record<string, string>,
+      minted: (p.minted ?? {}) as Record<string, number>,
     };
   } catch {
     return emptyState();
@@ -107,56 +109,129 @@ function writeState(s: State) {
 
 /** ---- Catalog ---- */
 const CATALOG: Nft[] = [
+  // Tree / Steel
+  {
+    id: 'nft-tree-steel',
+    name: 'Tree / Steel',
+    eurPrice: 50,
+    vigriPrice: eurToVigri(50),
+    blurb: 'Symbolic entry tier.',
+    designs: [
+      { id: 'tree-wood',  label: 'Wood'  },
+      { id: 'tree-steel', label: 'Steel' },
+    ],
+    kycRequired: false,
+    limited: 2000,
+    vesting: null,
+    tier: 'tree',
+    discountPct: 0,
+    activationType: 'fixed',
+    summaryKeys: [
+      'nft.summary.tree_0',
+      'nft.summary.tree_1',
+      'nft.summary.tree_2',
+      'nft.summary.tree_3',
+      'nft.summary.tree_4',
+      'nft.summary.tree_5',
+      'nft.summary.tree_6',
+    ],
+  },
+
+  // Bronze
   {
     id: 'nft-bronze',
     name: 'Bronze NFT',
-    eurPrice: 50,
-    vigriPrice: eurToVigri(50),
+    eurPrice: 150,
+    vigriPrice: eurToVigri(150),
     blurb: 'Entry tier (rare/ultra lottery)',
     designs: [
       { id: 'bronze-default', label: 'Default', rarity: 0.99 },
       { id: 'bronze-premium', label: 'Premium', rarity: 0.01 },
     ],
     kycRequired: false,
+    limited: 1000,
     vesting: null,
     tier: 'bronze',
     discountPct: 0.25,
     activationType: 'flex',
+    summaryKeys: [
+      'nft.summary.bronze_0',
+      'nft.summary.bronze_1',
+      'nft.summary.bronze_2',
+      'nft.summary.bronze_3',
+      'nft.summary.bronze_4',
+      'nft.summary.bronze_5',
+      'nft.summary.bronze_6',
+      'nft.summary.bronze_7',
+      'nft.summary.bronze_8',
+    ],
   },
+
+  // Silver
   {
     id: 'nft-silver',
     name: 'Silver NFT',
-    eurPrice: 350,
-    vigriPrice: eurToVigri(350),
+    eurPrice: 1000,
+    vigriPrice: eurToVigri(1000),
     blurb: 'Supporter tier (rare/ultra lottery)',
     designs: [
       { id: 'silver-default', label: 'Default', rarity: 0.99 },
       { id: 'silver-ultra', label: 'Ultra', rarity: 0.01 },
     ],
     kycRequired: false,
+    limited: 200,
     vesting: null,
     tier: 'silver',
     discountPct: 0.35,
     activationType: 'flex',
+    summaryKeys: [
+      'nft.summary.silver_0',
+      'nft.summary.silver_1',
+      'nft.summary.silver_2',
+      'nft.summary.silver_3',
+      'nft.summary.silver_4',
+      'nft.summary.silver_5',
+      'nft.summary.silver_6',
+      'nft.summary.silver_7',
+      'nft.summary.silver_8',
+      'nft.summary.silver_9',
+      'nft.summary.silver_10',
+    ],
   },
+
+  // Gold
   {
     id: 'nft-gold',
     name: 'Gold NFT',
-    eurPrice: 1000,
-    vigriPrice: eurToVigri(1000),
+    eurPrice: 5000,
+    vigriPrice: eurToVigri(5000),
     blurb: 'Premium tier',
     designs: [
       { id: 'gold-a', label: 'Design A' },
       { id: 'gold-b', label: 'Design B' },
     ],
     kycRequired: true,
-    vesting: '30% claim / 70% discount (vesting)',
+    limited: 100,         // <-- added
+    vesting: 'Vesting',
     tier: 'gold',
     discountPct: 0.40,
-    activationType: 'fixed',
+    activationType: 'flex',
     fixedClaimPct: 0.30,
     fixedDiscountPct: 0.70,
+    summaryKeys: [
+      'nft.summary.gold_0',
+      'nft.summary.gold_1',
+      'nft.summary.gold_2',
+      'nft.summary.gold_3',
+      'nft.summary.gold_4',
+      'nft.summary.gold_5',
+      'nft.summary.gold_6',
+      'nft.summary.gold_7',
+      'nft.summary.gold_8',
+    ],
   },
+
+  // Platinum
   {
     id: 'nft-platinum',
     name: 'Platinum NFT',
@@ -168,33 +243,57 @@ const CATALOG: Nft[] = [
       { id: 'platinum-b', label: 'Design B' },
     ],
     kycRequired: true,
-    vesting: '20% claim / 80% discount (vesting)',
+    limited: 20,          // <-- added
+    vesting: 'Vesting',
     tier: 'platinum',
     discountPct: 0.50,
-    activationType: 'fixed',
+    activationType: 'flex',
     fixedClaimPct: 0.20,
     fixedDiscountPct: 0.80,
+    summaryKeys: [
+      'nft.summary.platinum_0',
+      'nft.summary.platinum_1',
+      'nft.summary.platinum_2',
+      'nft.summary.platinum_3',
+      'nft.summary.platinum_4',
+      'nft.summary.platinum_5',
+      'nft.summary.platinum_6',
+      'nft.summary.platinum_7',
+      'nft.summary.platinum_8',
+    ],
   },
+
+  // WS-20 — invite-only
   {
-    id: 'nft-founding-20',
-    name: 'Founding-20',
+    id: 'nft-ws-20',
+    name: 'WS 20',
     eurPrice: 0,
     vigriPrice: 0,
-    blurb: 'Limited to 20; gift €500 at TGE + perpetual 50% discount up to €1000',
-    designs: [{ id: 'founding-default', label: 'Founding' }],
+    blurb: 'Invite-only',
+    designs: [{ id: 'ws-default', label: 'WS' }],
     kycRequired: true,
     limited: 20,
     vesting: null,
-    tier: 'founding',
+    tier: 'ws',
     discountPct: 0.50,
     activationType: 'none',
+    summaryKeys: [
+      'nft.summary.ws20_0',
+      'nft.summary.ws20_1',
+      'nft.summary.ws20_2',
+      'nft.summary.ws20_3',
+      'nft.summary.ws20_4',
+      'nft.summary.ws20_5',
+      'nft.summary.ws20_6',
+      'nft.summary.ws20_7',
+      'nft.summary.ws20_8',
+    ],
   },
 ];
 
-/** ---- Lottery: Bronze/Silver → Rare/Ultra upgrade to Gold/Platinum privileges ---- */
+/** ---- Lottery ---- */
 function drawUpgrade(tier: Nft['tier']): 'none' | 'rare' | 'ultra' {
   if (tier !== 'bronze' && tier !== 'silver') return 'none';
-  // Exclusive: first try ultra (1%), otherwise rare (1%)
   if (Math.random() < 0.01) return 'ultra';
   if (Math.random() < 0.01) return 'rare';
   return 'none';
@@ -202,27 +301,27 @@ function drawUpgrade(tier: Nft['tier']): 'none' | 'rare' | 'ultra' {
 
 /** ---- GET ---- */
 export async function GET() {
-  // auth guard
   const session = getCookie('vigri_session');
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
 
-  const invited = getCookie(COOKIE_FOUNDING_INVITED) === '1';
+  const invited = getCookie(COOKIE_WS_INVITED) === '1';
   const s = readState();
 
   const items: RespItem[] = CATALOG.map((n) => ({
     ...n,
-    invited: n.id === 'nft-founding-20' ? invited : undefined,
+    invited: n.id === 'nft-ws-20' ? invited : undefined,
     ownedQty: s.bag[n.id] || 0,
     ownedDesigns: s.designs?.[n.id] || {},
     userActivation: s.activation?.[n.id] ?? null,
     upgrades: s.upgrades?.[n.id] || { rare: 0, ultra: 0 },
     expiresAt: s.expires?.[n.id] ?? null,
+    minted: s.minted?.[n.id] || 0,
   }));
 
   return NextResponse.json({ ok: true, items });
 }
 
-/** ---- POST (purchase / claim) ---- */
+/** ---- POST ---- */
 type PostBody = {
   id?: string;
   qty?: number;
@@ -232,17 +331,11 @@ type PostBody = {
 };
 
 export async function POST(req: Request) {
-  // auth guard
   const session = getCookie('vigri_session');
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
 
-  // safe JSON parsing without `any`
   let bodyUnknown: unknown = {};
-  try {
-    bodyUnknown = await req.json();
-  } catch {
-    // ignore malformed JSON
-  }
+  try { bodyUnknown = await req.json(); } catch {}
   const body = bodyUnknown as PostBody;
 
   const id = String(body?.id || '');
@@ -260,30 +353,32 @@ export async function POST(req: Request) {
   }
 
   const s = readState();
-  s.bag[id] = s.bag[id] || 0; // ensure
+  s.bag[id] = s.bag[id] || 0;
+  s.minted = s.minted || {};
+  s.minted[id] = s.minted[id] || 0;
 
-  // Founding — invite only, max 1
-  if (id === 'nft-founding-20') {
-    const invited = getCookie(COOKIE_FOUNDING_INVITED) === '1';
+  if (id === 'nft-ws-20') {
+    const invited = getCookie(COOKIE_WS_INVITED) === '1';
     if (!invited) return NextResponse.json({ ok: false, error: 'Invite only' }, { status: 403 });
     if (s.bag[id] >= 1) return NextResponse.json({ ok: false, error: 'Already owned' }, { status: 409 });
 
     s.bag[id] = 1;
+    s.minted[id] += 1;
+
     s.designs = s.designs || {};
     s.designs[id] = s.designs[id] || {};
-    const def = item.designs[0].id;
+    const def = item.designs[0]?.id ?? item.id;
     s.designs[id][def] = 1;
+
     s.activation = s.activation || {};
-    s.activation[id] = 'fixed'; // not required, but mark explicitly
+    s.activation[id] = 'fixed';
   } else {
-    // Regular purchases
     s.designs = s.designs || {};
     s.designs[id] = s.designs[id] || {};
     s.activation = s.activation || {};
     s.upgrades = s.upgrades || {};
     s.upgrades[id] = s.upgrades[id] || { rare: 0, ultra: 0 };
 
-    // Discount expiration — 1 year from the first purchase of this NFT type
     const now = Date.now();
     s.expires = s.expires || {};
     const curExp = s.expires[id] ? new Date(s.expires[id]!).getTime() : 0;
@@ -291,7 +386,6 @@ export async function POST(req: Request) {
     if (nextExp > curExp) s.expires[id] = new Date(nextExp).toISOString();
 
     if (item.tier === 'bronze' || item.tier === 'silver') {
-      // Draw rarity for EACH purchased NFT
       for (let i = 0; i < qty; i++) {
         const chosen =
           designId && item.designs.some((d) => d.id === designId)
@@ -303,23 +397,22 @@ export async function POST(req: Request) {
         if (up === 'rare') s.upgrades[id].rare += 1;
         else if (up === 'ultra') s.upgrades[id].ultra += 1;
       }
-      // Activation — flexible choice
       if (activation === 'claim100' || activation === 'split50' || activation === 'discount100') {
         s.activation[id] = activation;
       } else if (!s.activation[id]) {
-        s.activation[id] = 'discount100'; // default
+        s.activation[id] = 'discount100';
       }
     } else {
-      // gold/platinum — fixed parts
       const chosen =
         designId && item.designs.some((d) => d.id === designId)
           ? designId
-          : item.designs[0].id;
+          : (item.designs[0]?.id ?? item.id);
       s.designs[id][chosen] = (s.designs[id][chosen] || 0) + qty;
       s.activation[id] = 'fixed';
     }
 
     s.bag[id] += qty;
+    s.minted[id] += qty;
   }
 
   if (optInLumiros) s.lum = true;
@@ -334,20 +427,30 @@ export async function POST(req: Request) {
       userActivation: s.activation?.[id] || null,
       upgrades: s.upgrades?.[id] || { rare: 0, ultra: 0 },
       expiresAt: s.expires?.[id] || null,
+      minted: s.minted?.[id] || 0,
     },
     { headers: res.headers }
   );
 }
 
-/** helpers */
 function pickByRarity(designs: Design[]): string {
+  // safe first id (catalog guarantees non-empty, but keep a fallback)
+  const firstId = designs[0]?.id ?? '';
   const withR = designs.filter((d) => typeof d.rarity === 'number');
-  if (!withR.length) return designs[0].id;
-  const sum = withR.reduce((s, d) => s + (d.rarity as number), 0);
+
+  if (withR.length === 0) {
+    return firstId;
+  }
+
+  const sum = withR.reduce((acc, d) => acc + (d.rarity ?? 0), 0);
   let r = Math.random() * (sum || 1);
+
   for (const d of withR) {
-    r -= d.rarity as number;
+    r -= (d.rarity ?? 0);
     if (r <= 0) return d.id;
   }
-  return withR[withR.length - 1].id;
+
+  // length >= 1 here, TS can see the branch
+  const last = withR[withR.length - 1]!;
+  return last.id;
 }

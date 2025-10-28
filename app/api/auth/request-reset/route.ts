@@ -18,12 +18,22 @@ function originFrom(req: Request): string {
   return `${url.protocol}//${url.host}`;
 }
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({} as any));
-    const email = (body?.email ?? '').trim().toLowerCase();
+    let bodyUnknown: unknown = {};
+    try {
+      bodyUnknown = await req.json();
+    } catch {
+      // ignore malformed JSON
+    }
+    const body = isObject(bodyUnknown) ? bodyUnknown : {};
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
 
-    // Не раскрываем существование пользователя: всегда возвращаем ok
+    // Do not reveal user existence: always return ok
     const user = email
       ? await prisma.user.findUnique({
           where: { email },
@@ -32,12 +42,12 @@ export async function POST(req: Request) {
       : null;
 
     if (user) {
-      // сгенерировать одноразовый токен
+      // generate one-time token
       const raw = randomBytes(32).toString('hex');
       const tokenHash = sha256hex(raw);
       const expiresAt = new Date(Date.now() + TTL_MS);
 
-      // помечаем старые незавершённые токены как использованные (опционально)
+      // mark previous pending tokens as consumed (optional)
       await prisma.resetPasswordToken
         .updateMany({
           where: { userId: user.id, consumedAt: null },
@@ -45,16 +55,16 @@ export async function POST(req: Request) {
         })
         .catch(() => {});
 
-      // сохранить новый токен
+      // store new token
       await prisma.resetPasswordToken.create({
         data: { userId: user.id, tokenHash, expiresAt },
       });
 
-      // ССЫЛКА ТЕПЕРЬ В МОДАЛКУ: /?auth=reset&token=...
+      // LINK NOW POINTS TO MODAL: /?auth=reset&token=...
       const base = originFrom(req);
       const resetUrl = `${base}/?auth=reset&token=${raw}`;
 
-      // отправка письма (dev: лог в консоль, prod: см. lib/mail.ts)
+      // send email (dev: console log, prod: see lib/mail.ts)
       await sendResetEmail(user.email, resetUrl).catch((e: unknown) => {
         console.error('sendResetEmail error (request-reset):', e);
       });
@@ -67,7 +77,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error('request-reset error', e);
-    // намеренно не раскрываем детали
+    // intentionally do not reveal details
     return NextResponse.json({ ok: true });
   }
 }

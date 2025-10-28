@@ -1,3 +1,4 @@
+// app/reset/page.tsx
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -5,14 +6,15 @@ import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/useI18n';
 
+type ResetResp = { ok: boolean; error?: 'weak_password' | 'invalid_token' | string };
+
 export default function ResetPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const { t } = useI18n();
 
-  // read token/uid from query
+  // read token from query (backend uses only token)
   const token = sp.get('token') || '';
-  const uid = sp.get('uid') || '';
 
   // tiny i18n helper with fallback
   const tf = (k: string, fb: string) => {
@@ -26,7 +28,7 @@ export default function ResetPage() {
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
 
-  const canSubmit = token && uid && pass.length >= 8 && pass === pass2 && !loading;
+  const canSubmit = Boolean(token) && pass.length >= 8 && pass === pass2 && !loading;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -38,12 +40,12 @@ export default function ResetPage() {
       const r = await fetch('/api/auth/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, uid, newPassword: pass }),
+        body: JSON.stringify({ token, password: pass }),
       });
-      const j = await r.json().catch(() => ({} as any));
+      const j = (await r.json().catch(() => ({ ok: false }))) as ResetResp;
 
-      if (!r.ok || !j?.ok) {
-        const code = j?.error as string | undefined;
+      if (!r.ok || !j.ok) {
+        const code = j.error;
         setErr(
           code === 'weak_password'
             ? tf('auth.error_password', 'Password must be at least 8 characters')
@@ -59,7 +61,6 @@ export default function ResetPage() {
       setOk(true);
       // redirect to login after short delay
       setTimeout(() => {
-        // open login modal on home
         router.replace('/?auth=login');
       }, 800);
     } catch {
@@ -68,8 +69,8 @@ export default function ResetPage() {
     }
   }
 
-  // basic guard: if no query params
-  if (!token || !uid) {
+  // basic guard: if no token in query
+  if (!token) {
     return (
       <main className="min-h-[60vh] grid place-items-center px-4">
         <div className="max-w-md w-full rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">

@@ -1,10 +1,11 @@
+// app/api/nft/ws\invite/route.ts
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   const { grant } = await req.json().catch(() => ({ grant: false as boolean }));
   const res = NextResponse.json({ ok: true, invited: !!grant });
   res.cookies.set({
-    name: 'vigri_founding_invited',
+    name: 'vigri_ws_invited',
     value: grant ? '1' : '',
     path: '/',
     sameSite: 'lax',

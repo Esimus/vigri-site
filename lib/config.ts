@@ -44,3 +44,25 @@ export const CONFIG = {
 export const isMainnet = CONFIG.CLUSTER === "mainnet";
 export const explorerQS = isMainnet ? "" : `?cluster=${CONFIG.CLUSTER}`;
 export const clusterLabel = isMainnet ? "Mainnet" : CONFIG.CLUSTER === "devnet" ? "Devnet" : "Testnet";
+
+
+// ---- Presale shared settings (single source of truth) ----
+
+// UTC ISO end moment used across the app (homepage + NFT cards)
+export const PRESALE_END_ISO = '2025-12-31T18:00:00Z';
+
+// Remaining milliseconds to presale end (never negative)
+export function presaleRemainingMs(now = Date.now()): number {
+  const end = Date.parse(PRESALE_END_ISO);
+  return Math.max(0, end - now);
+}
+
+// Helper to split remaining time into d/h/m/s (floor-based; matches homepage logic)
+export function formatRemaining(ms: number) {
+  const totalSec = Math.floor(ms / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return { d, h, m, s };
+}

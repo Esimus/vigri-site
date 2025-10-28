@@ -1,7 +1,9 @@
+// components/NftDetails.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
 
 type Design = { id: string; label: string; rarity?: number };
@@ -18,7 +20,7 @@ type Item = {
   invited?: boolean;
   designs?: Design[];
   ownedDesigns?: Record<string, number>;
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'founding';
+  tier: 'tree' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'ws';
   discountPct: number;
   activationType: 'flex' | 'fixed' | 'none';
   fixedClaimPct?: number;
@@ -39,7 +41,59 @@ type Rights = {
   discountAvailEur: number;
   expiresAt: string | null;
 };
-type RightsResp = { ok: boolean; items: Rights[]; tgePriceEur: number };
+
+type NftListResp = { ok: true; items: Item[] };
+type RightsResp = { ok: true; items: Rights[]; tgePriceEur?: number };
+type ClaimResp = { ok: true; vigriClaimed: number };
+type DiscountResp = { ok: true; vigriBought: number; unitEur: number };
+
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+function isNftListResp(v: unknown): v is NftListResp {
+  return isObject(v) && v.ok === true && Array.isArray(v.items);
+}
+function isRightsResp(v: unknown): v is RightsResp {
+  return isObject(v) && v.ok === true && Array.isArray(v.items);
+}
+function isClaimResp(v: unknown): v is ClaimResp {
+  return isObject(v) && v.ok === true && typeof v.vigriClaimed === 'number';
+}
+function isDiscountResp(v: unknown): v is DiscountResp {
+  return (
+    isObject(v) &&
+    v.ok === true &&
+    typeof v.vigriBought === 'number' &&
+    typeof v.unitEur === 'number'
+  );
+}
+
+// Maps NFT ids to preview PNG names from /public/images/nft/
+function pngNameFor(id: string): string {
+  switch (id) {
+    case 'nft-tree-steel':
+      return '1_mb_wood_stell.png';
+    case 'nft-bronze':
+      return '2_mb_bronze.png';
+    case 'nft-silver':
+      return '3_mb_silver.png';
+    case 'nft-gold':
+      return '4_mb_gold.png';
+    case 'nft-platinum':
+      return '5_mb_platinum.png';
+    case 'nft-ws-20':
+      return '6_mb_ws.png';
+    default:
+      return '6_mb_ws.png';
+  }
+}
+
+type BuyPayload = {
+  id: string;
+  qty: number;
+  designId?: string;
+  activation?: 'claim100' | 'split50' | 'discount100';
+};
 
 export default function NftDetails({ id }: { id: string }) {
   const { t } = useI18n();
@@ -55,34 +109,43 @@ export default function NftDetails({ id }: { id: string }) {
   const [discEur, setDiscEur] = useState<number>(0);
 
   async function loadAll() {
-    // 1) Данные NFT
+    // 1) NFT data
     const r = await fetch('/api/nft', { cache: 'no-store' });
-    const j = await r.json();
-    if (r.ok && j.ok) {
-      const found = (j.items as Item[]).find((i: Item) => i.id === id) || null;
+    const j: unknown = await r.json().catch(() => ({}));
+    if (r.ok && isNftListResp(j)) {
+      const items = j.items;
+      const found = items.find((i) => i.id === id) || null;
       setItem(found);
-      if (found?.designs?.length && found.id !== 'nft-founding-20') {
-        setDesign(found.designs[0].id);
+      if (found?.designs?.length && found.id !== 'nft-ws-20') {
+        const firstId = found.designs[0]?.id ?? found.id;
+        setDesign(firstId);
       }
       if (found?.userActivation && found.userActivation !== 'fixed') {
         setAct(found.userActivation);
       }
     }
-    // 2) Права
-    const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
-    const rj: RightsResp = await rr.json();
-    if (rr.ok && rj.ok) {
-      const mine = rj.items.find((x) => x.id === id) || null;
-      setRights(mine);
+
+    // 2) Rights — current endpoint returns { ok, items, ... }.
+    try {
+      const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
+      const raw: unknown = await rr.json().catch(() => ({}));
+      if (rr.ok && isRightsResp(raw)) {
+        const mine = raw.items.find((x) => x.id === id) || null;
+        setRights(mine);
+      } else {
+        setRights(null);
+      }
+    } catch {
+      setRights(null);
     }
   }
 
   useEffect(() => {
-    loadAll();
+    void loadAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const isFounding = item?.tier === 'founding';
+  const isWS = item?.tier === 'ws';
   const isBronzeOrSilver = item?.tier === 'bronze' || item?.tier === 'silver';
   const owned = (item?.ownedQty || 0) > 0;
   const cf = useMemo(
@@ -90,10 +153,10 @@ export default function NftDetails({ id }: { id: string }) {
     []
   );
 
-  // Покупка NFT (mock)
+  // Purchase (mock)
   const buy = async () => {
     if (!item) return;
-    const payload: any = { id: item.id, qty: isFounding ? 1 : qty };
+    const payload: BuyPayload = { id: item.id, qty: isWS ? 1 : qty };
     if (design) payload.designId = design;
     if (isBronzeOrSilver) payload.activation = act;
 
@@ -102,12 +165,12 @@ export default function NftDetails({ id }: { id: string }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || !j.ok) return;
+    const j: unknown = await r.json().catch(() => ({}));
+    if (!r.ok || !isObject(j) || j.ok !== true) return;
     await loadAll();
   };
 
-  // --- Claim (mock)
+  // Claim (mock)
   const doClaimAll = async () => {
     setClaimMsg(null);
     const r = await fetch('/api/nft/claim', {
@@ -115,16 +178,18 @@ export default function NftDetails({ id }: { id: string }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || !j.ok) {
-      setClaimMsg(j?.error || t('nft.msg.failed'));
+    const j: unknown = await r.json().catch(() => ({}));
+    if (!r.ok || !isClaimResp(j)) {
+      const msg =
+        isObject(j) && typeof j.error === 'string' ? j.error : t('nft.msg.failed');
+      setClaimMsg(msg);
       return;
     }
     setClaimMsg(`${t('nft.claim.ok')} +${Math.round(j.vigriClaimed).toLocaleString()} VIGRI`);
     await loadAll();
   };
 
-  // --- Discount (mock)
+  // Discount (mock)
   const doDiscount = async () => {
     setDiscMsg(null);
     const r = await fetch('/api/nft/discount', {
@@ -132,9 +197,11 @@ export default function NftDetails({ id }: { id: string }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, eurAmount: discEur }),
     });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || !j.ok) {
-      setDiscMsg(j?.error || t('nft.msg.failed'));
+    const j: unknown = await r.json().catch(() => ({}));
+    if (!r.ok || !isDiscountResp(j)) {
+      const msg =
+        isObject(j) && typeof j.error === 'string' ? j.error : t('nft.msg.failed');
+      setDiscMsg(msg);
       return;
     }
     setDiscMsg(
@@ -145,7 +212,7 @@ export default function NftDetails({ id }: { id: string }) {
     await loadAll();
   };
 
-  // Таймер (дни до истечения скидки)
+  // Timer (days to expiry)
   const daysLeft = useMemo(() => {
     if (!rights?.expiresAt) return null;
     const diff = new Date(rights.expiresAt).getTime() - Date.now();
@@ -156,7 +223,7 @@ export default function NftDetails({ id }: { id: string }) {
   if (!item) {
     return (
       <div className="space-y-2">
-        <Link href="/dashboard/nft" className="underline text-sm">
+        <Link href="/dashboard/nft" className="link-accent text-sm">
           {t('nft.details.back')}
         </Link>
         <div className="text-sm opacity-70">Not found.</div>
@@ -166,18 +233,24 @@ export default function NftDetails({ id }: { id: string }) {
 
   return (
     <div className="space-y-4">
-      <Link href="/dashboard/nft" className="underline text-sm">
+      <Link href="/dashboard/nft" className="link-accent text-sm">
         {t('nft.details.back')}
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-[minmax(260px,420px)_1fr] gap-6">
-        {/* Левая колонка: превью + миниатюры */}
+        {/* Left: preview + thumbnails */}
         <div className="space-y-3">
-          <div className="relative w-full" style={{ aspectRatio: '3 / 4' }}>
-            <div className="absolute inset-0 rounded-xl border flex items-center justify-center text-sm opacity-70">
-              3:4 Preview
-            </div>
+          <div className="relative w-full card p-0 overflow-hidden" style={{ aspectRatio: '3 / 4' }}>
+            <Image
+              src={`/images/nft/${pngNameFor(item.id)}`}
+              alt={item.name}
+              fill
+              sizes="(max-width: 767px) 90vw, 420px"
+              className="object-cover rounded-xl border"
+              priority={false}
+            />
           </div>
+
           {item.designs && item.designs.length > 0 && (
             <div className="grid grid-cols-4 gap-2">
               {item.designs.map((d) => {
@@ -187,7 +260,7 @@ export default function NftDetails({ id }: { id: string }) {
                   <button
                     key={d.id}
                     type="button"
-                    disabled={isFounding || item.tier === 'bronze'}
+                    disabled={isWS || item.tier === 'bronze'}
                     onClick={() => setDesign(d.id)}
                     className={[
                       'relative w-full rounded-lg border text-[10px] opacity-80',
@@ -211,16 +284,23 @@ export default function NftDetails({ id }: { id: string }) {
           )}
         </div>
 
-        {/* Правая колонка: описание + покупка + права */}
+        {/* Right: description + actions + rights */}
         <div className="space-y-4">
-          <div>
+          <div className="card p-4 md:p-5 space-y-2">
             <h1 className="text-xl font-semibold">{item.name}</h1>
             <p className="text-sm opacity-70">{item.blurb}</p>
+
+            {/* Meta chips */}
+            <div className="flex flex-wrap gap-2 text-xs opacity-90">
+              {item.limited && <span className="chip">{t('nft.limited')}: {item.limited}</span>}
+              {item.kycRequired && <span className="chip">{t('nft.kyc')}</span>}
+              {item.vesting && <span className="chip">{t('nft.vesting')}: {item.vesting}</span>}
+            </div>
           </div>
 
-          {/* Покупка/минт (мок) */}
-          {!isFounding && (
-            <div className="flex flex-wrap items-end gap-3">
+          {/* Purchase (mock) */}
+          {!isWS && (
+            <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3">
               {item.tier !== 'bronze' && (
                 <div className="text-sm">
                   <div className="text-xs mb-1">{t('nft.design.select')}</div>
@@ -264,39 +344,38 @@ export default function NftDetails({ id }: { id: string }) {
                 </div>
               )}
               <div>
-                <label className="block text-xs mb-1">{t('nft.qty')}</label>
+                <label className="label">{t('nft.qty')}</label>
                 <input
                   type="number"
                   min={1}
                   step={1}
-                  className="border rounded-md p-2 w-24 text-sm"
+                  className="input w-24 text-sm"
                   value={qty}
                   onChange={(e) =>
                     setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))
                   }
                 />
               </div>
-              <button
-                className="rounded-xl px-3 py-2 text-sm bg-brand-100 border border-brand-200 text-brand hover:bg-brand-200 whitespace-nowrap"
-                onClick={buy}
-              >
+              <button className="btn btn-outline" onClick={buy}>
                 {t('nft.buy')}
               </button>
             </div>
           )}
 
-          {isFounding && (
-            <button
-              className="rounded-xl px-3 py-2 text-sm bg-brand-100 border border-brand-200 text-brand hover:bg-brand-200 disabled:opacity-50"
-              disabled={!item.invited || owned}
-            >
-              {owned ? t('nft.owned_btn') : item.invited ? t('nft.claim') : t('nft.invite_only')}
-            </button>
+          {isWS && (
+            <div className="card p-4 md:p-5">
+              <button
+                className="btn btn-outline disabled:opacity-50"
+                disabled={!item.invited || owned}
+              >
+                {owned ? t('nft.owned_btn') : item.invited ? t('nft.claim') : t('nft.invite_only')}
+              </button>
+            </div>
           )}
 
-          {/* ---- Права: Claim / Discount ---- */}
+          {/* Rights block — show only if detailed rights exist */}
           {rights && (
-            <div className="rounded-xl border p-4 md:p-5 space-y-4">
+            <div className="card p-4 md:p-5 space-y-4">
               <div className="text-sm font-medium">{t('nft.rights.title')}</div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -308,10 +387,7 @@ export default function NftDetails({ id }: { id: string }) {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      className="rounded-xl px-3 py-2 text-sm border bg-brand-100 border-brand-200 text-brand hover:bg-brand-200 whitespace-nowrap w-full sm:w-auto"
-                      onClick={doClaimAll}
-                    >
+                    <button className="btn btn-outline w-full sm:w-auto" onClick={doClaimAll}>
                       {t('nft.rights.claim_all')}
                     </button>
                     {claimMsg && <div className="text-xs">{claimMsg}</div>}
@@ -323,9 +399,7 @@ export default function NftDetails({ id }: { id: string }) {
                   <div className="text-sm">
                     {t('nft.rights.discount_avail')}:&nbsp;
                     <b>
-                      {cf.format(
-                        Math.max(0, rights.discountBudgetEur - rights.discountUsedEur)
-                      )}
+                      {cf.format(Math.max(0, rights.discountBudgetEur - rights.discountUsedEur))}
                     </b>
                     &nbsp;· {t('nft.rights.discount_pct')}:&nbsp;
                     <b>{Math.round(rights.discountPctEffective * 100)}%</b>
@@ -338,23 +412,18 @@ export default function NftDetails({ id }: { id: string }) {
 
                   <div className="flex flex-wrap items-end gap-3">
                     <div>
-                      <label className="block text-xs mb-1">
-                        {t('nft.rights.discount_enter_eur')}
-                      </label>
+                      <label className="label">{t('nft.rights.discount_enter_eur')}</label>
                       <input
                         type="number"
                         min={0}
-                        step="1"
-                        className="border rounded-md p-2 w-36 sm:w-40 text-sm"
+                        step={1}
+                        className="input w-36 sm:w-40 text-sm"
                         value={discEur}
                         onChange={(e) => setDiscEur(Math.max(0, Number(e.target.value) || 0))}
                       />
                     </div>
 
-                    <button
-                      className="rounded-xl px-3 py-2 text-sm border bg-brand-100 border-brand-200 text-brand hover:bg-brand-200 whitespace-nowrap w-full sm:w-auto"
-                      onClick={doDiscount}
-                    >
+                    <button className="btn btn-outline w-full sm:w-auto" onClick={doDiscount}>
                       {t('nft.rights.discount_buy')}
                     </button>
 
