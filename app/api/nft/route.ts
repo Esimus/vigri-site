@@ -153,7 +153,7 @@ const CATALOG: Nft[] = [
     vesting: null,
     tier: 'bronze',
     discountPct: 0.25,
-    activationType: 'flex',
+    activationType: 'none',
     summaryKeys: [
       'nft.summary.bronze_0',
       'nft.summary.bronze_1',
@@ -161,7 +161,6 @@ const CATALOG: Nft[] = [
       'nft.summary.bronze_3',
       'nft.summary.bronze_4',
       'nft.summary.bronze_5',
-      'nft.summary.bronze_6',
       'nft.summary.bronze_7',
       'nft.summary.bronze_8',
     ],
@@ -183,7 +182,7 @@ const CATALOG: Nft[] = [
     vesting: null,
     tier: 'silver',
     discountPct: 0.35,
-    activationType: 'flex',
+    activationType: 'none',
     summaryKeys: [
       'nft.summary.silver_0',
       'nft.summary.silver_1',
@@ -215,7 +214,7 @@ const CATALOG: Nft[] = [
     vesting: 'Vesting',
     tier: 'gold',
     discountPct: 0.40,
-    activationType: 'flex',
+    activationType: 'none',
     fixedClaimPct: 0.30,
     fixedDiscountPct: 0.70,
     summaryKeys: [
@@ -247,7 +246,7 @@ const CATALOG: Nft[] = [
     vesting: 'Vesting',
     tier: 'platinum',
     discountPct: 0.50,
-    activationType: 'flex',
+    activationType: 'none',
     fixedClaimPct: 0.20,
     fixedDiscountPct: 0.80,
     summaryKeys: [

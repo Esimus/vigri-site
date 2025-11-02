@@ -351,3 +351,45 @@
 
   /* Fade curtain that follows the card color (works in light & dark) */
   .fade-curtain { background: linear-gradient(to bottom, transparent, var(--card)); }
+
+
+  /* === Slim top-nav chip variant (overrides base .chip) === */
+  @layer components {
+    .chip.chip-nav {
+      padding: .30rem .60rem !important;
+      min-height: 1.6rem !important;
+      line-height: 1;
+      text-decoration: none !important;
+      white-space: nowrap !important;           /* <-- ДОБАВЛЕНО */
+
+      background-color: color-mix(in srgb, var(--card) 94%, transparent) !important;
+      border-color: var(--border) !important;
+      color: var(--fg) !important;
+    }
+
+    .chip.chip-nav:hover {
+      background-color: var(--brand-50) !important;
+      border-color: var(--brand-200) !important;
+      color: var(--brand-700) !important;
+    }
+
+    .chip.chip-nav--active,
+    .chip.chip-nav[aria-current="page"] {
+      background-color: var(--brand-50) !important;
+      border-color: var(--brand-200) !important;
+      color: var(--brand-700) !important;
+      box-shadow: inset 0 0 0 2px var(--brand-200) !important;
+    }
+
+    :root[data-theme="dark"] .chip.chip-nav:hover {
+      background-color: rgba(255,255,255,.10) !important;
+      color: #e6edf7 !important;
+    }
+    :root[data-theme="dark"] .chip.chip-nav--active,
+    :root[data-theme="dark"] .chip.chip-nav[aria-current="page"] {
+      background-color: rgba(255,255,255,.08) !important;
+      border-color: var(--border) !important;
+      box-shadow: inset 0 0 0 2px var(--brand-200) !important;
+      color: #e6edf7 !important;
+    }
+  }

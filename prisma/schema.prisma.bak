@@ -63,6 +63,19 @@ model VerifyEmailToken {
   @@index([userId])
 }
 
+model ResetPasswordToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   // sha256 of raw token
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([tokenHash])
+  @@index([userId])
+}
+
 // Password reset token (single-use)
 model ResetPasswordToken {
   id         String   @id @default(cuid())
