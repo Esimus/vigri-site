@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
+import PillCarousel from '@/components/ui/PillCarousel';
+import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -68,7 +70,7 @@ function isDiscountResp(v: unknown): v is DiscountResp {
   );
 }
 
-// Maps NFT ids to preview PNG names from /public/images/nft/
+// Fallback PNG name from /public/images/nft/
 function pngNameFor(id: string): string {
   switch (id) {
     case 'nft-tree-steel':
@@ -95,13 +97,288 @@ type BuyPayload = {
   activation?: 'claim100' | 'split50' | 'discount100';
 };
 
+/** Mobile-only buy panel.
+ *  Per requirements:
+ *   - Show design selector ONLY for Tree/Steel on mobile
+ *   - Hide design selector for Bronze/Silver/Gold/Platinum on mobile
+ *   - Add "Format NFT" (physical) chooser for Silver on mobile
+ */
+function BuyPanelMobile(props: {
+  item: Item | null;
+  designs: Design[];
+  design: string | null;
+  setDesign: (id: string) => void;
+  activationType: 'flex' | 'fixed' | 'none';
+  act: 'claim100' | 'split50' | 'discount100';
+  setAct: (a: 'claim100' | 'split50' | 'discount100') => void;
+  qty: number;
+  setQty: (n: number) => void;
+  withPhysical: boolean;
+  setWithPhysical: (v: boolean) => void;
+  onBuy: () => void;
+  t: ReturnType<typeof useI18n>['t'];
+}) {
+  const {
+    item, designs, design, setDesign,
+    activationType, act, setAct,
+    qty, setQty, withPhysical, setWithPhysical,
+    onBuy, t,
+  } = props;
+
+  if (!item) return null;
+
+  const isTree = item.tier === 'tree';
+  const isSilver = item.tier === 'silver';
+
+  return (
+    <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3">
+      {/* Design selector (mobile): only for Tree/Steel */}
+      {isTree && designs.length > 0 && (
+        <div className="text-sm">
+          <div className="text-xs mb-1">{t('nft.design.select')}</div>
+          <div className="flex flex-col gap-1">
+            {designs.map((d) => (
+              <label key={d.id} className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="nft-design-mobile"
+                  checked={design === d.id}
+                  onChange={() => setDesign(d.id)}
+                />
+                <span className="text-xs">{d.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Activation type (if flexible) */}
+      {activationType === 'flex' && (
+        <div className="text-sm">
+          <div className="text-xs mb-1">{t('nft.activation.title')}</div>
+          <div className="flex flex-col gap-1">
+            <label className="inline-flex items-center gap-2">
+              <input type="radio" name="act" checked={act === 'claim100'} onChange={() => setAct('claim100')} />
+              {t('nft.activation.claim100')}
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="radio" name="act" checked={act === 'split50'} onChange={() => setAct('split50')} />
+              {t('nft.activation.split50')}
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input type="radio" name="act" checked={act === 'discount100'} onChange={() => setAct('discount100')} />
+              {t('nft.activation.discount100')}
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* Format (mobile): only for Silver */}
+      {isSilver && (
+        <div className="text-sm">
+          <div className="text-xs mb-1">{t('nft.physical.label')}</div>
+          <div className="flex flex-col gap-1">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name="physical-mobile"
+                checked={withPhysical === true}
+                onChange={() => setWithPhysical(true)}
+              />
+              <span className="text-xs">{t('nft.physical.with')}</span>
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name="physical-mobile"
+                checked={withPhysical === false}
+                onChange={() => setWithPhysical(false)}
+              />
+              <span className="text-xs">{t('nft.physical.without')}</span>
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* Qty + buy */}
+      <div>
+        <label className="label">{t('nft.qty')}</label>
+        <input
+          type="number"
+          min={1}
+          step={1}
+          className="input w-24 text-sm"
+          value={qty}
+          onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
+        />
+      </div>
+
+      <div className="flex items-end gap-4">
+        <div className="flex flex-col items-start">
+          <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
+            {item.eurPrice ? `${item.eurPrice.toFixed(0)}€` : ''}
+          </div>
+          <button className="btn btn-outline mt-2" onClick={onBuy}>
+            {t('nft.buy')}
+          </button>
+        </div>
+
+        <fieldset className="flex flex-col gap-1 text-xs min-w-[68px]">
+          <label className="inline-flex items-center gap-1">
+            <input type="radio" name="ccy" defaultChecked /> EUR
+          </label>
+          <label className="inline-flex items-center gap-1">
+            <input type="radio" name="ccy" /> USD
+          </label>
+          <label className="inline-flex items-center gap-1">
+            <input type="radio" name="ccy" /> SOL
+          </label>
+          <label className="inline-flex items-center gap-1">
+            <input type="radio" name="ccy" /> USDC
+          </label>
+        </fieldset>
+      </div>
+    </div>
+  );
+}
+
+type DetailsMeta = Pick<
+  NftMeta,
+  'revealLabelKey' | 'revealValue' | 'supply' | 'kycRequired' | 'vesting' | 'priceEur' | 'priceAfter' | 'tier'
+> & {
+  limited?: string | number;
+};
+
+function LockIcon({ size = 15 }: { size?: number }) {
+  // Simple inline lock to avoid external icon deps
+  return <span aria-hidden style={{ fontSize: size, lineHeight: 1 }} className="mr-0.5 align-middle">🔒</span>;
+}
+function KeyIcon() {
+  return <span aria-hidden className="-ml-0.5 mr-1">🔑</span>;
+}
+
+/** Single source of truth for the features/specs card */
+function DetailsCard(props: {
+  t: ReturnType<typeof useI18n>['t'];
+  title: string;
+  blurb: string;
+  meta: DetailsMeta;
+  featureLines: string[];
+}) {
+  const { t, title, blurb, meta, featureLines } = props;
+  const isWS = meta?.tier === 'ws';
+
+  return (
+    <div className="card p-4 md:p-5 space-y-2">
+      <h1 className="text-xl font-semibold">{title}</h1>
+      <p className="text-sm opacity-70">{blurb}</p>
+
+      {/* Meta chips */}
+      <div className="flex flex-wrap gap-2 text-xs opacity-90">
+        {meta?.limited && <span className="chip">{t('nft.limited')}: {meta.limited}</span>}
+        {meta?.kycRequired ? (
+          <span className="chip inline-flex items-center gap-0.5">
+            <LockIcon size={15}/>{t('nft.kyc')}
+          </span>
+        ) : null}
+        {/* WS-20: add key chip next to KYC */}
+        {isWS && (
+          <span className="chip">
+            <KeyIcon />{t('nft.badge.invite')}
+          </span>
+        )}
+        {meta?.vesting && <span className="chip">{t('nft.vesting')}: {t(meta.vesting)}</span>}
+        {meta?.priceEur != null && <span className="chip">{t('nft.price.now')}: €{meta.priceEur.toFixed(2)}</span>}
+        {meta?.priceAfter && (
+          <span className="chip">
+            {t('nft.price.after')} {new Date(meta.priceAfter.date).toLocaleDateString()}:
+            &nbsp;€{meta.priceAfter.priceEur.toFixed(2)}
+          </span>
+        )}
+      </div>
+
+      {/* Spec chips */}
+      <div className="flex flex-wrap gap-2 text-xs opacity-90 mt-2">
+        {meta?.revealLabelKey && meta?.revealValue && (
+          <span className="chip">
+            {t(meta.revealLabelKey)} {meta.revealValue}
+          </span>
+        )}
+        {meta?.supply ? (
+          <span className="chip">{t('nft.supply')}: {meta.supply.toLocaleString()}</span>
+        ) : null}
+      </div>
+
+      {/* Reduced font size for the feature list */}
+      {featureLines.length ? (
+        <ul className="list-disc pl-5 mt-2 text-[13px] opacity-90">
+          {featureLines.map((f) => <li key={f}>{f}</li>)}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+// Renders i18n text into paragraphs and a callout box if the block contains bullet lines (• ...)
+function ExplainerText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split('\n\n').map((block, i) => {
+        const lines = block.split('\n').filter(l => l !== '');
+        const hasBullets = lines.some(l => l.trim().startsWith('•'));
+
+        if (hasBullets) {
+          const first = lines[0] ?? '';
+          const hasHeading = first.trim().length > 0 && !first.trim().startsWith('•');
+          const heading = hasHeading ? first : null;
+
+          const items = lines
+            .filter(l => l.trim().startsWith('•'))
+            .map(l => l.replace(/^•\s?/, ''));
+
+          return (
+            <figure
+              key={i}
+              className="my-4 rounded-md bg-white/60 dark:bg-white/5 p-3 pl-4 shadow-sm ring-1 ring-black/5 dark:ring-white/10 border-l-4"
+              style={{ borderLeftColor: 'var(--brand-400)' }}
+            >
+              {heading && (
+                <figcaption className="text-sm font-medium mb-2 opacity-80">
+                  {heading}
+                </figcaption>
+              )}
+              <ul className="list-disc pl-5 text-sm leading-relaxed">
+                {items.map((s, idx) => (
+                  <li key={idx}>{s}</li>
+                ))}
+              </ul>
+            </figure>
+          );
+        }
+
+        return (
+          <p key={i} className="my-2 whitespace-pre-line">
+            {block}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
 export default function NftDetails({ id }: { id: string }) {
   const { t } = useI18n();
+
+  // Static catalog metadata for given id
+  const meta = NFT_CATALOG[id];
 
   const [item, setItem] = useState<Item | null>(null);
   const [design, setDesign] = useState<string | null>(null);
   const [qty, setQty] = useState<number>(1);
   const [act, setAct] = useState<'claim100' | 'split50' | 'discount100'>('discount100');
+
+  // Physical card selection (for Silver)
+  const [withPhysical, setWithPhysical] = useState<boolean>(false);
 
   const [rights, setRights] = useState<Rights | null>(null);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
@@ -109,23 +386,27 @@ export default function NftDetails({ id }: { id: string }) {
   const [discEur, setDiscEur] = useState<number>(0);
 
   async function loadAll() {
-    // 1) NFT data
+    // 1) NFT list (mock API)
     const r = await fetch('/api/nft', { cache: 'no-store' });
     const j: unknown = await r.json().catch(() => ({}));
     if (r.ok && isNftListResp(j)) {
-      const items = j.items;
-      const found = items.find((i) => i.id === id) || null;
+      const found = j.items.find((i) => i.id === id) || null;
       setItem(found);
-      if (found?.designs?.length && found.id !== 'nft-ws-20') {
-        const firstId = found.designs[0]?.id ?? found.id;
-        setDesign(firstId);
+
+      // Initial design for Tree on first render
+      if (found?.id !== 'nft-ws-20') {
+        const fromMeta = meta?.designs?.[0]?.id;
+        const fromApi = found?.designs?.[0]?.id;
+        const initial = fromMeta ?? fromApi ?? null;
+        if (initial) setDesign(initial);
       }
-      if (found?.userActivation && found.userActivation !== 'fixed') {
+
+      if (meta?.activationType === 'flex' && found?.userActivation && found.userActivation !== 'fixed') {
         setAct(found.userActivation);
       }
     }
 
-    // 2) Rights — current endpoint returns { ok, items, ... }.
+    // 2) Rights
     try {
       const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
       const raw: unknown = await rr.json().catch(() => ({}));
@@ -146,19 +427,25 @@ export default function NftDetails({ id }: { id: string }) {
   }, [id]);
 
   const isWS = item?.tier === 'ws';
-  const isBronzeOrSilver = item?.tier === 'bronze' || item?.tier === 'silver';
-  const owned = (item?.ownedQty || 0) > 0;
-  const cf = useMemo(
-    () => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }),
-    []
-  );
+  const cf = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }), []);
+
+  // Prefer localized keys from catalog; fall back to plain text or API
+  const title = (meta?.nameKey ? t(meta.nameKey) : meta?.name) ?? item?.name ?? '';
+  const blurb = (meta?.blurbKey ? t(meta.blurbKey) : meta?.blurb) ?? item?.blurb ?? '';
+  const designsFromMeta = meta?.designs ?? item?.designs ?? [];
+  const activationType = meta?.activationType ?? item?.activationType ?? 'none';
+  const imagePng = meta?.image ?? pngNameFor(item?.id ?? id);
+  const featureLines = (meta?.featureKeys?.map((k) => t(k)) ?? meta?.features) ?? [];
+  const tier = (meta?.tier ?? item?.tier) as DetailsMeta['tier'];
+
+  const navItems = useMemo(() => NFT_NAV, []);
 
   // Purchase (mock)
   const buy = async () => {
     if (!item) return;
     const payload: BuyPayload = { id: item.id, qty: isWS ? 1 : qty };
     if (design) payload.designId = design;
-    if (isBronzeOrSilver) payload.activation = act;
+    if (activationType === 'flex') payload.activation = act;
 
     const r = await fetch('/api/nft', {
       method: 'POST',
@@ -180,8 +467,7 @@ export default function NftDetails({ id }: { id: string }) {
     });
     const j: unknown = await r.json().catch(() => ({}));
     if (!r.ok || !isClaimResp(j)) {
-      const msg =
-        isObject(j) && typeof j.error === 'string' ? j.error : t('nft.msg.failed');
+      const msg = isObject(j) && typeof j.error === 'string' ? j.error : t('nft.msg.failed');
       setClaimMsg(msg);
       return;
     }
@@ -199,20 +485,14 @@ export default function NftDetails({ id }: { id: string }) {
     });
     const j: unknown = await r.json().catch(() => ({}));
     if (!r.ok || !isDiscountResp(j)) {
-      const msg =
-        isObject(j) && typeof j.error === 'string' ? j.error : t('nft.msg.failed');
+      const msg = isObject(j) && typeof j.error === 'string' ? j.error : t('nft.msg.failed');
       setDiscMsg(msg);
       return;
     }
-    setDiscMsg(
-      `${t('nft.discount.ok')} +${Math.round(j.vigriBought).toLocaleString()} VIGRI @ ${cf.format(
-        j.unitEur
-      )}`
-    );
+    setDiscMsg(`${t('nft.discount.ok')} +${Math.round(j.vigriBought).toLocaleString()} VIGRI @ ${cf.format(j.unitEur)}`);
     await loadAll();
   };
 
-  // Timer (days to expiry)
   const daysLeft = useMemo(() => {
     if (!rights?.expiresAt) return null;
     const diff = new Date(rights.expiresAt).getTime() - Date.now();
@@ -231,19 +511,80 @@ export default function NftDetails({ id }: { id: string }) {
     );
   }
 
+  // Narrow meta for DetailsCard (avoid undefined and wide types)
+  const metaForDetails: DetailsMeta = {
+    tier,
+    revealLabelKey: meta?.revealLabelKey,
+    revealValue: meta?.revealValue,
+    supply: typeof meta?.supply === 'number' ? meta.supply : undefined,
+    kycRequired: meta?.kycRequired,
+    vesting: meta?.vesting ?? null,
+    priceEur: typeof meta?.priceEur === 'number' ? meta.priceEur : undefined,
+    priceAfter: meta?.priceAfter ?? null,
+  };
+
   return (
     <div className="space-y-4">
-      <Link href="/dashboard/nft" className="link-accent text-sm">
-        {t('nft.details.back')}
-      </Link>
+      {/* Top nav carousel */}
+      <PillCarousel
+        back={{ id: 'all', label: t('nft.details.back'), href: '/dashboard/nft' }}
+        items={navItems.map((it) => ({
+          id: it.id,
+          label: it.name,
+          href: `/dashboard/nft/${it.id}`,
+          active: it.id === id,
+        }))}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(260px,420px)_1fr] gap-6">
-        {/* Left: preview + thumbnails */}
+      {/* Mobile: image + buy side-by-side (Tree shows design selector; Silver shows Format; others no design selector) */}
+      <div className="lg:hidden grid grid-cols-[minmax(180px,52vw)_1fr] gap-4 items-start">
+        <div
+          className="relative w-full max-w-[240px] mx-0 md:mx-auto card p-0 overflow-hidden"
+          style={{ aspectRatio: '3 / 4' }}
+        >
+          <Image
+            src={`/images/nft/${imagePng}`}
+            alt={title}
+            fill
+            sizes="90vw"
+            className="object-cover rounded-xl border"
+            priority={false}
+          />
+        </div>
+
+        <BuyPanelMobile
+          item={item}
+          designs={designsFromMeta}
+          design={design}
+          setDesign={(d) => setDesign(d)}
+          activationType={activationType}
+          act={act}
+          setAct={(a) => setAct(a)}
+          qty={qty}
+          setQty={(n) => setQty(n)}
+          withPhysical={withPhysical}
+          setWithPhysical={setWithPhysical}
+          onBuy={buy}
+          t={t}
+        />
+      </div>
+
+      {/* Mobile: features/specs card full width */}
+      <div className="block lg:hidden">
+        <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} />
+      </div>
+
+      {/* Desktop layout */}
+      <div className="hidden lg:grid grid-cols-1 md:grid-cols-[minmax(160px,240px)_1fr] gap-6">
+        {/* Left: preview + availability (hide availability for WS-20) */}
         <div className="space-y-3">
-          <div className="relative w-full card p-0 overflow-hidden" style={{ aspectRatio: '3 / 4' }}>
+          <div
+            className="relative w-full max-w-[240px] mx-auto card p-0 overflow-hidden"
+            style={{ aspectRatio: '3 / 4' }}
+          >
             <Image
-              src={`/images/nft/${pngNameFor(item.id)}`}
-              alt={item.name}
+              src={`/images/nft/${imagePng}`}
+              alt={title}
               fill
               sizes="(max-width: 767px) 90vw, 420px"
               className="object-cover rounded-xl border"
@@ -251,98 +592,90 @@ export default function NftDetails({ id }: { id: string }) {
             />
           </div>
 
-          {item.designs && item.designs.length > 0 && (
-            <div className="grid grid-cols-4 gap-2">
-              {item.designs.map((d) => {
-                const selected = d.id === design;
-                const ownedCount = item.ownedDesigns?.[d.id] || 0;
+          {!isWS && (
+            <div className="mt-3 card p-3">
+              <div className="text-xs opacity-70 mb-2">{t('nft.availability')}</div>
+              {(() => {
+                const total = meta?.supply ?? 0;
+                const sold = 0;
+                const pct = total > 0 ? Math.min(100, Math.round((sold / total) * 100)) : 0;
                 return (
-                  <button
-                    key={d.id}
-                    type="button"
-                    disabled={isWS || item.tier === 'bronze'}
-                    onClick={() => setDesign(d.id)}
-                    className={[
-                      'relative w-full rounded-lg border text-[10px] opacity-80',
-                      selected ? 'border-brand-200 ring-2 ring-brand-200' : '',
-                      'hover:opacity-100',
-                    ].join(' ')}
-                    style={{ aspectRatio: '3 / 4' }}
-                    title={d.label}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">Design</div>
-                    <div className="absolute left-1 bottom-1 text-[10px]">{d.label}</div>
-                    {ownedCount > 0 && (
-                      <div className="absolute right-1 top-1 text-[10px] bg-black/70 text-white px-1 rounded">
-                        ×{ownedCount}
-                      </div>
-                    )}
-                  </button>
+                  <>
+                    <div className="progress-track">
+                      <div className="progress-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="mt-2 text-xs flex justify-between">
+                      <span>
+                        {t('nft.available_short')}: <b>{sold.toLocaleString()}</b> ({pct}%)
+                      </span>
+                      <span>
+                        {t('nft.sold_short')}: <b>{Math.max(0, total - sold).toLocaleString()}</b>
+                      </span>
+                    </div>
+                  </>
                 );
-              })}
+              })()}
             </div>
           )}
         </div>
 
         {/* Right: description + actions + rights */}
         <div className="space-y-4">
-          <div className="card p-4 md:p-5 space-y-2">
-            <h1 className="text-xl font-semibold">{item.name}</h1>
-            <p className="text-sm opacity-70">{item.blurb}</p>
-
-            {/* Meta chips */}
-            <div className="flex flex-wrap gap-2 text-xs opacity-90">
-              {item.limited && <span className="chip">{t('nft.limited')}: {item.limited}</span>}
-              {item.kycRequired && <span className="chip">{t('nft.kyc')}</span>}
-              {item.vesting && <span className="chip">{t('nft.vesting')}: {item.vesting}</span>}
-            </div>
+          {/* Desktop features/specs */}
+          <div className="hidden lg:block">
+            <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} />
           </div>
 
-          {/* Purchase (mock) */}
-          {!isWS && (
-            <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3">
-              {item.tier !== 'bronze' && (
+          {/* Purchase (desktop only) */}
+          {item.tier !== 'ws' && (
+            <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3 hidden lg:flex">
+              {/* Desktop: design selector ONLY for Tree/Steel (kept as-is) */}
+              {item.tier === 'tree' && designsFromMeta.length > 0 && (
                 <div className="text-sm">
                   <div className="text-xs mb-1">{t('nft.design.select')}</div>
-                  <div className="text-xs opacity-70">
-                    {t('nft.design.selected')}: <b>{design}</b>
+                  <div className="flex flex-col gap-1">
+                    {designsFromMeta.map((d) => (
+                      <label key={d.id} className="inline-flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="nft-design"
+                          checked={design === d.id}
+                          onChange={() => setDesign(d.id)}
+                        />
+                        <span className="text-xs">{d.label}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               )}
-              {item.activationType === 'flex' && (
+
+              {/* Desktop: physical format selector for Silver */}
+              {meta?.tier === 'silver' ? (
                 <div className="text-sm">
-                  <div className="text-xs mb-1">{t('nft.activation.title')}</div>
+                  <div className="text-xs mb-1">{t('nft.physical.label')}</div>
                   <div className="flex flex-col gap-1">
                     <label className="inline-flex items-center gap-2">
                       <input
                         type="radio"
-                        name="act"
-                        checked={act === 'claim100'}
-                        onChange={() => setAct('claim100')}
-                      />{' '}
-                      {t('nft.activation.claim100')}
+                        name="physical"
+                        checked={withPhysical === true}
+                        onChange={() => setWithPhysical(true)}
+                      />
+                      <span className="text-xs">{t('nft.physical.with')}</span>
                     </label>
                     <label className="inline-flex items-center gap-2">
                       <input
                         type="radio"
-                        name="act"
-                        checked={act === 'split50'}
-                        onChange={() => setAct('split50')}
-                      />{' '}
-                      {t('nft.activation.split50')}
-                    </label>
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="act"
-                        checked={act === 'discount100'}
-                        onChange={() => setAct('discount100')}
-                      />{' '}
-                      {t('nft.activation.discount100')}
+                        name="physical"
+                        checked={withPhysical === false}
+                        onChange={() => setWithPhysical(false)}
+                      />
+                      <span className="text-xs">{t('nft.physical.without')}</span>
                     </label>
                   </div>
                 </div>
-              )}
+              ) : null}
+
               <div>
                 <label className="label">{t('nft.qty')}</label>
                 <input
@@ -351,29 +684,39 @@ export default function NftDetails({ id }: { id: string }) {
                   step={1}
                   className="input w-24 text-sm"
                   value={qty}
-                  onChange={(e) =>
-                    setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))
-                  }
+                  onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
                 />
               </div>
-              <button className="btn btn-outline" onClick={buy}>
-                {t('nft.buy')}
-              </button>
+
+              <div className="flex items-end gap-4">
+                <div className="flex flex-col items-start">
+                  <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
+                    {meta?.priceEur ? `${meta.priceEur.toFixed(0)}€` : ''}
+                  </div>
+                  <button className="btn btn-outline mt-2" onClick={buy}>
+                    {t('nft.buy')}
+                  </button>
+                </div>
+
+                <fieldset className="flex flex-col gap-1 text-xs min-w-[68px]">
+                  <label className="inline-flex items-center gap-1">
+                    <input type="radio" name="ccy" defaultChecked /> EUR
+                  </label>
+                  <label className="inline-flex items-center gap-1">
+                    <input type="radio" name="ccy" /> USD
+                  </label>
+                  <label className="inline-flex items-center gap-1">
+                    <input type="radio" name="ccy" /> SOL
+                  </label>
+                  <label className="inline-flex items-center gap-1">
+                    <input type="radio" name="ccy" /> USDC
+                  </label>
+                </fieldset>
+              </div>
             </div>
           )}
 
-          {isWS && (
-            <div className="card p-4 md:p-5">
-              <button
-                className="btn btn-outline disabled:opacity-50"
-                disabled={!item.invited || owned}
-              >
-                {owned ? t('nft.owned_btn') : item.invited ? t('nft.claim') : t('nft.invite_only')}
-              </button>
-            </div>
-          )}
-
-          {/* Rights block — show only if detailed rights exist */}
+          {/* Rights */}
           {rights && (
             <div className="card p-4 md:p-5 space-y-4">
               <div className="text-sm font-medium">{t('nft.rights.title')}</div>
@@ -382,8 +725,7 @@ export default function NftDetails({ id }: { id: string }) {
                 {/* Claim */}
                 <div className="space-y-2">
                   <div className="text-sm">
-                    {t('nft.rights.claim_avail')}:{' '}
-                    <b>{Math.floor(rights.claimAvailVigri).toLocaleString()} VIGRI</b>
+                    {t('nft.rights.claim_avail')}: <b>{Math.floor(rights.claimAvailVigri).toLocaleString()} VIGRI</b>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
@@ -398,9 +740,7 @@ export default function NftDetails({ id }: { id: string }) {
                 <div className="space-y-2">
                   <div className="text-sm">
                     {t('nft.rights.discount_avail')}:&nbsp;
-                    <b>
-                      {cf.format(Math.max(0, rights.discountBudgetEur - rights.discountUsedEur))}
-                    </b>
+                    <b>{cf.format(Math.max(0, rights.discountBudgetEur - rights.discountUsedEur))}</b>
                     &nbsp;· {t('nft.rights.discount_pct')}:&nbsp;
                     <b>{Math.round(rights.discountPctEffective * 100)}%</b>
                     {rights.expiresAt && (
@@ -435,6 +775,23 @@ export default function NftDetails({ id }: { id: string }) {
           )}
         </div>
       </div>
+
+      {/* Explainers (full width, always below) */}
+      {(meta?.explainers?.length ?? 0) > 0 && (
+        <div className="card p-4 md:p-5 space-y-3">
+          <div className="text-sm font-medium">{t('nft.explainers.title')}</div>
+          <div className="space-y-3">
+            {(meta?.explainers ?? []).map((ex: { titleKey: string; textKey: string }) => (
+              <div key={ex.titleKey}>
+                <div className="text-sm font-semibold">{t(ex.titleKey)}</div>
+                <div className="text-sm opacity-80 mt-1">
+                  <ExplainerText text={t(ex.textKey)} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
