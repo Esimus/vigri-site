@@ -74,6 +74,25 @@
   "common.home": "Home",
   "common.logout": "Выйти",
   "common.currency": "Currency",
+
+  "common.cookies.title": "This website uses cookies",
+  "common.cookies.body": "We use cookies to improve your experience. By using our site, you agree to the use of cookies in accordance with our Policy.",
+  "common.cookies.required": "Necessary",
+  "common.cookies.required_desc": "Required for the website to function properly. This category cannot be disabled.",
+  "common.cookies.analytics": "Analytics",
+  "common.cookies.analytics_desc": "Helps us understand how the website is used.",
+  "common.cookies.marketing": "Targeting/Marketing",
+  "common.cookies.marketing_desc": "Used to deliver relevant ads and measure campaigns.",
+  "common.cookies.functional": "Functional",
+  "common.cookies.functional_desc": "Remembers your choices and improves functionality.",
+  "common.cookies.unclassified": "Unclassified",
+  "common.cookies.unclassified_desc": "Cookies that are being classified.",
+  "common.cookies.accept_all": "Accept all",
+  "common.cookies.reject_all": "Reject all",
+  "common.cookies.save": "Save selection",
+  "common.cookies.read_more": "Read more",
+  "common.cookies.footer_hint": "You can change your choice later in your browser settings.",
+
   "header.notifications": "Notifications",
   "header.mail_empty": "No new messages",
   "header.mail_open": "Open inbox",
@@ -281,7 +300,7 @@
   "nft.explain.silver_buy.text": "An NFT is a unique digital card on the Solana network that is stored in your wallet (e.g., Phantom). By purchasing Silver, you secure the card and the right to receive VIGRI at the initial price — for this category it is 100% of the NFT amount at TGE.\n\nThe card belongs to you: you may hold it, gift it, or sell it on marketplaces; it will appear in “My NFTs” in your account, and the related rights will be available there as well. Payment is made via the connected wallet: choose the quantity and confirm the transaction; the network fee is charged in SOL.\n\nFor Silver you must complete KYC in accordance with the platform rules and amount thresholds. This is a way to support the project and obtain utility rights — not a promise of profit.",
   "nft.explain.silver.d0": "Before the official reveal, the card is shown as a single “mystery box” placeholder. The NFT already belongs to you, is visible in the account, and is stored in your wallet.\n\nAt the reveal event the final Silver artwork, the serial number, and part of the metadata are opened.\n\nThe planned reveal window is Q2 2026. We will announce the exact date in advance — in your account and in the project’s Telegram channel.\n\nAfter reveal the metadata become immutable: the image and properties do not change. Trading on marketplaces is possible before and after reveal; the price is determined by the market and is not a promise of income.",
   "nft.explain.silver.d1": "The Silver series is issued in a limited run — a total of 200 NFTs.\n\nThe amount is fixed and does not increase over time. Each card has a unique serial number and remains in the collection registry permanently.\n\nThe conditions are the same for all holders — a fair and transparent basis for the project’s development.",
-  "nft.explain.silver.d2": "VIGRI tokens are automatically credited to a Silver holder at token launch (TGE) — for the full amount of this NFT at the initial price. No buttons or applications: the credit goes to the same wallet where the card is held.\n\nThe number of tokens is fixed at the initial price and does not change due to subsequent NFT price movements. This protects early participants and keeps the rules the same for everyone.\n\nIf the card is sold before TGE, the right to the credit passes to the new owner (by a network snapshot at a pre-announced date and time). If a sale occurs after the credit, the VIGRI already received remain with you — they are a separate asset, not linked to later NFT transfers.\n\nTo receive the credit for Silver, you must complete KYC in accordance with platform rules.",
+  "nft.explain.silver.d2": "VIGRI tokens are automatically credited to a Silver holder at token launch (TGE) — for the full amount of this NFT at the initial price. No buttons or applications: the credit goes to the same wallet where the card is held.\n\nThe number of tokens is fixed at the initial price and does not change due to subsequent NFT price movements. This protects early participants and keeps the rules the same for everyone.\n\nIf the card is sold before TGE, the right to the credit passes to the new owner (by a network snapshot at a pre-announced date and time). If a sale occurs after the credit, the VIGRI already received remain with you — they are a separate asset, not linked to later NFT transfers.\n\nVesting: 40% unlock immediately at TGE, the remaining 60% unlock linearly over 12 months.\n\nTo receive the credit for Silver, you must complete KYC in accordance with platform rules.",
   "nft.explain.silver.d3": "Silver includes a fixed €1,000 voucher with a 35% discount for purchasing additional VIGRI tokens. The voucher’s face value does not depend on the current market price of the NFT — it is fixed and the same for all Silver holders.\n\nThe voucher is activated automatically after TGE and is valid for 12 months and only on the Lumiros platform. The discount applies to the price at the time of purchase; the voucher can be used in parts or in full. The remaining balance and history are shown in your account.\n\nThe voucher is non-transferable and is voided upon sale of the NFT. It cannot be transferred, gifted, or sold separately from the NFT.\n\nThe voucher has no cash value and is not redeemable for cash or cryptocurrency. It grants only the right to buy VIGRI tokens at a discount within the Lumiros platform.",
   "nft.explain.silver.d4": "Silver is issued in 10 design variants. No choice is made at purchase — allocation is random.\n\nBefore the official reveal the card is displayed as a “mystery box”. At reveal the final image of the drawn variant and your serial number are opened.\n\nDesign affects appearance only. Rights and terms, including VIGRI crediting, are the same for all Silver holders. After reveal the card can be freely traded on marketplaces.",
   "nft.explain.silver.d5": "Each card has its own serial number — part of the collection metadata and a unique identifier within the series. The number appears at the reveal event and is fixed permanently.\n\nThe number is stored with the NFT on-chain: it can be seen in your account and on marketplaces. Duplicates are impossible — every card has its own mint address and its own number.\n\nThe serial number does not change the card’s rights or terms; it exists for transparency, authenticity verification, and to support collectible value.",
@@ -502,8 +521,5 @@
   "overview.go_assets": "Go to Assets",
   "overview.go_rewards": "Rewards",
   "overview.recent": "Recent activity",
-  "overview.no_activity": "No activity yet.",
-
-  "rewards.soon": "Rewards & points integration will appear here.",
-  "rewards.stub": "We will show Lumiros participation points, missions and seasonal bonuses."
+  "overview.no_activity": "No activity yet."
 }

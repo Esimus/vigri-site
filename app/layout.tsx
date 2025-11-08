@@ -2,6 +2,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import CookieConsentGate from "@/components/CookieConsentGate";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
@@ -67,8 +68,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="page-bg">{children}</body>
+      <body className="page-bg">
+        {children}
+        {/* Cookie consent banner (server-aware) */}
+        <CookieConsentGate />
+      </body>
     </html>
   );
 }
-

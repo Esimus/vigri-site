@@ -1,12 +1,15 @@
 // app/api/nft/summary/route.ts
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-// Types expected from /api/nft
+export const runtime = 'nodejs';
+
+// Types expected from /api/nft (upstream mock)
 type ApiNftItem = {
-  id: string;
+  id: string;           // e.g. 'nft-gold'
   name: string;
-  limited?: number;
-  minted?: number;
+  limited?: number;     // per-catalog supply (optional in upstream)
+  minted?: number;      // per-user owned (local mock) — we will ignore this for "sold"
 };
 
 type ApiNftResponse = {
@@ -14,7 +17,6 @@ type ApiNftResponse = {
   items: ApiNftItem[];
 };
 
-// Runtime type guard to validate upstream JSON
 function isApiNftResponse(x: unknown): x is ApiNftResponse {
   if (!x || typeof x !== 'object') return false;
   const o = x as Record<string, unknown>;
@@ -27,57 +29,98 @@ function isApiNftResponse(x: unknown): x is ApiNftResponse {
   });
 }
 
-// Aggregate availability by consuming /api/nft (cookie-based mock).
-// We do not duplicate the catalog here — we reuse /api/nft output for consistency.
+// Map list item id -> canonical TierKey used in echo logs
+type TierKey = 'Base' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Tree' | 'Steel' | 'WS-20';
+
+// Your canonical supplies per tier (global)
+const SUPPLY_BY_TIER: Record<TierKey, number> = {
+  Base: 0,
+  Bronze: 1000,
+  Silver: 200,
+  Gold: 100,
+  Platinum: 20,
+  Tree: 2000,
+  Steel: 2000,
+  'WS-20': 20,
+};
+
+// Map upstream list ids to TierKey
+const ID_TO_TIER: Record<string, TierKey | undefined> = {
+  'nft-bronze': 'Bronze',
+  'nft-silver': 'Silver',
+  'nft-gold': 'Gold',
+  'nft-platinum': 'Platinum',
+  'nft-tree-steel': 'Tree',   // if you split Tree/Steel as separate items later, adjust here
+  'nft-ws-20': 'WS-20',
+};
+
+// If you ever need reverse mapping, you can add TIER_TO_ID as well.
+// For now we build "sold" by tier and then project it back onto ids.
+
 export async function GET(req: Request) {
-  // Step 1: call upstream and propagate cookies so minted/owned reflect current browser state
-  let r: Response;
+  // 1) Call upstream /api/nft (we keep this to reuse item list & names)
+  let upstream: Response;
   try {
-    r = await fetch(new URL('/api/nft', req.url), {
+    upstream = await fetch(new URL('/api/nft', req.url), {
       headers: { cookie: req.headers.get('cookie') ?? '' },
       cache: 'no-store',
     });
   } catch (e) {
-    console.error('GET /api/nft failed:', e);
     return NextResponse.json({ ok: false, error: 'upstream_unreachable' }, { status: 502 });
   }
 
-  // Step 2: ensure we actually received JSON
-  const ct = r.headers.get('content-type') || '';
+  const ct = upstream.headers.get('content-type') || '';
   if (!ct.includes('application/json')) {
-    console.error('GET /api/nft: unexpected content-type:', ct);
     return NextResponse.json({ ok: false, error: 'bad_upstream_type' }, { status: 502 });
   }
 
-  // Step 3: parse JSON with error handling
   let data: unknown;
   try {
-    data = await r.json();
-  } catch (e) {
-    console.error('GET /api/nft: JSON parse error:', e);
+    data = await upstream.json();
+  } catch {
     return NextResponse.json({ ok: false, error: 'bad_upstream_json' }, { status: 502 });
   }
 
-  // Step 4: validate payload shape and HTTP status
-  if (!r.ok || !isApiNftResponse(data)) {
-    console.error('GET /api/nft: invalid payload or status', { status: r.status, body: data });
+  if (!upstream.ok || !isApiNftResponse(data)) {
     return NextResponse.json({ ok: false, error: 'bad_upstream_payload' }, { status: 502 });
   }
 
-  // At this point data is typed
   const rows: ApiNftItem[] = data.items;
 
+  // 2) Aggregate global SOLD per tier from EchoLog (purchase · nft.proportional)
+  // Each proportional log = 1 unit sold for that tier (you can refine later if needed)
+  let soldByTier: Partial<Record<TierKey, number>> = {};
+  try {
+    const logs = await prisma.echoLog.findMany({
+      where: { kind: 'purchase', action: 'nft.proportional' },
+      select: { meta: true },
+      take: 100_000, // safety cap
+    });
+    for (const r of logs) {
+      const tier = (r.meta && typeof r.meta === 'object'
+        ? (r.meta as Record<string, unknown>)['tier']
+        : null) as string | null;
+      if (!tier) continue;
+      const tk = tier as TierKey;
+      soldByTier[tk] = (soldByTier[tk] ?? 0) + 1;
+    }
+  } catch {
+    // On aggregation failure, default to zeros (do not break /summary)
+    soldByTier = {};
+  }
+
+  // 3) Build response per upstream item (id). We replace minted/limited with global {total,sold,left,pct}.
   const items = rows.map((i) => {
-    const total = Number.isFinite(i.limited as number) ? (i.limited ?? 0) : 0;
-    const sold = Math.min(i.minted ?? 0, total);
+    const tk = ID_TO_TIER[i.id];
+    const total = tk ? SUPPLY_BY_TIER[tk] ?? 0 : 0;
+    const sold = tk ? Math.min(soldByTier[tk] ?? 0, total) : 0;
     const left = Math.max(total - sold, 0);
     const pct = total > 0 ? Math.round((sold / total) * 100) : 0;
     return { id: i.id, name: i.name, total, sold, left, pct };
   });
 
-  // Totals: exclude WS if not needed in global stats
+  // 4) Totals: optionally exclude WS-20 from global stats if needed
   const itemsForTotal = items.filter((x) => x.id !== 'nft-ws-20');
-
   const totalAll = itemsForTotal.reduce((s, x) => s + x.total, 0);
   const soldAll = itemsForTotal.reduce((s, x) => s + x.sold, 0);
   const leftAll = Math.max(totalAll - soldAll, 0);

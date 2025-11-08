@@ -185,7 +185,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     image: '3_mb_silver.webp',
 
     kycRequired: true,
-    vesting: null,
+    vesting: 'nft.yes',
     revealNote: 'Reveals at event (Q2 2026)',
 
     activationType: 'none',

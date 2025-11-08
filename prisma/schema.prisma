@@ -13,16 +13,30 @@ generator client {
 // -- Core auth models (Lucia-compatible minimal set)
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  passwordHash  String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  sessions      Session[]
-  keys          Key[]
-  verifyTokens  VerifyEmailToken[]
-  resetTokens   ResetPasswordToken[] // <-- added
+  // Echo participation tracking (micro-echo: 1 echo = 1_000_000)
+  balanceEcho        Int @default(0) // stored in micro-echo (uecho)
+  participationScore Int @default(0) // stored in micro-echo (uecho)
+
+  sessions     Session[]
+  keys         Key[]
+  verifyTokens VerifyEmailToken[]
+  resetTokens  ResetPasswordToken[] // <-- added
+  echoLogs     EchoLog[]
+
+  // Referral graph (fixed-once)
+  referralCode String? @unique
+  referrerId   String?
+  referrer     User?   @relation("UserRef", fields: [referrerId], references: [id])
+  referrals    User[]  @relation("UserRef")
+
+  @@index([referrerId])
 }
 
 // Key = identity credential (password or OAuth). For password, store hash here.
@@ -30,7 +44,7 @@ model Key {
   id             String   @id // recommended format: "providerId:providerUserId"
   userId         String
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hashedPassword String?  // present for "password" provider
+  hashedPassword String? // present for "password" provider
   primary        Boolean  @default(false)
   createdAt      DateTime @default(now())
 
@@ -51,13 +65,13 @@ model Session {
 
 // Email verification token (single-use)
 model VerifyEmailToken {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash  String   // sha256 of the raw token
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String // sha256 of the raw token
   expiresAt  DateTime
   consumedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@unique([tokenHash])
   @@index([userId])
@@ -65,13 +79,13 @@ model VerifyEmailToken {
 
 // Password reset token (single-use)
 model ResetPasswordToken {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash  String   // sha256 of the raw token
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String // sha256 of the raw token
   expiresAt  DateTime
   consumedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@unique([tokenHash])
   @@index([userId])
@@ -85,3 +99,24 @@ model ResetPasswordToken {
 
 // (Next steps) WebAuthn credentials (will be added later)
 // model WebAuthnCredential { ... }
+
+model EchoLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  kind      String // referral | purchase | activity | bonus | revoke
+  action    String // 'kyc_approved', 'nft.base', ...
+  amountUe  Int // delta in micro-echo (может быть отрицательным при revoke)
+  bucket    String? // резерв под «Банк сокровищ»: 'soul' | 'mind' | 'base' | 'heart'
+  sourceId  String? // id покупки/реферала/тикета и т.п.
+  refUserId String? // приглашённый пользователь (для referral.*)
+  meta      Json? // произвольный контекст (tier, campaign и т.д.)
+  dedupeKey String? @unique // для идемпотентности
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, kind])
+  @@index([action])
+  @@index([sourceId])
+}

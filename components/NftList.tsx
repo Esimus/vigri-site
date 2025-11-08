@@ -7,6 +7,7 @@ import { useI18n } from '@/hooks/useI18n';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PRESALE_END_ISO, presaleRemainingMs, formatRemaining } from '@/lib/config';
+import SalesBar from '@/components/ui/SalesBar';
 
 type Item = {
   id: string;
@@ -109,7 +110,6 @@ export default function NftList() {
           // Availability calc
           const total = Number.isFinite(i.limited) ? (i.limited || 0) : 0;
           const sold = Math.min(i.minted || 0, total);
-          const left = Math.max(total - sold, 0);
           const pct = total > 0 ? Math.round((sold / total) * 100) : 0;
           const showAvailability = i.id !== 'nft-ws-20' && total > 0;
 
@@ -226,20 +226,12 @@ export default function NftList() {
               {showAvailability && (
                 <div className="space-y-1.5 mb-3">
                   <div className="text-[11px] md:text-xs opacity-80">{t('nft.availability')}</div>
-                  <div className="progress-track">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${pct}%`, backgroundColor: progressColor }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] md:text-xs opacity-80">
-                    <span>
-                      {t('nft.sold_short')}: <b>{sold}</b> ({pct}%)
-                    </span>
-                    <span>
-                      {t('nft.available_short')}: <b>{left}</b>
-                    </span>
-                  </div>
+                  <SalesBar
+                    t={t}
+                    limited={i.limited as number | undefined}
+                    minted={i.minted as number | undefined}
+                    progressColor={progressColor}
+                  />
                 </div>
               )}
 

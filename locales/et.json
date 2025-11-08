@@ -74,6 +74,25 @@
   "common.home": "Avaleht",
   "common.logout": "Logi välja",
   "common.currency": "Valuuta",
+
+  "common.cookies.title": "See veebisait kasutab küpsiseid",
+  "common.cookies.body": "Kasutame küpsiseid kasutuskogemuse parandamiseks. Veebisaiti kasutades nõustute küpsiste kasutamisega vastavalt meie poliitikale.",
+  "common.cookies.required": "Vajalikud",
+  "common.cookies.required_desc": "Vajalikud veebisaidi korrektseks toimimiseks. Seda kategooriat ei saa keelata.",
+  "common.cookies.analytics": "Analüütika",
+  "common.cookies.analytics_desc": "Aitab mõista, kuidas veebisaiti kasutatakse.",
+  "common.cookies.marketing": "Sihtimine/Turundus",
+  "common.cookies.marketing_desc": "Kasutatakse asjakohaste reklaamide kuvamiseks ja kampaaniate mõõtmiseks.",
+  "common.cookies.functional": "Funktsionaalsed",
+  "common.cookies.functional_desc": "Jätavad meelde valikud ja parandavad funktsionaalsust.",
+  "common.cookies.unclassified": "Klassifitseerimata",
+  "common.cookies.unclassified_desc": "Küpsised, mille kategooria on veel määramisel.",
+  "common.cookies.accept_all": "Nõustu kõigiga",
+  "common.cookies.reject_all": "Keeldu kõigist",
+  "common.cookies.save": "Salvesta valik",
+  "common.cookies.read_more": "Loe lähemalt",
+  "common.cookies.footer_hint": "Saate oma valikut hiljem brauseri seadetes muuta.",
+
   "header.notifications": "Teavitused",
   "header.mail_empty": "Uusi teateid pole",
   "header.mail_open": "Ava postkast",
@@ -281,7 +300,7 @@
   "nft.explain.silver_buy.text": "NFT on Solana võrgus asuv ainulaadne digitaalne kaart, mida hoitakse sinu rahakotis (nt Phantom). Ostes Silveri, kinnitad kaardi enda nimele ja saad õiguse saada VIGRI-t stardihinnaga — selle kategooria puhul 100% NFT summast TGE hetkel.\n\nKaart kuulub sulle: võid seda hoida, kinkida või müüa turgudel; see ilmub sinu kontos jaotisesse „Minu NFT-d“ ning seotud õigused on samuti seal kättesaadavad. Maksmine toimub ühendatud rahakoti kaudu: valid koguse ja kinnitad tehingu; võrgu tasu arvestatakse SOL-is.\n\nSilveri puhul on vajalik KYC vastavalt platvormi reeglitele ja summapiiridele. See on viis projekti toetamiseks ja utilitaarsete õiguste saamiseks — mitte tulu lubadus.",
   "nft.explain.silver.d0": "Enne ametlikku avalikustamist kuvatakse kaart ühtse „mystery box“ kohaldusega. NFT kuulub sulle juba, on kontos nähtav ja asub sinu rahakotis.\n\nReveal-sündmusel avatakse Silveri lõplik kujundus, seerianumber ja osa metaandmetest.\n\nPlaneeritud avalikustamise aeg on 2026. aasta II kvartal. Täpse kuupäeva teatame eelnevalt — kontos ja projekti Telegrami kanalis.\n\nPärast avalikustamist muutuvad metaandmed muutmatuks (immutable): pilt ja omadused ei muutu. Kauplemine turgudel on lubatud nii enne kui ka pärast avalikustamist; hinna määrab turg ja see ei ole tulu lubadus.",
   "nft.explain.silver.d1": "Silveri seeria on piiratud tiraažiga — kokku 200 NFT-d.\n\nMaht on fikseeritud ega suurene ajas. Igal kaardil on unikaalne seerianumber ja see jääb püsivalt kollektsiooni registrisse.\n\nTingimused on kõigile omanikele ühesugused — aus ja läbipaistev alus projekti arenguks.",
-  "nft.explain.silver.d2": "Silveri omanikele kantakse VIGRI tokenid automaatselt TGE hetkel — kogu selle NFT summa ulatuses stardihinnaga. Nuppe ega avaldusi ei ole vaja: kandmine toimub samasse rahakotti, kus kaart asub.\n\nTokenite hulk fikseeritakse stardihinna järgi ega muutu NFT hilisemate hinnaliikumiste tõttu. See kaitseb varajasi osalejaid ja hoiab reeglid kõigile võrdsed.\n\nKui kaart müüakse enne TGE-d, läheb õigus uuele omanikule (võrgu hetkeseisu — snapshot’i — alusel eelnevalt teatatud ajal). Kui müük toimub pärast kandmist, jäävad juba saadud VIGRI-d sinu kätte — see on eraldi vara, mis ei ole seotud NFT edasise võõrandamisega.\n\nKandmise saamiseks on Silveri puhul vajalik KYC vastavalt platvormi reeglitele.",
+  "nft.explain.silver.d2": "Silveri omanikele kantakse VIGRI tokenid automaatselt TGE hetkel — kogu selle NFT summa ulatuses stardihinnaga. Nuppe ega avaldusi ei ole vaja: kandmine toimub samasse rahakotti, kus kaart asub.\n\nTokenite hulk fikseeritakse stardihinna järgi ega muutu NFT hilisemate hinnaliikumiste tõttu. See kaitseb varajasi osalejaid ja hoiab reeglid kõigile võrdsed.\n\nKui kaart müüakse enne TGE-d, läheb õigus uuele omanikule (võrgu hetkeseisu — snapshot’i — alusel eelnevalt teatatud ajal). Kui müük toimub pärast kandmist, jäävad juba saadud VIGRI-d sinu kätte — see on eraldi vara, mis ei ole seotud NFT edasise võõrandamisega.\n\nVesting: 40% vabaneb kohe TGE-l, ülejäänud 60% vabaneb lineaarselt 12 kuu jooksul.\n\nKandmise saamiseks on Silveri puhul vajalik KYC vastavalt platvormi reeglitele.",
   "nft.explain.silver.d3": "Silveriga kaasneb fikseeritud 1 000 € vautšer 35% soodustusega lisanduva VIGRI ostuks. Vautšeri nominaal ei sõltu NFT turuhinnast — see on fikseeritud ja ühesugune kõigile Silveri omanikele.\n\nVautšer aktiveerub automaatselt pärast TGE-d ja kehtib 12 kuud ning ainult Lumiros platvormil. Soodustus rakendub ostu hetke hinnale; vautšerit saab kasutada osade kaupa või korraga. Jääk ja ostuajalugu on kontos nähtavad.\n\nVautšer ei ole võõrandatav ja tühistatakse NFT müügil. Seda ei saa eraldi üle anda, kinkida ega müüa.\n\nVautšeril ei ole rahalist ekvivalenti ja seda ei vahetata sularaha ega krüptovaluuta vastu. See annab õiguse osta VIGRI tokeneid soodushinnaga Lumirose platvormis.",
   "nft.explain.silver.d4": "Silver väljastatakse 10 disainivariandiga. Ostul valikut ei tehta — jaotus on juhuslik.\n\nEnne ametlikku avalikustamist kuvatakse kaart kui „mystery box“. Reveal’i hetkel avatakse loositud variandi lõppkujundus ja sinu seerianumber.\n\nDisain mõjutab ainult välimust. Õigused ja tingimused, sh VIGRI kandmine, on kõigile Silveri omanikele samad. Pärast avalikustamist saab kaardiga vabalt turgudel kaubelda.",
   "nft.explain.silver.d5": "Igal kaardil on oma seerianumber — see on osa kollektsiooni metaandmetest ja unikaalne identifikaator seerias. Number ilmub reveal-sündmusel ja fikseeritakse püsivalt.\n\nNumber salvestatakse NFT-ga koos plokiahelas: seda saab näha kontos ja turgudel. Duplikaadid on võimatud — igal kaardil on oma mint-aadress ja number.\n\nSeerianumber ei muuda kaardi õigusi ega tingimusi; see on läbipaistvuse, ehtsuse kontrolli ja kollektsioneerimisväärtuse toetamiseks.",
@@ -502,8 +521,5 @@
   "overview.go_assets": "Mine Varasse",
   "overview.go_rewards": "Mine Rewardsi",
   "overview.recent": "Hiljutine aktiivsus",
-  "overview.no_activity": "Tegevusi veel pole.",
-
-  "rewards.soon": "Siia tuleb punktide ja preemiate integratsioon.",
-  "rewards.stub": "Näidatakse Lumirose osaluspunkte, missioone ja hooajalisi boonuseid."
+  "overview.no_activity": "Tegevusi veel pole."
 }

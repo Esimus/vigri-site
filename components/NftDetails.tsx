@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
 import PillCarousel from '@/components/ui/PillCarousel';
 import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
+import SalesBar from '@/components/ui/SalesBar';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -17,6 +18,7 @@ type Item = {
   vigriPrice: number;
   kycRequired?: boolean;
   limited?: number;
+  minted?: number;
   vesting?: string | null;
   ownedQty?: number;
   invited?: boolean;
@@ -440,20 +442,56 @@ export default function NftDetails({ id }: { id: string }) {
 
   const navItems = useMemo(() => NFT_NAV, []);
 
+  function tierParamFromItemTier(t: Item['tier'] | undefined): string {
+    switch (t) {
+      case 'tree': return 'Tree';
+      case 'bronze': return 'Bronze';
+      case 'silver': return 'Silver';
+      case 'gold': return 'Gold';
+      case 'platinum': return 'Platinum';
+      case 'ws': return 'WS-20';
+      default: return 'Base';
+    }
+  }
+
   // Purchase (mock)
   const buy = async () => {
     if (!item) return;
+
     const payload: BuyPayload = { id: item.id, qty: isWS ? 1 : qty };
     if (design) payload.designId = design;
     if (activationType === 'flex') payload.activation = act;
 
+    // 1) Mock purchase
     const r = await fetch('/api/nft', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const j: unknown = await r.json().catch(() => ({}));
-    if (!r.ok || !isObject(j) || j.ok !== true) return;
+
+    const j: unknown = await r.json().catch(() => ({} as Record<string, unknown>));
+    const ok = typeof j === 'object' && j !== null && (j as { ok?: boolean }).ok === true;
+    if (!r.ok || !ok) return;
+
+    // 2) Trigger rewards/referral (non-blocking)
+    try {
+      // resolve logged-in user id
+      const meRes = await fetch('/api/me', { cache: 'no-store' });
+      const meJson = await meRes.json().catch(() => ({} as { ok?: boolean; user?: { id?: string } }));
+      const meId = meJson?.ok && meJson?.user?.id ? String(meJson.user.id) : null;
+
+      const tierName = tierParamFromItemTier(item.tier);
+      const eur = (meta?.priceEur ?? item?.eurPrice ?? 0);
+
+      const qsClaim = new URLSearchParams();
+      qsClaim.set('tier', tierName);
+      if (eur > 0) qsClaim.set('eur', String(eur));
+      if (meId) qsClaim.set('userId', meId);
+    } catch {
+      /* ignore to not block UI */
+    }
+
+    // 3) Refresh data
     await loadAll();
   };
 
@@ -595,26 +633,12 @@ export default function NftDetails({ id }: { id: string }) {
           {!isWS && (
             <div className="mt-3 card p-3">
               <div className="text-xs opacity-70 mb-2">{t('nft.availability')}</div>
-              {(() => {
-                const total = meta?.supply ?? 0;
-                const sold = 0;
-                const pct = total > 0 ? Math.min(100, Math.round((sold / total) * 100)) : 0;
-                return (
-                  <>
-                    <div className="progress-track">
-                      <div className="progress-fill" style={{ width: `${pct}%` }} />
-                    </div>
-                    <div className="mt-2 text-xs flex justify-between">
-                      <span>
-                        {t('nft.available_short')}: <b>{sold.toLocaleString()}</b> ({pct}%)
-                      </span>
-                      <span>
-                        {t('nft.sold_short')}: <b>{Math.max(0, total - sold).toLocaleString()}</b>
-                      </span>
-                    </div>
-                  </>
-                );
-              })()}
+              <SalesBar
+                t={t}
+                limited={item?.limited}
+                minted={item?.minted}
+                fallbackTotal={meta?.supply ?? 0}
+              />
             </div>
           )}
         </div>
