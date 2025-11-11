@@ -15,6 +15,7 @@ import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { NotificationsBell } from '@/components/notifications';
 import VerifyBanner from '@/components/VerifyBanner';
 import VigriLogo from "@/components/VigriLogo";
+import { ProgressDot } from '@/components/ui/ProgressDot';
 
 export default function Home() {
   const { lang, setLang, t } = useI18n();
@@ -23,7 +24,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch('/api/auth/me', { cache: 'no-store' });
+        const r = await fetch('/api/me', { cache: 'no-store' });
         const j = await r.json();
         if (r.ok && j?.ok) setMe(j.user);
         else setMe(null);
@@ -411,10 +412,11 @@ export default function Home() {
         <h2 className="text-2xl font-bold tracking-tight">{t('roadmap_title')}</h2>
         <div className="mt-6 grid gap-4">
           {[
-            { k: t('roadmap_i1_k'), v: t('roadmap_i1_v'), p: 0.4 },
-            { k: t('roadmap_i2_k'), v: t('roadmap_i2_v'), p: 0.1 },
-            { k: t('roadmap_i3_k'), v: t('roadmap_i3_v'), p: 0 },
+            { k: t('roadmap_i1_k'), v: t('roadmap_i1_v'), p: 1.0 },
+            { k: t('roadmap_i2_k'), v: t('roadmap_i2_v'), p: 0.7 },
+            { k: t('roadmap_i3_k'), v: t('roadmap_i3_v'), p: 0.05 },
             { k: t('roadmap_i4_k'), v: t('roadmap_i4_v'), p: 0 },
+            { k: t('roadmap_i5_k'), v: t('roadmap_i5_v'), p: 0 },
           ].map((x) => (
             <div key={x.k} className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm flex items-start gap-4">
               <ProgressDot value={x.p} />
@@ -516,28 +518,6 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <div className="text-xs text-zinc-500">{label}</div>
       <div className="mt-1 font-semibold">{value}</div>
-    </div>
-  );
-}
-
-function ProgressDot({ value }: { value?: number }) {
-  if (value == null) {
-    return (
-      <div className="h-8 w-8 shrink-0 rounded-full border border-zinc-300 grid place-items-center" aria-hidden="true">
-        <span className="text-zinc-400">•</span>
-      </div>
-    );
-  }
-  const pct = Math.max(0, Math.min(100, Math.round(value * 100)));
-  const deg = (pct / 100) * 360;
-  return (
-    <div
-      className="relative h-8 w-8 shrink-0 rounded-full"
-      style={{ background: `conic-gradient(var(--brand-600) ${deg}deg, #e5e7eb ${deg}deg)` }}
-      aria-label={`Progress ${pct}%`}
-      title={`${pct}% complete`}
-    >
-      <div className="absolute inset-1 rounded-full bg-white border border-zinc-300" />
     </div>
   );
 }

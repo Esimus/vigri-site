@@ -95,29 +95,29 @@ class ApiClient {
         user?: { id: string; email: string } | null;
         profile?: Profile;
       }>
-    >('/api/auth/me', 'GET');
+    >('/api/me', 'GET');
   }
 
   setLum(lum: boolean) {
-    return request<ApiResponse<Empty>>('/api/auth/me', 'POST', { lum });
+    return request<ApiResponse<Empty>>('/api/me', 'POST', { lum });
   }
 
   profile = {
     async get() {
-      const r = await request<ApiResponse<{ profile?: Profile }>>('/api/auth/me', 'GET');
+      const r = await request<ApiResponse<{ profile?: Profile }>>('/api/me', 'GET');
       if ('ok' in r && r.ok === true) {
         return { ok: true, profile: r.profile ?? {} as Profile } satisfies ApiOk<{ profile: Profile }>;
       }
       return r as ApiFail;
     },
     save(partial: Partial<Profile>) {
-      return request<ApiResponse<Empty>>('/api/auth/me', 'POST', { profile: partial });
+      return request<ApiResponse<Empty>>('/api/me', 'POST', { profile: partial });
     },
   };
 
   kyc = {
     async get() {
-      const r = await request<ApiResponse<{ kyc: boolean | 'none' | 'pending' | 'approved' }>>('/api/auth/me', 'GET');
+      const r = await request<ApiResponse<{ kyc: boolean | 'none' | 'pending' | 'approved' }>>('/api/me', 'GET');
       if (!('ok' in r) || !r.ok) return r as ApiFail;
       const v = r.kyc;
       const normalized: 'none' | 'pending' | 'approved' =
@@ -125,13 +125,13 @@ class ApiClient {
       return { ok: true, status: normalized } as ApiOk<{ status: 'none' | 'pending' | 'approved' }>;
     },
     start() {
-      return request<ApiResponse<Empty>>('/api/auth/me', 'POST', { kyc: 'pending' });
+      return request<ApiResponse<Empty>>('/api/me', 'POST', { kyc: 'pending' });
     },
     approve() {
-      return request<ApiResponse<Empty>>('/api/auth/me', 'POST', { kyc: 'approved' });
+      return request<ApiResponse<Empty>>('/api/me', 'POST', { kyc: 'approved' });
     },
     reset() {
-      return request<ApiResponse<Empty>>('/api/auth/me', 'POST', { kyc: 'none' });
+      return request<ApiResponse<Empty>>('/api/me', 'POST', { kyc: 'none' });
     },
   };
 

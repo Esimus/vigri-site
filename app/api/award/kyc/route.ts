@@ -1,65 +1,81 @@
-// app/api/referral/award/kyc/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { creditEcho } from '@/lib/echo';
 
 export const runtime = 'nodejs';
 
-// Payouts for KYC-approved event (in micro-echo)
-const L1_UECHO = 200_000; // +0.2 echo
-const L2_UECHO = 100_000; // +0.1 echo
-const L3_UECHO =  50_000; // +0.05 echo
-
 type Err = { ok: false; error: string };
-type Ok = { ok: true; userId: string; paid: Array<{ level: number; userId: string; amountUe: number }> };
+type Ok = {
+  ok: true;
+  refereeId: string;
+  inviterId: string | null;
+  paidEcho: number;
+  deduped?: boolean;
+};
 
-// POST /api/referral/award/kyc?userId=...
-export async function POST(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get('userId');
-  if (!userId) return NextResponse.json<Err>({ ok: false, error: 'missing_userId' }, { status: 400 });
+type AwardRules = {
+  kyc?: { bonus?: number; once_per_user?: boolean; inviter_l1?: number };
+  [k: string]: unknown;
+};
 
-  // referee (got KYC approved)
-  const me = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, referrerId: true },
-  });
-  if (!me) return NextResponse.json<Err>({ ok: false, error: 'user_not_found' }, { status: 404 });
+function isObj(v: unknown): v is Record<string, unknown> { return !!v && typeof v === 'object'; }
+function hasDefault<T>(m: unknown): m is { default: T } { return isObj(m) && 'default' in m; }
+function num(v: unknown, d: number): number { return typeof v === 'number' && isFinite(v) ? v : d; }
 
-  const refereeId = me.id;
-
-  // Build upline up to 3 levels
-  const l1 = me.referrerId ?? null;
-  const l2User = l1
-    ? await prisma.user.findUnique({ where: { id: l1 }, select: { id: true, referrerId: true } })
-    : null;
-  const l2 = l2User?.referrerId ?? null;
-
-  const l3User = l2
-    ? await prisma.user.findUnique({ where: { id: l2 }, select: { id: true, referrerId: true } })
-    : null;
-  const l3 = l3User?.referrerId ?? null;
-
-  const sourceId = `kyc:${refereeId}`; // idempotency
-  const paid: Array<{ level: number; userId: string; amountUe: number }> = [];
-
-  async function pay(level: number, toUserId: string, amountUe: number) {
-    await creditEcho(prisma, {
-      userId: toUserId,
-      amount: amountUe,                // micro-echo
-      kind: 'referral',
-      action: `kyc.approved.L${level}`,
-      sourceId,                        // de-dupe
-      refUserId: refereeId,            // who triggered
-      meta: { bucket: 'base' },
-      dedupeKey: `kyc:L${level}:${toUserId}:${sourceId}`,
-    });
-    paid.push({ level, userId: toUserId, amountUe });
+async function loadAwardRules(): Promise<AwardRules> {
+  try {
+    const mod = (await import('@/config/award_rules.json')) as unknown;
+    return hasDefault<AwardRules>(mod) ? mod.default : (mod as AwardRules);
+  } catch {
+    return {};
   }
+}
 
-  if (l1) await pay(1, l1, L1_UECHO);
-  if (l2) await pay(2, l2, L2_UECHO);
-  if (l3) await pay(3, l3, L3_UECHO);
+/** POST /api/award/kyc?userId=... */
+export async function POST(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const userId = (searchParams.get('userId') || '').trim();
+    if (!userId) {
+      return NextResponse.json<Err>({ ok: false, error: 'missing_userId' }, { status: 400 });
+    }
 
-  return NextResponse.json<Ok>({ ok: true, userId: refereeId, paid });
+    const me = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, referrerId: true },
+    });
+    if (!me) {
+      return NextResponse.json<Err>({ ok: false, error: 'user_not_found' }, { status: 404 });
+    }
+    if (!me.referrerId) {
+      return NextResponse.json<Ok>({ ok: true, refereeId: me.id, inviterId: null, paidEcho: 0 });
+    }
+
+    const rules = await loadAwardRules();
+    const kyc = isObj(rules.kyc) ? (rules.kyc as AwardRules['kyc']) : undefined;
+    const amountEcho = num(kyc?.bonus, 5);
+
+    const sourceId = `kyc:${me.id}`;
+    const dedupeKey = `kyc:L1:${me.referrerId}:${me.id}`;
+
+    await creditEcho(prisma, {
+      userId: me.referrerId,
+      kind: 'referral',
+      action: 'referral.kyc.l1',
+      amount: amountEcho,
+      sourceId,
+      dedupeKey,
+      refUserId: me.id,
+      meta: { reason: 'kyc' },
+    });
+
+    return NextResponse.json<Ok>({
+      ok: true,
+      refereeId: me.id,
+      inviterId: me.referrerId,
+      paidEcho: amountEcho,
+    });
+  } catch {
+    return NextResponse.json<Err>({ ok: false, error: 'server_error' }, { status: 500 });
+  }
 }

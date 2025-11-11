@@ -16,7 +16,10 @@ export async function GET(req: Request) {
   }
 
   const rows = await prisma.echoLog.findMany({
-    where: { userId },
+    where: {
+    userId,
+    NOT: { action: 'nft.proportional' },
+  },
     orderBy: { createdAt: 'desc' },
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),

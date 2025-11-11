@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 
 // Types expected from /api/nft (upstream mock)
 type ApiNftItem = {
@@ -45,12 +48,12 @@ const SUPPLY_BY_TIER: Record<TierKey, number> = {
 };
 
 // Map upstream list ids to TierKey
-const ID_TO_TIER: Record<string, TierKey | undefined> = {
+const ID_TO_TIER: Record<string, TierKey> = {
+  'nft-tree-steel': 'Tree',
   'nft-bronze': 'Bronze',
   'nft-silver': 'Silver',
   'nft-gold': 'Gold',
   'nft-platinum': 'Platinum',
-  'nft-tree-steel': 'Tree',   // if you split Tree/Steel as separate items later, adjust here
   'nft-ws-20': 'WS-20',
 };
 
@@ -65,7 +68,7 @@ export async function GET(req: Request) {
       headers: { cookie: req.headers.get('cookie') ?? '' },
       cache: 'no-store',
     });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ ok: false, error: 'upstream_unreachable' }, { status: 502 });
   }
 
@@ -91,23 +94,33 @@ export async function GET(req: Request) {
   // Each proportional log = 1 unit sold for that tier (you can refine later if needed)
   let soldByTier: Partial<Record<TierKey, number>> = {};
   try {
-    const logs = await prisma.echoLog.findMany({
-      where: { kind: 'purchase', action: 'nft.proportional' },
-      select: { meta: true },
-      take: 100_000, // safety cap
-    });
-    for (const r of logs) {
-      const tier = (r.meta && typeof r.meta === 'object'
-        ? (r.meta as Record<string, unknown>)['tier']
-        : null) as string | null;
-      if (!tier) continue;
-      const tk = tier as TierKey;
-      soldByTier[tk] = (soldByTier[tk] ?? 0) + 1;
-    }
-  } catch {
-    // On aggregation failure, default to zeros (do not break /summary)
-    soldByTier = {};
-  }
+
+  const logs = await prisma.echoLog.findMany({
+  where: { kind: 'purchase', action: 'nft.proportional' },
+  select: { meta: true }, 
+  take: 100_000, // safety cap
+});
+
+  for (const r of logs) {
+    // safe-narrow meta
+    const meta = r.meta && typeof r.meta === 'object'
+    ? (r.meta as { tier?: string; qty?: number })
+    : null;
+
+  const tierVal = meta?.tier ?? null;
+  if (!tierVal) continue;
+  const tk = tierVal as TierKey;
+
+  const q = (typeof meta?.qty === 'number' && Number.isFinite(meta.qty))
+    ? Math.max(1, Math.floor(meta.qty))
+    : 1;
+
+  soldByTier[tk] = (soldByTier[tk] ?? 0) + q;
+      }
+} catch {
+  // On aggregation failure, default to zeros (do not break /summary)
+  soldByTier = {};
+}
 
   // 3) Build response per upstream item (id). We replace minted/limited with global {total,sold,left,pct}.
   const items = rows.map((i) => {
@@ -126,9 +139,8 @@ export async function GET(req: Request) {
   const leftAll = Math.max(totalAll - soldAll, 0);
   const pctAll = totalAll > 0 ? Math.round((soldAll / totalAll) * 100) : 0;
 
-  return NextResponse.json({
-    ok: true,
-    items,
-    totals: { total: totalAll, sold: soldAll, left: leftAll, pct: pctAll },
-  });
+  return NextResponse.json(
+    { ok: true, items, totals: { total: totalAll, sold: soldAll, left: leftAll, pct: pctAll } },
+    { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+  );
 }

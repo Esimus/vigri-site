@@ -27,7 +27,7 @@ model User {
   sessions     Session[]
   keys         Key[]
   verifyTokens VerifyEmailToken[]
-  resetTokens  ResetPasswordToken[] // <-- added
+  resetTokens  ResetPasswordToken[] 
   echoLogs     EchoLog[]
 
   // Referral graph (fixed-once)
@@ -113,6 +113,7 @@ model EchoLog {
   refUserId String? // приглашённый пользователь (для referral.*)
   meta      Json? // произвольный контекст (tier, campaign и т.д.)
   dedupeKey String? @unique // для идемпотентности
+  qty Int @default(1)
 
   createdAt DateTime @default(now())
 

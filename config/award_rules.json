@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "echo_unit_eur": 1,
+  "purchase": {
+    "buyer_pct": 0.01,
+    "inviter_pct": 0.005,
+    "reserve_income_pct": 0.01,
+    "min_eur": 1,
+    "round": "floor2",
+    "tier_mult": {
+      "Base": 1.0,
+      "Tree": 1.0,
+      "Steel": 1.0,
+      "Bronze": 1.0,
+      "Silver": 1.2,
+      "Gold": 1.6,
+      "Platinum": 2.5,
+      "WS-20": 0.0
+    }
+  },
+  "kyc": {
+    "bonus": 5,
+    "once_per_user": true
+  },
+  "email": { "bonus": 2, "once_per_user": true },
+  "first_login": { "bonus": 1, "once_per_user": true },
+  "profile": { "bonus": 5, "once_per_user": true },
+  "feedback": { "bonus": 3, "per_day_limit": 1 },
+  "share_link": { "bonus": 0.5, "per_day_limit": 1 },
+  "caps": {
+    "buyer_daily_max": 1000,
+    "inviter_daily_max": 1000
+  }
+}

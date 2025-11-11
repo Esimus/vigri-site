@@ -99,7 +99,7 @@ export default function ProfilePage() {
         {/* KYC row */}
         <div className="flex flex-wrap items-center gap-2">
           <div>
-            {t('profile.status.kyc')}:&nbsp;
+            {t('kyc.status')}:&nbsp;
             <StatusBadge status={kyc}>{t(`kyc.status.${kyc}`)}</StatusBadge>
           </div>
 

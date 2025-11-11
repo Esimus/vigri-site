@@ -17,3 +17,6 @@ npm-debug.log*
 
 # TS incremental build
 *.tsbuildinfo
+
+# Local Prisma DB (do not commit)
+prisma/dev.db

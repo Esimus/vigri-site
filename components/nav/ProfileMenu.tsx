@@ -110,7 +110,7 @@ export default function ProfileMenu() {
     // read user for initials
     (async () => {
       try {
-        const r = await fetch('/api/auth/me', { cache: 'no-store' });
+        const r = await fetch('/api/me', { cache: 'no-store' });
         const j = await r.json().catch(() => null);
         const name: string | undefined = j?.user?.name ?? undefined;
         const email: string | undefined = j?.user?.email ?? undefined;

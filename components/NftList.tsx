@@ -22,6 +22,7 @@ type Item = {
   invited?: boolean; // for WS-20
   summaryKeys?: string[];
   minted?: number;
+  _sum?: { total: number; sold: number }; // merged global stats from /api/nft/summary
 };
 
 function pngNameFor(id: string): string {
@@ -34,6 +35,25 @@ function pngNameFor(id: string): string {
     case 'nft-ws-20':       return '6_mb_ws.webp';
     default:                return '6_mb_ws.webp';
   }
+}
+
+type SummaryItem = { id: string; total: number; sold: number };
+type SummaryResp = { ok: true; items: SummaryItem[] };
+
+function isSummaryItem(x: unknown): x is SummaryItem {
+  if (!x || typeof x !== 'object') return false;
+  const o = x as Record<string, unknown>;
+  return typeof o.id === 'string'
+      && typeof o.total === 'number'
+      && typeof o.sold === 'number';
+}
+
+function isSummaryResp(x: unknown): x is SummaryResp {
+  if (!x || typeof x !== 'object') return false;
+  const o = x as Record<string, unknown>;
+  if (o.ok !== true) return false;
+  if (!Array.isArray(o.items)) return false;
+  return o.items.every(isSummaryItem);
 }
 
 /** Compact presale countdown: 4 cells (D/H/M/S). */
@@ -59,9 +79,32 @@ export default function NftList() {
   const [msg, setMsg] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
+  // Load base list and merge global summary (single source of truth for totals)
   const load = async () => {
     const r = await api.nft.list();
-    if (r.ok) setItems(r.items as Item[]);
+    if (!r.ok) return;
+
+    const baseItems = (r.items as Item[]) ?? [];
+
+    // fetch global summary (no caching)
+    const sRes = await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
+
+    // map id -> summary
+    const byId = new Map<string, SummaryItem>();
+    if (sRes && sRes.ok) {
+      const raw: unknown = await sRes.json().catch(() => null);
+      if (isSummaryResp(raw)) {
+        for (const it of raw.items) byId.set(it.id, it);
+      }
+    }
+
+    // merge summary into items (write to _sum; do not trust local minted)
+    const merged = baseItems.map((i) => {
+      const s = byId.get(i.id);
+      return s ? { ...i, _sum: { total: s.total, sold: s.sold }, minted: s.sold } : i;
+    });
+
+    setItems(merged);
   };
   useEffect(() => { load(); }, []);
 
@@ -74,7 +117,6 @@ export default function NftList() {
     return `${dd}.${mm}.${yyyy}`;
   }, []);
 
-  // Compute presale countdown once per list render (Rules of Hooks safe)
   const presale = usePresaleCountdown();
 
   return (
@@ -107,24 +149,24 @@ export default function NftList() {
           const src = `/images/nft/${pngNameFor(i.id)}`;
           const showCountdown = presale.isPresale && i.id !== 'nft-ws-20';
 
-          // Availability calc
-          const total = Number.isFinite(i.limited) ? (i.limited || 0) : 0;
-          const sold = Math.min(i.minted || 0, total);
+          // Availability: use global summary; fallback to local catalog
+          const total = typeof i._sum?.total === 'number'
+            ? i._sum.total
+            : (Number.isFinite(i.limited) ? (i.limited || 0) : 0);
+
+          const soldFromSummary = typeof i._sum?.sold === 'number' ? i._sum.sold : 0;
+          const soldLocal = Math.min(i.minted || 0, total);
+          const sold = Math.max(soldFromSummary, soldLocal);
+
           const pct = total > 0 ? Math.round((sold / total) * 100) : 0;
           const showAvailability = i.id !== 'nft-ws-20' && total > 0;
 
-          // Vesting yes/no
-          const vestingYesNo = i.vesting ? t('nft.yes') : t('nft.no');
-
-          // Features + resume (last key is 💬)
           const keys = Array.isArray(i.summaryKeys) ? i.summaryKeys : [];
           const hasResume = keys.length > 0;
           const resumeKey = hasResume ? keys[keys.length - 1] : undefined;
           const featureKeys = hasResume ? keys.slice(0, keys.length - 1) : [];
 
-          // Progress color: green → amber → red
           const progressColor = pct > 70 ? '#EF4444' : pct >= 30 ? '#F59E0B' : '#10B981';
-
 
           return (
             <div key={i.id} className="card p-3 md:p-4 flex flex-col rounded-2xl">
@@ -153,7 +195,7 @@ export default function NftList() {
                       {t('nft.badge.presale')}
                     </div>
                     <div className="flex gap-2">
-                      {[ // 4 tiny cells
+                      {[
                         { v: presale.d, l: t('nft.timer.d') },
                         { v: presale.h, l: t('nft.timer.h') },
                         { v: presale.m, l: t('nft.timer.m') },
@@ -169,12 +211,12 @@ export default function NftList() {
                 )}
               </div>
 
-              {/* Title row + supply */}
+              {/* Title row + total */}
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="font-semibold text-sm md:text-base">{i.name}</div>
-                {typeof i.limited === 'number' && i.limited > 0 && (
+                {typeof total === 'number' && total > 0 && (
                   <div className="chip shrink-0" title={t('nft.total')}>
-                    {t('nft.total')}: {i.limited}
+                    {t('nft.total')}: {total}
                   </div>
                 )}
               </div>
@@ -222,14 +264,14 @@ export default function NftList() {
                 <div className="text-xs md:text-sm opacity-70 mb-2">{t('nft.badge.invite')}</div>
               )}
 
-              {/* Availability */}
+              {/* Availability (global summary) */}
               {showAvailability && (
                 <div className="space-y-1.5 mb-3">
                   <div className="text-[11px] md:text-xs opacity-80">{t('nft.availability')}</div>
                   <SalesBar
                     t={t}
-                    limited={i.limited as number | undefined}
-                    minted={i.minted as number | undefined}
+                    limited={total}
+                    minted={sold}
                     progressColor={progressColor}
                   />
                 </div>
@@ -244,7 +286,7 @@ export default function NftList() {
                   <span className="chip" title={t('nft.badge.invite')} aria-label="Invite">🔑 {t('nft.badge.invite')}</span>
                 )}
                 <span className="chip" title={i.vesting || 'No vesting'}>
-                  {t('nft.vesting')}: {vestingYesNo}
+                  {t('nft.vesting')}: {i.vesting ? t('nft.yes') : t('nft.no')}
                 </span>
               </div>
 

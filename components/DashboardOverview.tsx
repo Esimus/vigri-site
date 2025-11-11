@@ -25,7 +25,7 @@ type AssetsResp = {
 type MeResp = {
   ok: boolean;
   signedIn: boolean;
-  kyc: boolean | null;
+  kyc: 'none' | 'pending' | 'approved';
   lum: unknown;
   user?: { id: string; email: string };
 };
@@ -89,7 +89,7 @@ export default function DashboardOverview() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const mr = await fetch('/api/auth/me', { cache: 'no-store' });
+      const mr = await fetch('/api/me', { cache: 'no-store' });
       const mj: MeResp | null = await mr.json().catch(() => null);
 
       const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
@@ -155,9 +155,17 @@ export default function DashboardOverview() {
     [ccy]
   );
 
-  // Map boolean kyc to i18n key suffix: approved / none
-  const kycKey: 'approved' | 'none' | null = me?.kyc === true ? 'approved' : me ? 'none' : null;
-  const kycLabel = kycKey ? t(`kyc.status.${kycKey}`) : '—';
+  // Map KYC status to label directly
+  type KycKey = 'approved' | 'pending' | 'none';
+
+  function normalizeKyc(v: unknown): KycKey {
+    if (v === 'approved' || v === 'pending' || v === 'none') return v;
+    if (v === true)  return 'approved';
+    return 'none'; // false, null, undefined, любые другие значения
+  }
+
+  const kycKey = normalizeKyc(me?.kyc);
+  const kycLabel = t(`kyc.status.${kycKey}`);
 
   return (
     <div className="space-y-6">
@@ -177,7 +185,7 @@ export default function DashboardOverview() {
               hint: `${t('overview.best_discount')}: ${bestDiscountPct}%`,
             },
             {
-              title: t('overview.kyc'),
+              title: t('kyc.status'),
               value: kycLabel,
               hint: kycKey !== 'approved' ? t('overview.kyc_hint') : undefined,
             },
@@ -208,7 +216,7 @@ export default function DashboardOverview() {
           hint={`${t('overview.best_discount')}: ${bestDiscountPct}%`}
         />
         <StatCard
-          title={t('overview.kyc')}
+          title={t('kyc.status')}
           value={kycLabel}
           hint={kycKey !== 'approved' ? t('overview.kyc_hint') : undefined}
         />

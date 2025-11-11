@@ -1,8 +1,8 @@
-# VIGRI Site — Technical Summary (2025-10-19)
+# VIGRI Site — Technical Summary (2025-11-11)
 
 ## Overview
-VIGRI Site — это фронтенд-платформа экосистемы **Lumiros / Люмирос**, обеспечивающая взаимодействие пользователей с токеном `$VIGRI`, фан-клубами, NFT и личным кабинетом.  
-Текущая стадия — **staging / pre-production**, развёртывается локально через WSL (Ubuntu 24.04.1).
+VIGRI Site is the **frontend platform** of the **Lumiros / Люмирос** ecosystem, providing user interaction with the `$VIGRI` token, fan clubs, NFTs, and user dashboard.  
+Current stage — **staging / pre-production**, deployed locally via **WSL (Ubuntu 24.04.1)**.
 
 ---
 
@@ -11,42 +11,41 @@ VIGRI Site — это фронтенд-платформа экосистемы *
 | Layer | Technology | Purpose |
 |-------|-------------|----------|
 | **Framework** | Next.js 15 (App Router, TypeScript) | SSR, SSG, React 19 |
-| **Database** | Prisma + SQLite (локально) | Users / sessions |
+| **Database** | Prisma + SQLite (local) | Users / sessions |
 | **Auth** | Cookie `vigri_session` (TTL 14 days), Argon2 (`@node-rs/argon2`) | Secure user login |
 | **Theme** | Light / Dark / Auto (SSR) | Stored in cookie `vigri_theme_resolved` |
 | **i18n** | `useI18n` hook | Unified keys `common.*`, `nav.*`, `activity.*` |
 | **UI** | Tailwind v4 tokens | Smooth transitions, `rounded-2xl` cards |
+| **Compliance** | EU Cookie Consent (client-only gate) | GDPR compliance without SSR hydration errors |
 | **Build system** | Turbopack | Optimized dev/prod builds |
 
 ---
 
 ## Pages
 
-- `/` — главная (hero, auth modal, языки, тема)  
-- `/dashboard/*` — внутренняя часть (DashboardShell + sidebar, breadcrumbs, notifications, profile menu)  
-- `/center` — публичная страница **«Международный тренировочно-реабилитационный центр спорта и танцев»**  
-  (со своей шапкой и OG-метаданными)
+- `/` — Home (hero, auth modal, language switcher, theme)  
+- `/dashboard/*` — Internal area (DashboardShell + sidebar, breadcrumbs, notifications, profile menu)  
+- `/center` — Public page **“International Training and Rehabilitation Center for Sport and Dance”**  
+  (own header and OG metadata)
 
 ---
 
 ## Runtime & Build
 
 - **Next.js 15.5.3** (App Router, Turbopack)  
-- `next.config.ts`: `eslint.ignoreDuringBuilds = true`  
-  (lint не блокирует prod build; в dev `npm run lint` остаётся строгим)  
-- `metadataBase` берётся из `NEXT_PUBLIC_APP_URL`  
-  *(fallback: `http://localhost:3000`)*  
+- `next.config.ts`: `eslint.ignoreDuringBuilds = true` (lint does not block prod build)  
+- `metadataBase` is derived from `NEXT_PUBLIC_APP_URL` (fallback: `http://localhost:3000`)
 
 ---
 
 ## Environment
 
-- `.env.local` — dev  
-- `.env.production` — prod  
+- `.env.local` — development  
+- `.env.production` — production  
 
-**Обязательные ключи (минимум):**
-- `NEXT_PUBLIC_APP_URL` — например `https://vigri.ee` (для OG/Twitter images)  
-- **SMTP (позже):**
+**Required keys (minimum):**
+- `NEXT_PUBLIC_APP_URL` — e.g. `https://vigri.ee` (for OG/Twitter images)  
+- **SMTP (later):**
   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 
 ---
@@ -55,101 +54,90 @@ VIGRI Site — это фронтенд-платформа экосистемы *
 
 | Endpoint | Cookie | Description |
 |-----------|---------|-------------|
-| `/api/assets` | `vigri_assets` | Портфель / позиции (моки) |
-| `/api/nft` | `vigri_nfts` | Каталог / покупка / активация |
-| `/api/nft/claim` | `vigri_nft_claim` | Получение NFT (claim) |
-| `/api/nft/discount` | `vigri_nft_discount` | Применение скидок |
-| `/api/nft/rights` | `vigri_nft_rights` | Права на NFT |
-| `/api/kyc` | `vigri_kyc` | Статус (`none | pending | approved | rejected`) |
-| `/api/auth/*` | `vigri_session` | Реальная аутентификация (Prisma + Argon2) |
-| `/api/auth/dev-verify` | — | Только для dev; в проде будет отключён |
+| `/api/assets` | `vigri_assets` | Portfolio / asset mocks |
+| `/api/nft` | `vigri_nfts` | NFT catalog / purchase / activation |
+| `/api/nft/claim` | `vigri_nft_claim` | NFT claiming endpoint |
+| `/api/nft/discount` | `vigri_nft_discount` | Apply discount codes |
+| `/api/nft/rights` | `vigri_nft_rights` | NFT rights info |
+| `/api/nft/summary` | — | Dynamic sales summary (force-dynamic, no cache) |
+| `/api/award/kyc` | — | One-time KYC reward (see award_rules.json) |
+| `/api/kyc` | `vigri_kyc` | KYC status (`none | pending | approved | rejected`) |
+| `/api/auth/*` | `vigri_session` | Real authentication (Prisma + Argon2) |
+| `/api/auth/dev-verify` | — | Dev-only; disabled in production |
 
 ---
 
 ## Cookies (client/server)
 
-- `vigri_session` — аутентификация, TTL 14 дней  
-- `vigri_theme_resolved` — тема (SSR)  
-- Прочие cookies — см. API выше
+- `vigri_session` — authentication (TTL 14 days)  
+- `vigri_theme_resolved` — theme (SSR)  
+- `vigri_nft_claim` — NFT claim tracking  
+- See other cookies in API table above  
 
-> ⚙️ **Важно:** из-за типизации Next 15 используется единый безопасный геттер:  
-> `lib/cookies.ts → getCookie(name: string): string | null`  
-> Все серверные роуты заменены с `cookies().get(...)` на `getCookie(...)`.
+> ⚙️ **Note:**  
+> All cookie access is unified via `lib/cookies.ts → getCookie(name: string): string | null`.  
+> All API routes migrated from `cookies().get(...)` to this helper for safer typing (Next 15).
 
 ---
 
 ## Components & Structure (refactor)
+
 - `components/layout/` → `DashboardShell`, `DashboardNav`, `PublicHeader` (+ barrel `index.ts`)
 - `components/nav/` → `LanguageSwitcher`, `ProfileMenu` (+ barrel)
 - `components/notifications/` → `NotificationsBell` (+ barrel)
-- `components/ui/` → чистые презентационные компоненты (`PublicBreadcrumbs`, `StatusBadge`, …, barrel)
+- `components/ui/` → clean presentational components (`PublicBreadcrumbs`, `StatusBadge`, etc.)
 
-- Все импорты постепенно приведены к **barrel-экспортам**  
-- Layout-компоненты унифицированы по стилю и разметке  
-- Навигация (`DashboardShell`) использует только `<Link />` из `next/link`
+- Imports unified through **barrel exports**  
+- Layout components standardized in style and markup  
+- `DashboardShell` uses only `<Link />` from `next/link`
 
 ---
 
 ## UI / UX
 
 - Tailwind v4 inline tokens  
-- Плавные hover/transition эффекты  
-- Карточки `rounded-2xl`  
-- Единая цветовая схема (brand-400, brand-600, brand-800)  
-- i18n: единый `useI18n`, ключи `common.*`, `nav.*`, `activity.*`
+- Smooth transitions and hover effects  
+- Unified color scheme (`brand-400`, `brand-600`, `brand-800`)  
+- `rounded-2xl` cards  
+- i18n: unified `useI18n` hook with keys `common.*`, `nav.*`, `activity.*`
 
 ---
 
-## Types & Lint
+## Cookie Consent (EU)
 
-- Убраны проблемы с `cookies().get`  
-- В API заменён `any` на конкретные типы (`DevVerifyBody`, `ActivationKind`, `DiscountState`, …)  
-- Dev-политика:  
-  - Исправляем предупреждения по мере работы  
-  - `npm run lint -- --max-warnings=0` — строгая проверка  
-  - Build не блокируется из-за lint  
+**Files:**
+- `components/CookieConsent.tsx` — banner UI with i18n texts  
+- `components/CookieConsentGate.tsx` — server-side cookie check  
+- `components/CookieConsentClient.tsx` — client wrapper to prevent hydration mismatch  
+- `lib/cookieConsent.ts` — helpers for read/write operations  
 
----
+**Integration:**
+- `<CookieConsentGate />` added to `app/layout.tsx` before `</body>`  
+- Renders only on client side; no SSR issues  
 
-## Scripts
-
-| Script | Purpose |
-|---------|----------|
-| `npm run dev` | локальная разработка |
-| `npm run build` | production build |
-| `npm run start` | запуск собранного приложения |
-| `npm run lint` | проверка ESLint |
-| `npm run backup` | создаёт архив проекта в `~/Backups/` |
+**Status:**
+- Fixed: `t is not a function`, `Property 'get'`, `Hook called conditionally`, hydration mismatch  
+- Banner works correctly, texts load from localization, console clean
 
 ---
 
-## Repository & Backups
+## Awards (Echo) — Mock Implementation
 
-- **GitHub:** `Esimus/vigri-site` (SSH, branch `main`)  
-- **Backups:**  
-  - Linux: `/home/adet/Backups/`  
-  - Windows: `\\wsl$\Ubuntu-24.04\home\adet\Backups`
+**Source:**  
+- `config/award_rules.json` — canonical source of reward rules (server-side)
+  
 
----
-
-## Security & Next Steps
-
-1. Минимизировать прямую работу с cookie API через единый хелпер  
-2. Включить SMTP и убрать dev-эндпоинт (`/api/auth/dev-verify`) на проде  
-3. Удалить оставшиеся `any` / `unused`  
-4. Привести все React hooks к полным зависимостям  
-5. Проверить HTTPS и CSP при деплое
-
----
-
-## Recent Changes (2025-10-19)
-
-- Исправлены все вызовы `cookies().get()` (типизация Next 15)  
-- Добавлены barrel-экспорты в `components/`  
-- Исправлены импорты `ProfileMenu`, `DashboardShell`  
-- Добавлен `scripts/backup.sh` и npm-скрипт `backup`  
-- В `next.config.ts` отключён build-blocking ESLint  
-- Добавлен fallback для `metadataBase`  
-- Проверен успешный build (Turbopack, без ошибок)
+**Structure example:**
+```json
+{
+  "echo_unit_eur": 1,
+  "purchase": { "buyer_pct": 0.01, "inviter_pct": 0.005 },
+  "kyc": { "bonus": 5, "once_per_user": true },
+  "email": { "bonus": 2 },
+  "first_login": { "bonus": 1 },
+  "profile": { "bonus": 5 },
+  "feedback": { "bonus": 3 },
+  "share_link": { "bonus": 0.5 }
+}
 
 ---

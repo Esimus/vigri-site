@@ -75,20 +75,13 @@ function isDiscountResp(v: unknown): v is DiscountResp {
 // Fallback PNG name from /public/images/nft/
 function pngNameFor(id: string): string {
   switch (id) {
-    case 'nft-tree-steel':
-      return '1_mb_wood_stell.png';
-    case 'nft-bronze':
-      return '2_mb_bronze.png';
-    case 'nft-silver':
-      return '3_mb_silver.png';
-    case 'nft-gold':
-      return '4_mb_gold.png';
-    case 'nft-platinum':
-      return '5_mb_platinum.png';
-    case 'nft-ws-20':
-      return '6_mb_ws.png';
-    default:
-      return '6_mb_ws.png';
+    case 'nft-tree-steel':  return '1_mb_wood_stell.png';
+    case 'nft-bronze':      return '2_mb_bronze.png';
+    case 'nft-silver':      return '3_mb_silver.png';
+    case 'nft-gold':        return '4_mb_gold.png';
+    case 'nft-platinum':    return '5_mb_platinum.png';
+    case 'nft-ws-20':       return '6_mb_ws.png';
+    default:                return '6_mb_ws.png';
   }
 }
 
@@ -99,12 +92,6 @@ type BuyPayload = {
   activation?: 'claim100' | 'split50' | 'discount100';
 };
 
-/** Mobile-only buy panel.
- *  Per requirements:
- *   - Show design selector ONLY for Tree/Steel on mobile
- *   - Hide design selector for Bronze/Silver/Gold/Platinum on mobile
- *   - Add "Format NFT" (physical) chooser for Silver on mobile
- */
 function BuyPanelMobile(props: {
   item: Item | null;
   designs: Design[];
@@ -134,7 +121,7 @@ function BuyPanelMobile(props: {
 
   return (
     <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3">
-      {/* Design selector (mobile): only for Tree/Steel */}
+      {/* Mobile: design selector only for Tree/Steel */}
       {isTree && designs.length > 0 && (
         <div className="text-sm">
           <div className="text-xs mb-1">{t('nft.design.select')}</div>
@@ -154,7 +141,7 @@ function BuyPanelMobile(props: {
         </div>
       )}
 
-      {/* Activation type (if flexible) */}
+      {/* Activation (flex) */}
       {activationType === 'flex' && (
         <div className="text-sm">
           <div className="text-xs mb-1">{t('nft.activation.title')}</div>
@@ -175,7 +162,7 @@ function BuyPanelMobile(props: {
         </div>
       )}
 
-      {/* Format (mobile): only for Silver */}
+      {/* Format (mobile): Silver only */}
       {isSilver && (
         <div className="text-sm">
           <div className="text-xs mb-1">{t('nft.physical.label')}</div>
@@ -252,14 +239,12 @@ type DetailsMeta = Pick<
 };
 
 function LockIcon({ size = 15 }: { size?: number }) {
-  // Simple inline lock to avoid external icon deps
   return <span aria-hidden style={{ fontSize: size, lineHeight: 1 }} className="mr-0.5 align-middle">🔒</span>;
 }
 function KeyIcon() {
   return <span aria-hidden className="-ml-0.5 mr-1">🔑</span>;
 }
 
-/** Single source of truth for the features/specs card */
 function DetailsCard(props: {
   t: ReturnType<typeof useI18n>['t'];
   title: string;
@@ -283,7 +268,6 @@ function DetailsCard(props: {
             <LockIcon size={15}/>{t('nft.kyc')}
           </span>
         ) : null}
-        {/* WS-20: add key chip next to KYC */}
         {isWS && (
           <span className="chip">
             <KeyIcon />{t('nft.badge.invite')}
@@ -311,7 +295,7 @@ function DetailsCard(props: {
         ) : null}
       </div>
 
-      {/* Reduced font size for the feature list */}
+      {/* Feature list */}
       {featureLines.length ? (
         <ul className="list-disc pl-5 mt-2 text-[13px] opacity-90">
           {featureLines.map((f) => <li key={f}>{f}</li>)}
@@ -321,7 +305,6 @@ function DetailsCard(props: {
   );
 }
 
-// Renders i18n text into paragraphs and a callout box if the block contains bullet lines (• ...)
 function ExplainerText({ text }: { text: string }) {
   return (
     <>
@@ -379,13 +362,18 @@ export default function NftDetails({ id }: { id: string }) {
   const [qty, setQty] = useState<number>(1);
   const [act, setAct] = useState<'claim100' | 'split50' | 'discount100'>('discount100');
 
-  // Physical card selection (for Silver)
+  // Physical card selection (Silver)
   const [withPhysical, setWithPhysical] = useState<boolean>(false);
 
   const [rights, setRights] = useState<Rights | null>(null);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
   const [discMsg, setDiscMsg] = useState<string | null>(null);
   const [discEur, setDiscEur] = useState<number>(0);
+
+  // Summary for this id (from /api/nft/summary)
+  type SummaryItem = { id: string; total: number; sold: number; left: number; pct: number };
+  type SummaryResp = { ok?: boolean; items?: Array<SummaryItem> };
+  const [sum, setSum] = useState<SummaryItem | null>(null);
 
   async function loadAll() {
     // 1) NFT list (mock API)
@@ -428,15 +416,31 @@ export default function NftDetails({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Load global summary for this item id
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSummary() {
+      if (!id) { setSum(null); return; }
+      try {
+        const r = await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
+        const j: SummaryResp = await r.json().catch(() => ({} as SummaryResp));
+        if (!cancelled && r.ok && j?.items) {
+          const found = j.items.find((it) => it.id === id) ?? null;
+          setSum(found);
+        }
+      } catch { /* ignore */ }
+    }
+    void loadSummary();
+    return () => { cancelled = true; };
+  }, [id]);
+
   const isWS = item?.tier === 'ws';
   const cf = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }), []);
 
   // Prefer localized keys from catalog; fall back to plain text or API
   const title = (meta?.nameKey ? t(meta.nameKey) : meta?.name) ?? item?.name ?? '';
   const blurb = (meta?.blurbKey ? t(meta.blurbKey) : meta?.blurb) ?? item?.blurb ?? '';
-  const designsFromMeta = meta?.designs ?? item?.designs ?? [];
   const activationType = meta?.activationType ?? item?.activationType ?? 'none';
-  const imagePng = meta?.image ?? pngNameFor(item?.id ?? id);
   const featureLines = (meta?.featureKeys?.map((k) => t(k)) ?? meta?.features) ?? [];
   const tier = (meta?.tier ?? item?.tier) as DetailsMeta['tier'];
 
@@ -475,25 +479,31 @@ export default function NftDetails({ id }: { id: string }) {
 
     // 2) Trigger rewards/referral (non-blocking)
     try {
-      // resolve logged-in user id
       const meRes = await fetch('/api/me', { cache: 'no-store' });
       const meJson = await meRes.json().catch(() => ({} as { ok?: boolean; user?: { id?: string } }));
       const meId = meJson?.ok && meJson?.user?.id ? String(meJson.user.id) : null;
 
       const tierName = tierParamFromItemTier(item.tier);
-      const eur = (meta?.priceEur ?? item?.eurPrice ?? 0);
+
+      // price × qty
+      const eurSingle = (meta?.priceEur ?? item?.eurPrice ?? 0);
+      const eurTotal  = eurSingle * (isWS ? 1 : qty);
 
       const qsClaim = new URLSearchParams();
       qsClaim.set('tier', tierName);
-      if (eur > 0) qsClaim.set('eur', String(eur));
+      if (eurTotal > 0) qsClaim.set('eur', String(eurTotal));
+      qsClaim.set('qty', String(isWS ? 1 : qty));     // <-- добавили qty
       if (meId) qsClaim.set('userId', meId);
-    } catch {
-      /* ignore to not block UI */
-    }
 
-    // 3) Refresh data
-    await loadAll();
-  };
+      await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
+      } catch (err) {
+      // swallow: rewards shouldn't block UI
+      console.error('claim failed', err);
+      } finally {
+      // refresh global summary (force update SalesBar)
+      await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
+      }
+    };
 
   // Claim (mock)
   const doClaimAll = async () => {
@@ -549,7 +559,7 @@ export default function NftDetails({ id }: { id: string }) {
     );
   }
 
-  // Narrow meta for DetailsCard (avoid undefined and wide types)
+  // Narrow meta for the right-side card
   const metaForDetails: DetailsMeta = {
     tier,
     revealLabelKey: meta?.revealLabelKey,
@@ -560,6 +570,19 @@ export default function NftDetails({ id }: { id: string }) {
     priceEur: typeof meta?.priceEur === 'number' ? meta.priceEur : undefined,
     priceAfter: meta?.priceAfter ?? null,
   };
+
+  // ===== unified numbers for SalesBar on details page =====
+  const totalForBar = (sum?.total ?? meta?.supply ?? item.limited);
+  const soldForBar  = Math.max(sum?.sold ?? 0, item.minted ?? 0);
+
+  const pctForBar =
+    typeof totalForBar === 'number' && totalForBar > 0 && typeof soldForBar === 'number'
+      ? Math.round((soldForBar / totalForBar) * 100)
+      : 0;
+
+  const progressColor =
+    pctForBar > 70 ? '#EF4444' : pctForBar >= 30 ? '#F59E0B' : '#10B981';
+  // ========================================================
 
   return (
     <div className="space-y-4">
@@ -574,14 +597,14 @@ export default function NftDetails({ id }: { id: string }) {
         }))}
       />
 
-      {/* Mobile: image + buy side-by-side (Tree shows design selector; Silver shows Format; others no design selector) */}
+      {/* Mobile: image + buy */}
       <div className="lg:hidden grid grid-cols-[minmax(180px,52vw)_1fr] gap-4 items-start">
         <div
           className="relative w-full max-w-[240px] mx-0 md:mx-auto card p-0 overflow-hidden"
           style={{ aspectRatio: '3 / 4' }}
         >
           <Image
-            src={`/images/nft/${imagePng}`}
+            src={`/images/nft/${meta?.image ?? pngNameFor(item.id)}`}
             alt={title}
             fill
             sizes="90vw"
@@ -592,7 +615,7 @@ export default function NftDetails({ id }: { id: string }) {
 
         <BuyPanelMobile
           item={item}
-          designs={designsFromMeta}
+          designs={meta?.designs ?? item.designs ?? []}
           design={design}
           setDesign={(d) => setDesign(d)}
           activationType={activationType}
@@ -607,21 +630,34 @@ export default function NftDetails({ id }: { id: string }) {
         />
       </div>
 
-      {/* Mobile: features/specs card full width */}
+      {/* Mobile: availability bar */}
+      {!isWS && (
+        <div className="lg:hidden card p-3">
+          <div className="text-xs opacity-70 mb-2">{t('nft.availability')}</div>
+          <SalesBar
+            t={t}
+            limited={totalForBar}
+            minted={soldForBar}
+            progressColor={progressColor}
+          />
+        </div>
+      )}
+
+      {/* Mobile: features card */}
       <div className="block lg:hidden">
         <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} />
       </div>
 
       {/* Desktop layout */}
       <div className="hidden lg:grid grid-cols-1 md:grid-cols-[minmax(160px,240px)_1fr] gap-6">
-        {/* Left: preview + availability (hide availability for WS-20) */}
+        {/* Left: preview + availability */}
         <div className="space-y-3">
           <div
             className="relative w-full max-w-[240px] mx-auto card p-0 overflow-hidden"
             style={{ aspectRatio: '3 / 4' }}
           >
             <Image
-              src={`/images/nft/${imagePng}`}
+              src={`/images/nft/${meta?.image ?? pngNameFor(item.id)}`}
               alt={title}
               fill
               sizes="(max-width: 767px) 90vw, 420px"
@@ -635,9 +671,9 @@ export default function NftDetails({ id }: { id: string }) {
               <div className="text-xs opacity-70 mb-2">{t('nft.availability')}</div>
               <SalesBar
                 t={t}
-                limited={item?.limited}
-                minted={item?.minted}
-                fallbackTotal={meta?.supply ?? 0}
+                limited={totalForBar}
+                minted={soldForBar}
+                progressColor={progressColor}
               />
             </div>
           )}
@@ -653,12 +689,12 @@ export default function NftDetails({ id }: { id: string }) {
           {/* Purchase (desktop only) */}
           {item.tier !== 'ws' && (
             <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3 hidden lg:flex">
-              {/* Desktop: design selector ONLY for Tree/Steel (kept as-is) */}
-              {item.tier === 'tree' && designsFromMeta.length > 0 && (
+              {/* Desktop: design selector ONLY for Tree/Steel */}
+              {item.tier === 'tree' && (meta?.designs ?? item.designs ?? []).length > 0 && (
                 <div className="text-sm">
                   <div className="text-xs mb-1">{t('nft.design.select')}</div>
                   <div className="flex flex-col gap-1">
-                    {designsFromMeta.map((d) => (
+                    {(meta?.designs ?? item.designs ?? []).map((d) => (
                       <label key={d.id} className="inline-flex items-center gap-2">
                         <input
                           type="radio"
@@ -800,7 +836,7 @@ export default function NftDetails({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Explainers (full width, always below) */}
+      {/* Explainers */}
       {(meta?.explainers?.length ?? 0) > 0 && (
         <div className="card p-4 md:p-5 space-y-3">
           <div className="text-sm font-medium">{t('nft.explainers.title')}</div>

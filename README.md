@@ -57,6 +57,7 @@
 - Конфиг: `lib/config.ts` (читает публичные переменные окружения)  
 - Главная страница: `app/page.tsx`  
 - Глобальные стили: `app/globals.css`
+- Cookie Consent: `components/CookieConsent*`, `lib/cookieConsent.ts` — баннер согласия с cookies (EU, только client-side)
 
 ---
 
@@ -78,13 +79,14 @@
 - Используется **crypto-agile** подход (абстрактные криптослои и централизованный конфиг).  
 - Архитектура протестирована на WSL (Ubuntu 24.04.1).  
 - Бэкенд API и Next.js связаны через cookies и Prisma ORM.
+- Внедрён **EU Cookie Banner** и базовая система **Echo awards (mock)**.
 
 ---
 
 ### 📘 Документация
 
-- Technical summary: [docs/TECHNICAL_SUMMARY.md](docs/TECHNICAL_SUMMARY.md)
-
+📄 **Technical summary:** [docs/TECHNICAL_SUMMARY.md](docs/TECHNICAL_SUMMARY.md)
+🗂 **Репозиторий:** [Esimus/vigri-site](https://github.com/Esimus/vigri-site)
 ---
 
 ## 🇬🇧 VIGRI Site (EN)
@@ -137,6 +139,7 @@ Main variables:
 - Config: `lib/config.ts` (reads public env vars)  
 - Main page: `app/page.tsx`  
 - Global styles: `app/globals.css`
+- Cookie Consent: `components/CookieConsent*`, `lib/cookieConsent.ts` — баннер согласия с cookies (EU, только client-side)
 
 ---
 
@@ -158,6 +161,7 @@ Main variables:
 - Uses **crypto-agile** design (abstract crypto layers, centralized configuration).  
 - Fully compatible with **Next.js 15 (Turbopack)**.  
 - Designed for **transparency**, **security**, and **maintainability**.
+- Added **EU Cookie Banner** and **Echo awards (mock)** system.
 
 ---
 

@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/hooks/useI18n';
 
 type MeResp = { ok: boolean; user?: { id: string; email?: string | null; name?: string | null } };
 
@@ -102,6 +103,7 @@ function readCookie(name: string): string | null {
 }
 
 export default function RewardsPage() {
+  const { t } = useI18n();
   const [userId, setUserId] = useState<string | null>(null);
   const [balance, setBalance] = useState<BalanceResp | null>(null);
   const [log, setLog] = useState<LogItem[] | null>(null);
@@ -273,9 +275,6 @@ export default function RewardsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Rewards</h1>
-        </div>
         {!userId && (
           <div className="text-xs opacity-70">
             Dev: add <code>?userId=...</code> to preview a specific user
@@ -284,31 +283,29 @@ export default function RewardsPage() {
       </div>
 
       {/* Summary */}
-      <div className="rounded-2xl border p-5 bg-white/60 backdrop-blur-md">
+      <div className="card p-5">
         {loading ? (
-          <div className="animate-pulse text-sm opacity-60">Loading…</div>
+          <div className="animate-pulse text-sm opacity-60">{t('rewards.loading')}</div>
         ) : err ? (
-          <div className="text-sm text-rose-700">Failed to load: {err}</div>
+          <div className="text-sm text-rose-700">{t('rewards.failed')}: {err}</div>
         ) : !userId ? (
-          <div className="text-sm opacity-70">Sign in to see your rewards.</div>
+          <div className="text-sm opacity-70">{t('rewards.signin_needed')}</div>
         ) : balance ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-xl border p-4 bg-white/70">
-              <div className="text-xs opacity-60">Echo balance</div>
+            <div className="card p-4">
+              <div className="text-xs opacity-60">{t('rewards.echo_balance')}</div>
               <div className="text-2xl font-semibold mt-1">
                 {formatEcho(balance.balanceEcho)} <span className="text-base font-normal opacity-70">echo</span>
               </div>
-              <div className="text-[11px] opacity-60 mt-1">{balance.balanceEchoUe.toLocaleString()} uecho</div>
             </div>
-            <div className="rounded-xl border p-4 bg-white/70">
-              <div className="text-xs opacity-60">Participation score</div>
+            <div className="card p-4">
+              <div className="text-xs opacity-60">{t('rewards.participation_score')}</div>
               <div className="text-2xl font-semibold mt-1">
                 {formatEcho(balance.participationScore)} <span className="text-base font-normal opacity-70">echo</span>
               </div>
-              <div className="text-[11px] opacity-60 mt-1">{balance.participationScoreUe.toLocaleString()} uecho</div>
             </div>
-            <div className="rounded-xl border p-4 bg-white/70">
-              <div className="text-xs opacity-60">User</div>
+            <div className="card p-4">
+              <div className="text-xs opacity-60">{t('rewards.user')}</div>
               {refStats?.user ? (
                 <>
                   <div className="text-base font-semibold mt-1">{displayName(refStats.user)}</div>
@@ -321,14 +318,14 @@ export default function RewardsPage() {
             </div>
           </div>
         ) : (
-          <div className="text-sm opacity-70">No data.</div>
+          <div className="text-sm opacity-70">{t('rewards.no_data')}</div>
         )}
       </div>
 
       {/* Inviter */}
       {refStats?.inviter && (
-        <div className="rounded-2xl border p-5 bg-white/60 backdrop-blur-md">
-          <h2 className="text-sm font-semibold mb-2">Invited by</h2>
+        <div className="card p-5">
+          <h2 className="text-sm font-semibold mb-2">{t('rewards.invited_by')}</h2>
           <div className="flex items-start justify-between">
             <div>
               <div className="text-base font-medium">{displayName(refStats.inviter)}</div>
@@ -340,22 +337,22 @@ export default function RewardsPage() {
       )}
 
       {/* My referral link */}
-      <div className="rounded-2xl border p-5 bg-white/60 backdrop-blur-md">
-        <h2 className="text-sm font-semibold mb-2">My referral link</h2>
+      <div className="card p-5">
+        <h2 className="text-sm font-semibold mb-2">{t('rewards.my_ref_link')}</h2>
         {!userId ? (
-          <div className="text-sm opacity-70">Sign in to get your referral link.</div>
+          <div className="text-sm opacity-70">{t('rewards.signin_for_link')}</div>
         ) : (
           <div className="flex flex-col gap-2">
-            <div className="text-sm break-all rounded-xl border px-3 py-2 bg-white/70">{referralUrl || '...'}</div>
+            <div className="btn btn-outline">{referralUrl || '...'}</div>
             <div className="text-xs opacity-70">
-              Anyone who opens this link will get a <code>vigri_ref</code> cookie for 90 days.
+              {t('rewards.cookie_hint')} <code>vigri_ref</code> {t('rewards.cookie_hint_tail')}
             </div>
             <div>
               <button
-                className="rounded-lg border px-3 py-1.5 text-sm hover:bg-black/5 active:scale-[0.99] transition"
+                className="btn btn-outline"
                 onClick={() => referralUrl && navigator.clipboard.writeText(referralUrl)}
               >
-                Copy link
+                {t('rewards.copy_link')}
               </button>
             </div>
           </div>
@@ -363,7 +360,7 @@ export default function RewardsPage() {
       </div>
 
       {userId && (
-        <div className="rounded-2xl border p-5 bg-white/60 backdrop-blur-md">
+        <div className="card p-5">
           <h2 className="text-sm font-semibold mb-2">DEV · Simulate purchase</h2>
           <div className="flex flex-wrap gap-8">
             <div className="space-y-2">
@@ -405,10 +402,10 @@ export default function RewardsPage() {
 
       {/* DEV: bind referral from cookie */}
       {userId && refCookie && (
-        <div className="rounded-2xl border p-5 bg-white/60 backdrop-blur-md">
-          <h2 className="text-sm font-semibold mb-2">Referral cookie detected</h2>
+        <div className="card p-5">
+          <h2 className="text-sm font-semibold mb-2">{t('rewards.cookie_detected')}</h2>
           <div className="text-xs opacity-70 mb-2">
-            Cookie <code>vigri_ref</code> = <span className="font-mono">{refCookie}</span>
+            {t('rewards.cookie_name')} <code>vigri_ref</code> = <span className="font-mono">{refCookie}</span>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -419,7 +416,7 @@ export default function RewardsPage() {
                 bindStatus === 'doing' ? 'opacity-60 cursor-not-allowed' : 'hover:bg-black/5 active:scale-[0.99]'
               )}
             >
-              {bindStatus === 'doing' ? 'Binding…' : 'Bind now'}
+              {bindStatus === 'doing' ? t('rewards.binding') : t('rewards.bind_now')}
             </button>
             {bindStatus !== 'idle' && (
               <div
@@ -433,24 +430,24 @@ export default function RewardsPage() {
             )}
           </div>
           <div className="text-[11px] opacity-60 mt-2">
-            DEV only: this binds your account to the inviter stored in cookie.
+            {t('rewards.dev_only_bind')}
           </div>
         </div>
       )}
 
       {/* Referral levels */}
       {levels && (
-        <div className="rounded-2xl border p-5 bg-white/60 backdrop-blur-md">
-          <h2 className="text-sm font-semibold mb-3">Referral levels</h2>
+        <div className="card p-5">
+          <h2 className="text-sm font-semibold mb-3">{t('rewards.ref_levels')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-xl border p-4 bg-white/70">
-              <div className="text-xs opacity-60">Level 1</div>
+            <div className="card p-4">
+              <div className="text-xs opacity-60">{t('rewards.level')} 1</div>
               <div className="text-2xl font-semibold mt-1">{levels.L1.count}</div>
               <button
-                className="mt-2 rounded-lg border px-2 py-1 text-xs hover:bg-black/5"
-                onClick={() => setShowL1((v) => !v)}
+                className="btn btn-outline text-xs px-2 py-1"
+                onClick={() => setShowL1(v => !v)}
               >
-                {showL1 ? 'Hide list' : 'Show last 25'}
+                {showL1 ? t('rewards.hide_list') : t('rewards.show_last')}
               </button>
               {showL1 && (
                 <ul className="mt-2 max-h-60 overflow-auto divide-y">
@@ -465,14 +462,14 @@ export default function RewardsPage() {
               )}
             </div>
 
-            <div className="rounded-xl border p-4 bg-white/70">
-              <div className="text-xs opacity-60">Level 2</div>
+            <div className="card p-4">
+              <div className="text-xs opacity-60">{t('rewards.level')} 2</div>
               <div className="text-2xl font-semibold mt-1">{levels.L2.count}</div>
               <button
-                className="mt-2 rounded-lg border px-2 py-1 text-xs hover:bg-black/5"
-                onClick={() => setShowL2((v) => !v)}
+                className="btn btn-outline text-xs px-2 py-1"
+                onClick={() => setShowL2(v => !v)}
               >
-                {showL2 ? 'Hide list' : 'Show last 25'}
+                {showL2 ? t('rewards.hide_list') : t('rewards.show_last')}
               </button>
               {showL2 && (
                 <ul className="mt-2 max-h-60 overflow-auto divide-y">
@@ -487,14 +484,14 @@ export default function RewardsPage() {
               )}
             </div>
 
-            <div className="rounded-xl border p-4 bg-white/70">
-              <div className="text-xs opacity-60">Level 3</div>
+            <div className="card p-4">
+              <div className="text-xs opacity-60">{t('rewards.level')} 3</div>
               <div className="text-2xl font-semibold mt-1">{levels.L3.count}</div>
               <button
-                className="mt-2 rounded-lg border px-2 py-1 text-xs hover:bg-black/5"
-                onClick={() => setShowL3((v) => !v)}
+                className="btn btn-outline text-xs px-2 py-1"
+                onClick={() => setShowL3(v => !v)}
               >
-                {showL3 ? 'Hide list' : 'Show last 25'}
+                {showL3 ? t('rewards.hide_list') : t('rewards.show_last')}
               </button>
               {showL3 && (
                 <ul className="mt-2 max-h-60 overflow-auto divide-y">
@@ -513,8 +510,8 @@ export default function RewardsPage() {
       )}
 
       {/* Echo history */}
-      <div className="rounded-2xl border p-5 bg-white/60 backdrop-blur-md">
-        <h2 className="text-sm font-semibold">Echo history</h2>
+      <div className="card p-5">
+        <h2 className="text-sm font-semibold">{t('rewards.echo_history')}</h2>
         {loading ? (
           <div className="mt-3 space-y-2">
             <div className="h-5 w-2/3 bg-black/5 rounded animate-pulse" />
@@ -552,7 +549,7 @@ export default function RewardsPage() {
             })}
           </ul>
         ) : (
-          <div className="text-sm opacity-70 mt-3">No records yet.</div>
+          <div className="text-sm opacity-70 mt-3">{t('rewards.no_records')}</div>
         )}
       </div>
     </div>
