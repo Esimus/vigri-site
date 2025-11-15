@@ -2,7 +2,7 @@
 
 // -- Datasource & Generator
 datasource db {
-  provider = "sqlite" // dev-only; will switch to postgres in prod
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
