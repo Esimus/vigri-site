@@ -31,9 +31,13 @@ export default function PublicHeader() {
             <a href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline" rel="noreferrer">
               {t('btn_telegram')}
             </a>
-            <a href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary" rel="noreferrer">
+            <button
+                type="button"
+                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
+                disabled
+              >
               {t('btn_trade')}
-            </a>
+            </button>
           </div>
         </div>
       </div>

@@ -193,9 +193,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <Link href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline">
                 {t('btn_telegram')}
               </Link>
-              <Link href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary">
+              <button
+                type="button"
+                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
+                disabled
+              >
                 {t('btn_trade')}
-              </Link>
+              </button>
             </div>
           </div>
         </div>

@@ -4,7 +4,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { CONFIG, explorerQS, isMainnet, clusterLabel, PRESALE_END_ISO } from '../lib/config';
-import './home.css';
 import Link from 'next/link';
 import Image from 'next/image';
 import BeyondDigital from '@/components/BeyondDigital';
@@ -168,13 +167,13 @@ export default function Home() {
                 {t('btn_telegram')}
               </a>
 
-              <a
-                href={CONFIG.DEX_URL}
-                target="_blank"
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm text-white brand-gradient shadow"
+              <button
+                type="button"
+                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
+                disabled
               >
                 {t('btn_trade')} <span aria-hidden>→</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -189,9 +188,13 @@ export default function Home() {
             </h1>
             <p className="mt-5 text-lg text-zinc-600">{t('hero_subtitle')}</p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <a href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary rounded-2xl">
+              <button
+                type="button"
+                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
+                disabled
+              >
                 {t('btn_buy_on_dex')}
-              </a>
+              </button>
               <a href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline rounded-2xl">
                 {t('btn_community')}
               </a>
@@ -342,9 +345,13 @@ export default function Home() {
           ))}
         </ol>
         <div className="mt-6">
-          <a href={CONFIG.DEX_URL} target="_blank" className="btn btn-primary rounded-2xl">
+          <button
+            type="button"
+            className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
+            disabled
+          >
             {t('btn_buy_on_dex')}
-          </a>
+          </button>
         </div>
       </section>
 
@@ -471,7 +478,7 @@ export default function Home() {
                 <div className="font-semibold text-zinc-900 mb-1">{t('footer_documents')}</div>
                 <ul className="space-y-1">
                   <li>
-                    <a className="hover:underline" href="#" target="_blank" rel="noreferrer">
+                    <a className="hover:underline" href="/litepaper" target="_blank" rel="noreferrer">
                       {t('footer_litepaper_cs')}
                     </a>
                   </li>
@@ -490,12 +497,12 @@ export default function Home() {
                 <div className="font-semibold text-zinc-900 mb-1">{t('footer_legal')}</div>
                 <ul className="space-y-1">
                   <li>
-                    <a className="hover:underline" href="#" rel="noreferrer">
+                    <a className="hover:underline" href="/privacy" rel="noreferrer">
                       {t('footer_privacy')}
                     </a>
                   </li>
                   <li>
-                    <a className="hover:underline" href="#" rel="noreferrer">
+                    <a className="hover:underline" href="/terms" rel="noreferrer">
                       {t('footer_terms')}
                     </a>
                   </li>
@@ -648,12 +655,12 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <a href="/presale" className="btn btn-primary">
+        <Link href="/dashboard/nft" className="btn btn-primary">
           {t('join_presale')}
-        </a>
-        <a href="/docs/litepaper" className="btn btn-outline">
+        </Link>
+        <Link href="/litepaper" className="btn btn-outline">
           {t('read_litepaper')}
-        </a>
+        </Link>
       </div>
 
       <div className="mt-3 text-[11px] text-zinc-500">{t('numbers_note')}</div>

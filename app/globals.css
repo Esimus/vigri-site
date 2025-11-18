@@ -200,10 +200,10 @@
   }
 
   /* Text tone mapping */
-  :root[data-theme="dark"] .text-zinc-700 { color: var(--fg)    !important; }
+  :root[data-theme="dark"] .text-zinc-700,
   :root[data-theme="dark"] .text-zinc-600,
   :root[data-theme="dark"] .text-zinc-500,
-  :root[data-theme="dark"] .text-zinc-400 { color: var(--muted) !important; }
+  :root[data-theme="dark"] .text-zinc-400 { color: var(--muted); }
 
   /* Opacity utilities are too dim on dark; lift them a bit */
   :root[data-theme="dark"] .opacity-70 { opacity: .90 !important; }
@@ -393,3 +393,32 @@
       color: #e6edf7 !important;
     }
   }
+
+  /* Floating auth pill (Telegram + DEX) */
+.floating-auth {
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  backdrop-filter: blur(6px);
+  background-color: rgba(255,255,255,.85);
+}
+:root[data-theme="dark"] .floating-auth {
+  background-color: rgba(15,22,35,.72);
+}
+
+/* Hero decorative blobs */
+.hero-blobs {
+  --blob-a: var(--brand-200);
+  --blob-b: var(--brand-100);
+  background-image:
+    radial-gradient(closest-side, color-mix(in srgb, var(--blob-a) 88%, transparent), transparent 80%),
+    radial-gradient(closest-side, color-mix(in srgb, var(--blob-b) 88%, transparent), transparent 80%);
+  background-position: right -6rem top -10rem, left -8rem bottom -7rem;
+  background-size: 28rem 28rem, 32rem 32rem;
+  background-repeat: no-repeat, no-repeat;
+}
+:root[data-theme="dark"] .hero-blobs {
+  --blob-a: #0f2547;
+  --blob-b: #0b1b33;
+  opacity: .55;
+}

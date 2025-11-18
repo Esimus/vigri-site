@@ -8,7 +8,7 @@ const EnvSchema = z.object({
   NEXT_PUBLIC_ARWEAVE_URI: z.string().url().default("https://arweave.net/ii-tUAV4V1SloIb2fQ0XPB0G1Q2T2YJ8lYYYVCjdxR0"),
   NEXT_PUBLIC_TELEGRAM_URL: z.string().url().default("https://t.me/cryptovigri"),
   NEXT_PUBLIC_X_URL: z.string().url().default("https://x.com/"),
-  NEXT_PUBLIC_GITHUB_URL: z.string().url().default("https://github.com/"),
+  NEXT_PUBLIC_GITHUB_URL: z.string().url().default("https://github.com/Esimus/vigri"),
   NEXT_PUBLIC_DEX_URL: z.string().default("#"),
   
 });
@@ -25,7 +25,6 @@ const cfg = EnvSchema.safeParse({
 });
 
 if (!cfg.success) {
-  // в проде можно залогировать красиво, здесь просто бросаем
   throw new Error("Invalid public env: " + JSON.stringify(cfg.error.format()));
 }
 
