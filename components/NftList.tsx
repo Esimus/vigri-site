@@ -23,7 +23,14 @@ type Item = {
   summaryKeys?: string[];
   minted?: number;
   _sum?: { total: number; sold: number }; // merged global stats from /api/nft/summary
+  onchain?: {
+    tierId: number;
+    priceSol: number;
+    supplyTotal: number;
+    supplyMinted: number;
+  };
 };
+
 
 function pngNameFor(id: string): string {
   switch (id) {
@@ -149,17 +156,30 @@ export default function NftList() {
           const src = `/images/nft/${pngNameFor(i.id)}`;
           const showCountdown = presale.isPresale && i.id !== 'nft-ws-20';
 
-          // Availability: use global summary; fallback to local catalog
-          const total = typeof i._sum?.total === 'number'
-            ? i._sum.total
-            : (Number.isFinite(i.limited) ? (i.limited || 0) : 0);
+          // Availability: prefer on-chain values; fallback to summary/catalog
+          const onchainTotal = i.onchain?.supplyTotal;
+          const onchainSold = i.onchain?.supplyMinted;
+
+          const total =
+            typeof onchainTotal === 'number' && onchainTotal > 0
+              ? onchainTotal
+              : typeof i._sum?.total === 'number'
+                ? i._sum.total
+                : (Number.isFinite(i.limited) ? (i.limited || 0) : 0);
 
           const soldFromSummary = typeof i._sum?.sold === 'number' ? i._sum.sold : 0;
           const soldLocal = Math.min(i.minted || 0, total);
-          const sold = Math.max(soldFromSummary, soldLocal);
+
+          const sold =
+            typeof onchainSold === 'number' && onchainSold >= 0
+              ? onchainSold
+              : Math.max(soldFromSummary, soldLocal);
 
           const pct = total > 0 ? Math.round((sold / total) * 100) : 0;
           const showAvailability = i.id !== 'nft-ws-20' && total > 0;
+          
+          const solPrice =
+            typeof i.onchain?.priceSol === 'number' ? i.onchain.priceSol : null;
 
           const keys = Array.isArray(i.summaryKeys) ? i.summaryKeys : [];
           const hasResume = keys.length > 0;
@@ -255,6 +275,11 @@ export default function NftList() {
                 <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
                   <div>
                     {t('nft.price')}: <b>{cf.format(i.eurPrice)}</b>
+                    {solPrice !== null && solPrice > 0 && (
+                      <span className="ml-2 text-[11px] opacity-70">
+                        ≈ {solPrice} SOL (base on-chain price)
+                      </span>
+                    )}
                   </div>
                   <span className="chip">
                     {t('nft.after')} {afterDateLabel}: {cf.format(i.eurPrice * 2)}

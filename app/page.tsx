@@ -478,7 +478,7 @@ export default function Home() {
                 <div className="font-semibold text-zinc-900 mb-1">{t('footer_documents')}</div>
                 <ul className="space-y-1">
                   <li>
-                    <a className="hover:underline" href="/litepaper" target="_blank" rel="noreferrer">
+                    <a className="hover:underline" href="/litepaper" rel="noreferrer">
                       {t('footer_litepaper_cs')}
                     </a>
                   </li>

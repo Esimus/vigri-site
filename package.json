@@ -11,8 +11,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.17.0",
+    "@solana/web3.js": "^1.98.4",
     "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",

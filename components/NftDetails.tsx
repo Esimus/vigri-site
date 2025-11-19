@@ -32,6 +32,12 @@ type Item = {
   userActivation?: 'claim100' | 'split50' | 'discount100' | 'fixed' | null;
   upgrades?: { rare: number; ultra: number };
   expiresAt?: string | null;
+  onchain?: {
+    tierId: number;
+    priceSol: number;
+    supplyTotal: number;
+    supplyMinted: number;
+  };
 };
 
 type Rights = {
@@ -106,12 +112,14 @@ function BuyPanelMobile(props: {
   setWithPhysical: (v: boolean) => void;
   onBuy: () => void;
   t: ReturnType<typeof useI18n>['t'];
+  solPrice: number | null;
 }) {
   const {
     item, designs, design, setDesign,
     activationType, act, setAct,
     qty, setQty, withPhysical, setWithPhysical,
     onBuy, t,
+    solPrice,
   } = props;
 
   if (!item) return null;
@@ -207,25 +215,15 @@ function BuyPanelMobile(props: {
           <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
             {item.eurPrice ? `${item.eurPrice.toFixed(0)}€` : ''}
           </div>
+          {solPrice !== null && solPrice > 0 && (
+            <div className="text-xs opacity-70 mt-1">
+              ≈ {solPrice} SOL (base on-chain price)
+            </div>
+          )}
           <button className="btn btn-outline mt-2" onClick={onBuy}>
             {t('nft.buy')}
           </button>
         </div>
-
-        <fieldset className="flex flex-col gap-1 text-xs min-w-[68px]">
-          <label className="inline-flex items-center gap-1">
-            <input type="radio" name="ccy" defaultChecked /> EUR
-          </label>
-          <label className="inline-flex items-center gap-1">
-            <input type="radio" name="ccy" /> USD
-          </label>
-          <label className="inline-flex items-center gap-1">
-            <input type="radio" name="ccy" /> SOL
-          </label>
-          <label className="inline-flex items-center gap-1">
-            <input type="radio" name="ccy" /> USDC
-          </label>
-        </fieldset>
       </div>
     </div>
   );
@@ -436,6 +434,8 @@ export default function NftDetails({ id }: { id: string }) {
 
   const isWS = item?.tier === 'ws';
   const cf = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }), []);
+  const rawSol = item?.onchain?.priceSol;
+  const solPrice = typeof rawSol === 'number' ? rawSol : null;
 
   // Prefer localized keys from catalog; fall back to plain text or API
   const title = (meta?.nameKey ? t(meta.nameKey) : meta?.name) ?? item?.name ?? '';
@@ -572,8 +572,25 @@ export default function NftDetails({ id }: { id: string }) {
   };
 
   // ===== unified numbers for SalesBar on details page =====
-  const totalForBar = (sum?.total ?? meta?.supply ?? item.limited);
-  const soldForBar  = Math.max(sum?.sold ?? 0, item.minted ?? 0);
+  const onchainTotal = item.onchain?.supplyTotal;
+  const onchainSold  = item.onchain?.supplyMinted;
+
+  const totalForBar =
+    typeof onchainTotal === 'number' && onchainTotal > 0
+      ? onchainTotal
+      : typeof sum?.total === 'number'
+        ? sum.total
+        : (typeof meta?.supply === 'number'
+            ? meta.supply
+            : item.limited);
+
+  const soldFromSummary = typeof sum?.sold === 'number' ? sum.sold : 0;
+  const soldLocal       = typeof item.minted === 'number' ? item.minted : 0;
+
+  const soldForBar =
+    typeof onchainSold === 'number' && onchainSold >= 0
+      ? onchainSold
+      : Math.max(soldFromSummary, soldLocal);
 
   const pctForBar =
     typeof totalForBar === 'number' && totalForBar > 0 && typeof soldForBar === 'number'
@@ -627,6 +644,7 @@ export default function NftDetails({ id }: { id: string }) {
           setWithPhysical={setWithPhysical}
           onBuy={buy}
           t={t}
+          solPrice={solPrice}
         />
       </div>
 
@@ -753,25 +771,15 @@ export default function NftDetails({ id }: { id: string }) {
                   <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
                     {meta?.priceEur ? `${meta.priceEur.toFixed(0)}€` : ''}
                   </div>
+                  {solPrice !== null && solPrice > 0 && (
+                    <div className="text-xs opacity-70 mt-1">
+                      ≈ {solPrice} SOL (base on-chain price)
+                    </div>
+                  )}
                   <button className="btn btn-outline mt-2" onClick={buy}>
                     {t('nft.buy')}
                   </button>
                 </div>
-
-                <fieldset className="flex flex-col gap-1 text-xs min-w-[68px]">
-                  <label className="inline-flex items-center gap-1">
-                    <input type="radio" name="ccy" defaultChecked /> EUR
-                  </label>
-                  <label className="inline-flex items-center gap-1">
-                    <input type="radio" name="ccy" /> USD
-                  </label>
-                  <label className="inline-flex items-center gap-1">
-                    <input type="radio" name="ccy" /> SOL
-                  </label>
-                  <label className="inline-flex items-center gap-1">
-                    <input type="radio" name="ccy" /> USDC
-                  </label>
-                </fieldset>
               </div>
             </div>
           )}

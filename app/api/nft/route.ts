@@ -45,7 +45,26 @@ type RespItem = Nft & {
   upgrades?: { rare: number; ultra: number };
   expiresAt?: string | null;
   minted?: number;
+  onchain?: {
+    tierId: number;
+    priceSol: number;
+    supplyTotal: number;
+    supplyMinted: number;
+  };
 };
+
+function tierToOnchainId(tier: Nft['tier']): number | null {
+  switch (tier) {
+    case 'tree':      return 0;
+    case 'bronze':    return 1;
+    case 'silver':    return 2;
+    case 'gold':      return 3;
+    case 'platinum':  return 4;
+    case 'ws':        return 5;
+    default:
+      return null;
+  }
+}
 
 const TGE_PRICE_EUR = 0.0008;
 const COOKIE = 'vigri_nfts';
@@ -303,19 +322,36 @@ export async function GET() {
   const session = getCookie('vigri_session');
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
 
-  const invited = getCookie(COOKIE_WS_INVITED) === '1';
-  const s = readState();
+    const invited = getCookie(COOKIE_WS_INVITED) === '1';
+    const s = readState();
 
-  const items: RespItem[] = CATALOG.map((n) => ({
-    ...n,
-    invited: n.id === 'nft-ws-20' ? invited : undefined,
-    ownedQty: s.bag[n.id] || 0,
-    ownedDesigns: s.designs?.[n.id] || {},
-    userActivation: s.activation?.[n.id] ?? null,
-    upgrades: s.upgrades?.[n.id] || { rare: 0, ultra: 0 },
-    expiresAt: s.expires?.[n.id] ?? null,
-    minted: s.minted?.[n.id] || 0,
-  }));
+    const presaleTiers = await loadPresaleTiers();
+
+    const items: RespItem[] = CATALOG.map((n) => {
+      const tierId = tierToOnchainId(n.tier);
+      const t = tierId !== null ? presaleTiers.get(tierId) : undefined;
+
+      const base: RespItem = {
+        ...n,
+        invited: n.id === 'nft-ws-20' ? invited : undefined,
+        ownedQty: s.bag[n.id] || 0,
+        ownedDesigns: s.designs?.[n.id] || {},
+        userActivation: s.activation?.[n.id] ?? null,
+        upgrades: s.upgrades?.[n.id] || { rare: 0, ultra: 0 },
+        expiresAt: s.expires?.[n.id] ?? null,
+        minted: s.minted?.[n.id] || 0,
+      };
+
+      if (t && tierId !== null) {
+      base.onchain = {
+        tierId,
+        priceSol: isFiniteNumber(t.priceSol) ? t.priceSol : 0,
+        supplyTotal: isFiniteNumber(t.supplyTotal) ? t.supplyTotal : 0,
+        supplyMinted: isFiniteNumber(t.supplyMinted) ? t.supplyMinted : 0,
+      };
+    }
+      return base;
+    });
 
   return NextResponse.json({ ok: true, items });
 }
@@ -430,6 +466,59 @@ export async function POST(req: Request) {
     },
     { headers: res.headers }
   );
+}
+
+type PresaleTierApi = {
+  id: number;
+  priceSol?: number;
+  supplyTotal?: number;
+  supplyMinted?: number;
+};
+
+type PresaleConfigApi = {
+  exists: boolean;
+  tiers?: PresaleTierApi[];
+};
+
+function isFiniteNumber(x: unknown): x is number {
+  return typeof x === 'number' && Number.isFinite(x);
+}
+
+async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
+  const map = new Map<number, PresaleTierApi>();
+
+  try {
+    const base =
+      process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.length > 0
+        ? process.env.NEXT_PUBLIC_APP_URL
+        : 'http://localhost:3000';
+
+    const res = await fetch(`${base}/api/presale/global-config`, {
+      cache: 'no-store',
+      // на сервере это обычный fetch – никаких cred'ов не нужно
+    });
+
+    if (!res.ok) return map;
+
+    const raw: PresaleConfigApi = await res.json();
+
+    if (!raw || !raw.exists || !Array.isArray(raw.tiers)) return map;
+
+    for (const t of raw.tiers) {
+      if (!isFiniteNumber(t.id)) continue;
+      map.set(t.id, {
+        id: t.id,
+        priceSol: isFiniteNumber(t.priceSol) ? t.priceSol : undefined,
+        supplyTotal: isFiniteNumber(t.supplyTotal) ? t.supplyTotal : undefined,
+        supplyMinted: isFiniteNumber(t.supplyMinted) ? t.supplyMinted : undefined,
+      });
+    }
+  } catch {
+    // молча падаем в пустую Map – фронт работает по старому
+    return map;
+  }
+
+  return map;
 }
 
 function pickByRarity(designs: Design[]): string {
