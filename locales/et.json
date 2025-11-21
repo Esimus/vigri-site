@@ -93,6 +93,14 @@
   "common.cookies.read_more": "Loe lähemalt",
   "common.cookies.footer_hint": "Saate oma valikut hiljem brauseri seadetes muuta.",
 
+  "emails.verify.subject": "Kinnita oma e-posti aadress VIGRI jaoks",
+  "emails.verify.text": "Oma e-posti aadressi kinnitamiseks ava see link: {link}\nKui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.",
+  "emails.verify.html": "<p>Oma e-posti aadressi kinnitamiseks klõpsa alloleval lingil:</p><p><a href=\"{link}\">{link}</a></p><p>Kui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.</p>",
+
+  "emails.reset.subject": "Lähtesta oma VIGRI parool",
+  "emails.reset.text": "Parooli lähtestamiseks ava see link: {link}\nLink kehtib 1 tund. Kui sa ei taotlenud seda, võid selle kirja ignoreerida.",
+  "emails.reset.html": "<p>Parooli lähtestamiseks klõpsa alloleval lingil:</p><p><a href=\"{link}\">{link}</a></p><p>Link kehtib 1 tund. Kui sa ei taotlenud parooli lähtestamist, võid selle kirja ignoreerida.</p>",
+
   "header.notifications": "Teavitused",
   "header.mail_empty": "Uusi teateid pole",
   "header.mail_open": "Ava postkast",

@@ -1,8 +1,8 @@
 // lib/mail.ts
+// Mail sending via Mailjet SMTP. Text content is defined here for now;
+// i18n integration can be wired later at the call sites.
 
-// Minimal mail stub used during development and tests.
-// In dev: logs the email payload to console and resolves.
-// In production: throws unless a real transport is configured.
+import nodemailer from "nodemailer";
 
 export type MailInput = {
   to: string;
@@ -13,44 +13,77 @@ export type MailInput = {
 };
 
 function hasProdConfig(): boolean {
-  // Extend this check when you wire a real provider
   return Boolean(
-    process.env.SMTP_HOST ||
-      process.env.RESEND_API_KEY ||
-      process.env.MAILGUN_API_KEY
+    process.env.MAIL_HOST &&
+      process.env.MAIL_USER &&
+      process.env.MAIL_PASS
   );
 }
 
+const DEFAULT_FROM = process.env.MAIL_FROM ?? "VIGRI <noreply@vigri.ee>";
+const DEFAULT_REPLY_TO = process.env.MAIL_REPLY_TO ?? undefined;
+
+const mailTransport = hasProdConfig()
+  ? nodemailer.createTransport({
+      host: process.env.MAIL_HOST,
+      port: Number(process.env.MAIL_PORT) || 587,
+      secure: false, // STARTTLS on 587
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    })
+  : null;
+
+/**
+ * Core mail sender.
+ * - In non-production: logs to console and does not send.
+ * - In production: sends via Mailjet SMTP.
+ */
 export async function sendMail(input: MailInput): Promise<void> {
   const { to, subject, text, html } = input;
-  const from = input.from ?? process.env.MAIL_FROM ?? 'no-reply@vigri.app';
+  const from = input.from ?? DEFAULT_FROM;
+  const replyTo = DEFAULT_REPLY_TO;
+  const env = process.env.NODE_ENV || "development";
 
   if (!to || !subject) {
     throw new Error('sendMail: missing "to" or "subject"');
   }
 
-  const env = process.env.NODE_ENV || 'development';
-
-  if (env !== 'production') {
-    console.info('[mail:dev] not sent', { from, to, subject, text, html });
+  if (env !== "production") {
+    console.info("[mail:dev] not sent", {
+      from,
+      to,
+      subject,
+      text,
+      html,
+      replyTo,
+    });
     return;
   }
 
-  // Production guard: fail fast if no transport configured
-  if (!hasProdConfig()) {
+  if (!hasProdConfig() || !mailTransport) {
     throw new Error(
-      'Mail transport is not configured. Set SMTP_* or a provider API key.'
+      "Mail transport is not configured. Set MAIL_HOST / MAIL_USER / MAIL_PASS in environment."
     );
   }
 
-  // TODO: Implement real send using your provider (SMTP/Resend/Mailgun/etc.)
-  // Intentionally throw to avoid silent success in production without an implementation.
-  throw new Error('Production mail sending not implemented yet.');
+  await mailTransport.sendMail({
+    from,
+    to,
+    subject,
+    text,
+    html,
+    replyTo,
+  });
 }
 
-/** Send verification email with a link (email confirm) */
+/**
+ * Send verification email with a link (email confirm).
+ * Signature kept as before: (to, link).
+ */
 export async function sendVerifyEmail(to: string, link: string) {
-  const subject = 'Verify your email for VIGRI';
+  const subject = "Verify your email for VIGRI";
   const html = `
     <p>To verify your email, click the link below:</p>
     <p><a href="${link}">${link}</a></p>
@@ -63,9 +96,12 @@ export async function sendVerifyEmail(to: string, link: string) {
   await sendMail({ to, subject, html, text });
 }
 
-/** Send password reset email with a link (?auth=reset&token=...) */
+/**
+ * Send password reset email with a link (?auth=reset&token=...).
+ * Signature kept as before: (to, link).
+ */
 export async function sendResetEmail(to: string, link: string) {
-  const subject = 'Reset your VIGRI password';
+  const subject = "Reset your VIGRI password";
   const html = `
     <p>To reset your password, click the link below:</p>
     <p><a href="${link}">${link}</a></p>

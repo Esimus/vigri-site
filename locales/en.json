@@ -93,6 +93,14 @@
   "common.cookies.read_more": "Read more",
   "common.cookies.footer_hint": "You can change your choice later in your browser settings.",
 
+  "emails.verify.subject": "Verify your email for VIGRI",
+  "emails.verify.text": "To verify your email, open this link: {link}\nIf you didn't request this, ignore this email.",
+  "emails.verify.html": "<p>To verify your email, click the link below:</p><p><a href=\"{link}\">{link}</a></p><p>If you didn’t request this, you can ignore this email.</p>",
+
+  "emails.reset.subject": "Reset your VIGRI password",
+  "emails.reset.text": "To reset your password, open this link: {link}\nThe link is valid for 1 hour. If you didn't request this, ignore this email.",
+  "emails.reset.html": "<p>To reset your password, click the link below:</p><p><a href=\"{link}\">{link}</a></p><p>The link is valid for 1 hour. If you didn't request this, you can ignore this email.</p>",
+
   "header.notifications": "Notifications",
   "header.mail_empty": "No new messages",
   "header.mail_open": "Open inbox",
