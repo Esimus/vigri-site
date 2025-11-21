@@ -61,7 +61,10 @@ export async function POST(req: Request) {
       });
 
       // LINK NOW POINTS TO MODAL: /?auth=reset&token=...
-      const base = originFrom(req);
+      const base =
+        process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.trim().length > 0
+          ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, '')
+          : originFrom(req);
       const resetUrl = `${base}/?auth=reset&token=${raw}`;
 
       // send email (dev: console log, prod: see lib/mail.ts)

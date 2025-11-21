@@ -768,12 +768,15 @@ export default function NftDetails({ id }: { id: string }) {
 
               <div className="flex items-end gap-4">
                 <div className="flex flex-col items-start">
-                  <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
-                    {meta?.priceEur ? `${meta.priceEur.toFixed(0)}€` : ''}
+                  <div
+                    className="text-2xl font-semibold leading-none"
+                    style={{ color: "var(--brand-400)" }}
+                  >
+                    {solPrice !== null && solPrice > 0 ? `${solPrice} SOL` : ""}
                   </div>
-                  {solPrice !== null && solPrice > 0 && (
+                  {meta?.priceEur && meta.priceEur > 0 && (
                     <div className="text-xs opacity-70 mt-1">
-                      ≈ {solPrice} SOL (base on-chain price)
+                      ≈ {meta.priceEur.toFixed(0)}€ (presale reference)
                     </div>
                   )}
                   <button className="btn btn-outline mt-2" onClick={buy}>

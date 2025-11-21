@@ -271,22 +271,24 @@ export default function NftList() {
               )}
 
               {/* Price + after-date pill */}
-              {i.eurPrice > 0 ? (
+              {solPrice !== null && solPrice > 0 ? (
                 <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
                   <div>
-                    {t('nft.price')}: <b>{cf.format(i.eurPrice)}</b>
-                    {solPrice !== null && solPrice > 0 && (
+                    {t('nft.price')}: <b>{solPrice} SOL</b>
+                    {i.eurPrice > 0 && (
                       <span className="ml-2 text-[11px] opacity-70">
-                        ≈ {solPrice} SOL (base on-chain price)
+                        ≈ {cf.format(i.eurPrice)} (presale reference)
                       </span>
                     )}
                   </div>
                   <span className="chip">
-                    {t('nft.after')} {afterDateLabel}: {cf.format(i.eurPrice * 2)}
+                    {t('nft.after')} {afterDateLabel}: {solPrice * 2} SOL
                   </span>
                 </div>
               ) : (
-                <div className="text-xs md:text-sm opacity-70 mb-2">{t('nft.badge.invite')}</div>
+                <div className="text-xs md:text-sm opacity-70 mb-2">
+                  {t('nft.badge.invite')}
+                </div>
               )}
 
               {/* Availability (global summary) */}
