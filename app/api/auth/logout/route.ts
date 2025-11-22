@@ -30,12 +30,14 @@ export async function POST(req: Request) {
       await prisma.session.delete({ where: { id: sid } }).catch(() => {});
     }
 
-    const res = NextResponse.redirect('/', 303);
+    const redirectUrl = new URL('/', req.url);
+    const res = NextResponse.redirect(redirectUrl, 303);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;
   } catch (e) {
     console.error('logout POST error', e);
-    const res = NextResponse.redirect('/', 303);
+    const redirectUrl = new URL('/', req.url);
+    const res = NextResponse.redirect(redirectUrl, 303);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;
   }
@@ -51,12 +53,14 @@ export async function GET(req: Request) {
       await prisma.session.delete({ where: { id: sid } }).catch(() => {});
     }
 
-    const res = NextResponse.redirect('/');
+    const redirectUrl = new URL('/', req.url);
+    const res = NextResponse.redirect(redirectUrl);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;
   } catch (e) {
     console.error('logout GET error', e);
-    const res = NextResponse.redirect('/');
+    const redirectUrl = new URL('/', req.url);
+    const res = NextResponse.redirect(redirectUrl);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;
   }

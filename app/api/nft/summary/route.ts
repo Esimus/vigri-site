@@ -15,23 +15,6 @@ type ApiNftItem = {
   minted?: number;      // per-user owned (local mock) — we will ignore this for "sold"
 };
 
-type ApiNftResponse = {
-  ok: boolean;
-  items: ApiNftItem[];
-};
-
-function isApiNftResponse(x: unknown): x is ApiNftResponse {
-  if (!x || typeof x !== 'object') return false;
-  const o = x as Record<string, unknown>;
-  if (o.ok !== true) return false;
-  if (!Array.isArray(o.items)) return false;
-  return o.items.every((it) => {
-    if (!it || typeof it !== 'object') return false;
-    const i = it as Record<string, unknown>;
-    return typeof i.id === 'string' && typeof i.name === 'string';
-  });
-}
-
 // Map list item id -> canonical TierKey used in echo logs
 type TierKey = 'Base' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Tree' | 'Steel' | 'WS-20';
 
@@ -60,35 +43,17 @@ const ID_TO_TIER: Record<string, TierKey> = {
 // If you ever need reverse mapping, you can add TIER_TO_ID as well.
 // For now we build "sold" by tier and then project it back onto ids.
 
-export async function GET(req: Request) {
-  // 1) Call upstream /api/nft (we keep this to reuse item list & names)
-  let upstream: Response;
-  try {
-    upstream = await fetch(new URL('/api/nft', req.url), {
-      headers: { cookie: req.headers.get('cookie') ?? '' },
-      cache: 'no-store',
-    });
-  } catch {
-    return NextResponse.json({ ok: false, error: 'upstream_unreachable' }, { status: 502 });
-  }
+export async function GET() {
 
-  const ct = upstream.headers.get('content-type') || '';
-  if (!ct.includes('application/json')) {
-    return NextResponse.json({ ok: false, error: 'bad_upstream_type' }, { status: 502 });
-  }
-
-  let data: unknown;
-  try {
-    data = await upstream.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: 'bad_upstream_json' }, { status: 502 });
-  }
-
-  if (!upstream.ok || !isApiNftResponse(data)) {
-    return NextResponse.json({ ok: false, error: 'bad_upstream_payload' }, { status: 502 });
-  }
-
-  const rows: ApiNftItem[] = data.items;
+    // 1) Build upstream rows locally (no HTTP self-call)
+  const rows: ApiNftItem[] = [
+    { id: 'nft-tree-steel', name: 'Tree / Steel', limited: SUPPLY_BY_TIER.Tree },
+    { id: 'nft-bronze',     name: 'Bronze',       limited: SUPPLY_BY_TIER.Bronze },
+    { id: 'nft-silver',     name: 'Silver',       limited: SUPPLY_BY_TIER.Silver },
+    { id: 'nft-gold',       name: 'Gold',         limited: SUPPLY_BY_TIER.Gold },
+    { id: 'nft-platinum',   name: 'Platinum',     limited: SUPPLY_BY_TIER.Platinum },
+    { id: 'nft-ws-20',      name: 'WS-20',        limited: SUPPLY_BY_TIER['WS-20'] },
+  ];
 
   // 2) Aggregate global SOLD per tier from EchoLog (purchase · nft.proportional)
   // Each proportional log = 1 unit sold for that tier (you can refine later if needed)
