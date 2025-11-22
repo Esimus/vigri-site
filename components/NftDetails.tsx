@@ -127,6 +127,9 @@ function BuyPanelMobile(props: {
   const isTree = item.tier === 'tree';
   const isSilver = item.tier === 'silver';
 
+  const hasSol = solPrice !== null && solPrice > 0;
+  const hasEur = typeof item.eurPrice === 'number' && item.eurPrice > 0;
+
   return (
     <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3">
       {/* Mobile: design selector only for Tree/Steel */}
@@ -213,11 +216,15 @@ function BuyPanelMobile(props: {
       <div className="flex items-end gap-4">
         <div className="flex flex-col items-start">
           <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
-            {item.eurPrice ? `${item.eurPrice.toFixed(0)}€` : ''}
+            {hasSol
+              ? `${solPrice} SOL`
+              : hasEur
+              ? `${item.eurPrice.toFixed(0)}€`
+              : ''}
           </div>
-          {solPrice !== null && solPrice > 0 && (
+          {hasSol && hasEur && (
             <div className="text-xs opacity-70 mt-1">
-              ≈ {solPrice} SOL (base on-chain price)
+              ≈ {item.eurPrice.toFixed(0)}€ (presale reference)
             </div>
           )}
           <button className="btn btn-outline mt-2" onClick={onBuy}>
@@ -249,9 +256,13 @@ function DetailsCard(props: {
   blurb: string;
   meta: DetailsMeta;
   featureLines: string[];
-}) {
-  const { t, title, blurb, meta, featureLines } = props;
+  solPrice: number | null;
+  }) {
+  const { t, title, blurb, meta, featureLines, solPrice } = props;
   const isWS = meta?.tier === 'ws';
+
+  const hasSol = typeof solPrice === 'number' && solPrice > 0;
+  const hasEurNow = typeof meta?.priceEur === 'number';
 
   return (
     <div className="card p-4 md:p-5 space-y-2">
@@ -260,23 +271,49 @@ function DetailsCard(props: {
 
       {/* Meta chips */}
       <div className="flex flex-wrap gap-2 text-xs opacity-90">
-        {meta?.limited && <span className="chip">{t('nft.limited')}: {meta.limited}</span>}
-        {meta?.kycRequired ? (
-          <span className="chip inline-flex items-center gap-0.5">
-            <LockIcon size={15}/>{t('nft.kyc')}
-          </span>
-        ) : null}
-        {isWS && (
+        {meta?.limited && (
           <span className="chip">
-            <KeyIcon />{t('nft.badge.invite')}
+            {t('nft.limited')}: {meta.limited}
           </span>
         )}
-        {meta?.vesting && <span className="chip">{t('nft.vesting')}: {t(meta.vesting)}</span>}
-        {meta?.priceEur != null && <span className="chip">{t('nft.price.now')}: €{meta.priceEur.toFixed(2)}</span>}
+
+        {meta?.kycRequired ? (
+          <span className="chip inline-flex items-center gap-0.5">
+            <LockIcon size={15} />
+            {t('nft.kyc')}
+          </span>
+        ) : null}
+
+        {isWS && (
+          <span className="chip">
+            <KeyIcon />
+            {t('nft.badge.invite')}
+          </span>
+        )}
+
+        {meta?.vesting && (
+          <span className="chip">
+            {t('nft.vesting')}: {t(meta.vesting)}
+          </span>
+        )}
+
+        {/* Сейчас / После — теперь в SOL, если он есть */}
+        {(hasSol || hasEurNow) && (
+          <span className="chip">
+            {t('nft.price.now')}:{' '}
+            {hasSol
+              ? `${solPrice} SOL`
+              : `€${meta!.priceEur!.toFixed(2)}`}
+          </span>
+        )}
+
         {meta?.priceAfter && (
           <span className="chip">
-            {t('nft.price.after')} {new Date(meta.priceAfter.date).toLocaleDateString()}:
-            &nbsp;€{meta.priceAfter.priceEur.toFixed(2)}
+            {t('nft.price.after')}{' '}
+            {new Date(meta.priceAfter.date).toLocaleDateString()}:{' '}
+            {hasSol
+              ? `${solPrice! * 2} SOL`
+              : `€${meta.priceAfter.priceEur.toFixed(2)}`}
           </span>
         )}
       </div>
@@ -433,9 +470,17 @@ export default function NftDetails({ id }: { id: string }) {
   }, [id]);
 
   const isWS = item?.tier === 'ws';
-  const cf = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }), []);
+  const cf = useMemo(
+  () => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }),
+  []
+  );
   const rawSol = item?.onchain?.priceSol;
   const solPrice = typeof rawSol === 'number' ? rawSol : null;
+  const hasSol = solPrice !== null && solPrice > 0;
+
+  const eurFromMeta =
+    typeof meta?.priceEur === 'number' ? meta.priceEur : undefined;
+  const hasEurMeta = typeof eurFromMeta === 'number';
 
   // Prefer localized keys from catalog; fall back to plain text or API
   const title = (meta?.nameKey ? t(meta.nameKey) : meta?.name) ?? item?.name ?? '';
@@ -663,7 +708,7 @@ export default function NftDetails({ id }: { id: string }) {
 
       {/* Mobile: features card */}
       <div className="block lg:hidden">
-        <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} />
+        <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} solPrice={solPrice} />
       </div>
 
       {/* Desktop layout */}
@@ -701,7 +746,7 @@ export default function NftDetails({ id }: { id: string }) {
         <div className="space-y-4">
           {/* Desktop features/specs */}
           <div className="hidden lg:block">
-            <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} />
+            <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} solPrice={solPrice} />
           </div>
 
           {/* Purchase (desktop only) */}
@@ -772,11 +817,15 @@ export default function NftDetails({ id }: { id: string }) {
                     className="text-2xl font-semibold leading-none"
                     style={{ color: "var(--brand-400)" }}
                   >
-                    {solPrice !== null && solPrice > 0 ? `${solPrice} SOL` : ""}
+                    {hasSol
+                      ? `${solPrice} SOL`
+                      : hasEurMeta && eurFromMeta !== undefined
+                      ? `${eurFromMeta.toFixed(0)}€`
+                      : ""}
                   </div>
-                  {meta?.priceEur && meta.priceEur > 0 && (
+                  {hasSol && hasEurMeta && eurFromMeta !== undefined && (
                     <div className="text-xs opacity-70 mt-1">
-                      ≈ {meta.priceEur.toFixed(0)}€ (presale reference)
+                      ≈ {eurFromMeta.toFixed(0)}€ (presale reference)
                     </div>
                   )}
                   <button className="btn btn-outline mt-2" onClick={buy}>

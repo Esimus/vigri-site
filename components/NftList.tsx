@@ -271,25 +271,42 @@ export default function NftList() {
               )}
 
               {/* Price + after-date pill */}
-              {solPrice !== null && solPrice > 0 ? (
-                <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
-                  <div>
-                    {t('nft.price')}: <b>{solPrice} SOL</b>
-                    {i.eurPrice > 0 && (
-                      <span className="ml-2 text-[11px] opacity-70">
-                        ≈ {cf.format(i.eurPrice)} (presale reference)
-                      </span>
-                    )}
+              {(() => {
+                const hasSol = solPrice !== null && solPrice > 0;
+                const hasEur = i.eurPrice > 0;
+
+                if (!hasSol && !hasEur) {
+                  return (
+                    <div className="text-xs md:text-sm opacity-70 mb-2">
+                      {t("nft.badge.invite")}
+                    </div>
+                  );
+                }
+
+                const mainLabel = hasSol
+                  ? `${solPrice} SOL`
+                  : cf.format(i.eurPrice);
+
+                const afterLabel = hasSol
+                  ? `${solPrice * 2} SOL`
+                  : cf.format(i.eurPrice * 2);
+
+                return (
+                  <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
+                    <div>
+                      {t("nft.price")}: <b>{mainLabel}</b>
+                      {hasSol && hasEur && (
+                        <span className="ml-2 text-[11px] opacity-70">
+                          ≈ {cf.format(i.eurPrice)} (presale reference)
+                        </span>
+                      )}
+                    </div>
+                    <span className="chip">
+                      {t("nft.after")} {afterDateLabel}: {afterLabel}
+                    </span>
                   </div>
-                  <span className="chip">
-                    {t('nft.after')} {afterDateLabel}: {solPrice * 2} SOL
-                  </span>
-                </div>
-              ) : (
-                <div className="text-xs md:text-sm opacity-70 mb-2">
-                  {t('nft.badge.invite')}
-                </div>
-              )}
+                );
+              })()}
 
               {/* Availability (global summary) */}
               {showAvailability && (
