@@ -97,7 +97,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     ],
 
     // additional fields for specs/chips
-    priceEur: 50,
+    priceEur: 51,
     priceAfter: { date: '2025-12-31', priceEur: 100 },
 
 
