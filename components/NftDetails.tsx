@@ -216,11 +216,7 @@ function BuyPanelMobile(props: {
       <div className="flex items-end gap-4">
         <div className="flex flex-col items-start">
           <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
-            {hasSol
-              ? `${solPrice} SOL`
-              : hasEur
-              ? `${item.eurPrice.toFixed(0)}€`
-              : ''}
+            {hasSol ? `${solPrice} SOL` : ''}
           </div>
           {hasSol && hasEur && (
             <div className="text-xs opacity-70 mt-1">
@@ -238,7 +234,7 @@ function BuyPanelMobile(props: {
 
 type DetailsMeta = Pick<
   NftMeta,
-  'revealLabelKey' | 'revealValue' | 'supply' | 'kycRequired' | 'vesting' | 'priceEur' | 'priceAfter' | 'tier'
+  'revealLabelKey' | 'revealValue' | 'supply' | 'kycRequired' | 'vesting' | 'priceAfter' | 'tier'
 > & {
   limited?: string | number;
 };
@@ -262,7 +258,8 @@ function DetailsCard(props: {
   const isWS = meta?.tier === 'ws';
 
   const hasSol = typeof solPrice === 'number' && solPrice > 0;
-  const hasEurNow = typeof meta?.priceEur === 'number';
+  const hasAfter =
+    hasSol && !!meta?.priceAfter && typeof meta.priceAfter.date === 'string';
 
   return (
     <div className="card p-4 md:p-5 space-y-2">
@@ -297,23 +294,18 @@ function DetailsCard(props: {
           </span>
         )}
 
-        {/* Price */}
-        {(hasSol || hasEurNow) && (
+        {/* Price (SOL) */}
+        {hasSol && (
           <span className="chip">
-            {t('nft.price.now')}:{' '}
-            {hasSol
-              ? `${solPrice} SOL`
-              : `€${meta!.priceEur!.toFixed(2)}`}
+            {t('nft.price.now')}: {solPrice} SOL
           </span>
         )}
 
-        {meta?.priceAfter && (
+        {hasAfter && (
           <span className="chip">
             {t('nft.price.after')}{' '}
-            {new Date(meta.priceAfter.date).toLocaleDateString()}:{' '}
-            {hasSol
-              ? `${solPrice! * 2} SOL`
-              : `€${meta.priceAfter.priceEur.toFixed(2)}`}
+            {new Date(meta!.priceAfter!.date).toLocaleDateString()}:{' '}
+            {solPrice! * 2} SOL
           </span>
         )}
       </div>
@@ -478,9 +470,9 @@ export default function NftDetails({ id }: { id: string }) {
   const solPrice = typeof rawSol === 'number' ? rawSol : null;
   const hasSol = solPrice !== null && solPrice > 0;
 
-  const eurFromMeta =
-    typeof meta?.priceEur === 'number' ? meta.priceEur : undefined;
-  const hasEurMeta = typeof eurFromMeta === 'number';
+  const eurFromItem =
+    typeof item?.eurPrice === 'number' ? item.eurPrice : undefined;
+  const hasEurItem = typeof eurFromItem === 'number' && eurFromItem > 0;
 
   // Prefer localized keys from catalog; fall back to plain text or API
   const title = (meta?.nameKey ? t(meta.nameKey) : meta?.name) ?? item?.name ?? '';
@@ -530,14 +522,14 @@ export default function NftDetails({ id }: { id: string }) {
 
       const tierName = tierParamFromItemTier(item.tier);
 
-      // price × qty
-      const eurSingle = (meta?.priceEur ?? item?.eurPrice ?? 0);
+      // price × qty (EUR comes only from API item.eurPrice)
+      const eurSingle = item?.eurPrice ?? 0;
       const eurTotal  = eurSingle * (isWS ? 1 : qty);
 
       const qsClaim = new URLSearchParams();
       qsClaim.set('tier', tierName);
       if (eurTotal > 0) qsClaim.set('eur', String(eurTotal));
-      qsClaim.set('qty', String(isWS ? 1 : qty));     // <-- добавили qty
+      qsClaim.set('qty', String(isWS ? 1 : qty));
       if (meId) qsClaim.set('userId', meId);
 
       await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
@@ -612,7 +604,6 @@ export default function NftDetails({ id }: { id: string }) {
     supply: typeof meta?.supply === 'number' ? meta.supply : undefined,
     kycRequired: meta?.kycRequired,
     vesting: meta?.vesting ?? null,
-    priceEur: typeof meta?.priceEur === 'number' ? meta.priceEur : undefined,
     priceAfter: meta?.priceAfter ?? null,
   };
 
@@ -817,15 +808,11 @@ export default function NftDetails({ id }: { id: string }) {
                     className="text-2xl font-semibold leading-none"
                     style={{ color: "var(--brand-400)" }}
                   >
-                    {hasSol
-                      ? `${solPrice} SOL`
-                      : hasEurMeta && eurFromMeta !== undefined
-                      ? `${eurFromMeta.toFixed(0)}€`
-                      : ""}
+                    {hasSol ? `${solPrice} SOL` : ""}
                   </div>
-                  {hasSol && hasEurMeta && eurFromMeta !== undefined && (
+                  {hasSol && hasEurItem && eurFromItem !== undefined && (
                     <div className="text-xs opacity-70 mt-1">
-                      ≈ {eurFromMeta.toFixed(0)}€ (presale reference)
+                      ≈ {eurFromItem.toFixed(0)}€ (presale reference)
                     </div>
                   )}
                   <button className="btn btn-outline mt-2" onClick={buy}>

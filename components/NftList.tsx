@@ -278,32 +278,31 @@ export default function NftList() {
                 if (!hasSol && !hasEur) {
                   return (
                     <div className="text-xs md:text-sm opacity-70 mb-2">
-                      {t("nft.badge.invite")}
+                      {t('nft.badge.invite')}
                     </div>
                   );
                 }
 
-                const mainLabel = hasSol
-                  ? `${solPrice} SOL`
-                  : cf.format(i.eurPrice);
-
-                const afterLabel = hasSol
-                  ? `${solPrice * 2} SOL`
-                  : cf.format(i.eurPrice * 2);
-
                 return (
                   <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
                     <div>
-                      {t("nft.price")}: <b>{mainLabel}</b>
+                      {t('nft.price')}:{" "}
+                      {hasSol ? (
+                        <b>{solPrice} SOL</b>
+                      ) : (
+                        <span className="opacity-70">—</span>
+                      )}
                       {hasSol && hasEur && (
                         <span className="ml-2 text-[11px] opacity-70">
                           ≈ {cf.format(i.eurPrice)} (presale reference)
                         </span>
                       )}
                     </div>
-                    <span className="chip">
-                      {t("nft.after")} {afterDateLabel}: {afterLabel}
-                    </span>
+                    {hasSol && (
+                      <span className="chip">
+                        {t('nft.after')} {afterDateLabel}: {solPrice * 2} SOL
+                      </span>
+                    )}
                   </div>
                 );
               })()}

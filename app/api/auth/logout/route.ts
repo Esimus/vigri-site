@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE, COOKIE_OPTIONS_EXPIRE_NOW } from '@/lib/session';
 
+const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://vigri.ee';
+
 export const runtime = 'nodejs';
 
 // tiny cookie parser from the header (no deps)
@@ -30,13 +32,13 @@ export async function POST(req: Request) {
       await prisma.session.delete({ where: { id: sid } }).catch(() => {});
     }
 
-    const redirectUrl = new URL('/', req.url);
+    const redirectUrl = new URL('/', APP_BASE_URL);
     const res = NextResponse.redirect(redirectUrl, 303);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;
   } catch (e) {
     console.error('logout POST error', e);
-    const redirectUrl = new URL('/', req.url);
+    const redirectUrl = new URL('/', APP_BASE_URL);
     const res = NextResponse.redirect(redirectUrl, 303);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;
@@ -53,13 +55,13 @@ export async function GET(req: Request) {
       await prisma.session.delete({ where: { id: sid } }).catch(() => {});
     }
 
-    const redirectUrl = new URL('/', req.url);
+    const redirectUrl = new URL('/', APP_BASE_URL);
     const res = NextResponse.redirect(redirectUrl);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;
   } catch (e) {
     console.error('logout GET error', e);
-    const redirectUrl = new URL('/', req.url);
+    const redirectUrl = new URL('/', APP_BASE_URL);
     const res = NextResponse.redirect(redirectUrl);
     res.cookies.set(SESSION_COOKIE, '', COOKIE_OPTIONS_EXPIRE_NOW);
     return res;

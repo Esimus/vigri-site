@@ -39,8 +39,8 @@ export type NftMeta = {
 
   // ---- spec fields ----
   supply?: number;
-  priceEur?: number;
-  priceAfter?: { date: string; priceEur: number } | null;
+  // After given date price in SOL may increase by multiplier (default 2x)
+  priceAfter?: { date: string; solMultiplier?: number } | null;
   revealLabelKey?: string;  // i18n key for label
   revealValue?: string;     // e.g. "Q2 2026"
 
@@ -97,8 +97,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     ],
 
     // additional fields for specs/chips
-    priceEur: 51,
-    priceAfter: { date: '2025-12-31', priceEur: 100 },
+    priceAfter: { date: '2025-12-31', solMultiplier: 2 },
 
 
     // explanations (accordion/sheet)
@@ -145,8 +144,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     designs: [{ id: 'bronze', label: 'Bronze' }],
 
     // specs
-    priceEur: 150,
-    priceAfter: { date: '2025-12-31', priceEur: 300 },
+    priceAfter: { date: '2025-12-31', solMultiplier: 2 },
     revealLabelKey: 'nft.summary.bronze_0',
 
     // explainers will be added step-by-step (keep empty for now)
@@ -191,8 +189,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     activationType: 'none',
 
     // specs
-    priceEur: 1000,
-    priceAfter: { date: '2025-12-31', priceEur: 2000 },
+    priceAfter: { date: '2025-12-31', solMultiplier: 2 },
     revealLabelKey: 'nft.summary.silver_0',
 
     explainers: [
@@ -238,8 +235,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     activationType: 'none',
 
     // specs
-    priceEur: 5000,
-    priceAfter: { date: '2025-12-31', priceEur: 10000 },
+    priceAfter: { date: '2025-12-31', solMultiplier: 2 },
     revealLabelKey: 'nft.summary.gold_0',
 
 
@@ -285,8 +281,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     activationType: 'none',
 
     // specs
-    priceEur: 10000,
-    priceAfter: { date: '2025-12-31', priceEur: 20000 },
+    priceAfter: { date: '2025-12-31', solMultiplier: 2 },
     revealLabelKey: 'nft.summary.platinum_0',
 
     explainers: [
@@ -331,7 +326,6 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     activationType: 'none', // invite / airdrop
 
     // specs: no price for invite-only airdrop
-    priceEur: undefined,
     priceAfter: null,
     revealLabelKey: 'nft.summary.ws20_0',
 
