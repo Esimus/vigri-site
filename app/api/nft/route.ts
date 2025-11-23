@@ -488,21 +488,27 @@ async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
   const map = new Map<number, PresaleTierApi>();
 
   try {
+    // Internal server-to-server call: always hit the Node app directly,
+    // bypassing nginx/basic auth on the public domain.
     const base =
-      process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.length > 0
-        ? process.env.NEXT_PUBLIC_APP_URL
-        : 'http://localhost:3000';
+      typeof process.env.INTERNAL_API_BASE === 'string' &&
+      process.env.INTERNAL_API_BASE.length > 0
+        ? process.env.INTERNAL_API_BASE
+        : 'http://127.0.0.1:3000';
 
     const res = await fetch(`${base}/api/presale/global-config`, {
       cache: 'no-store',
-      // на сервере это обычный fetch – никаких cred'ов не нужно
     });
 
-    if (!res.ok) return map;
+    if (!res.ok) {
+      return map;
+    }
 
     const raw: PresaleConfigApi = await res.json();
 
-    if (!raw || !raw.exists || !Array.isArray(raw.tiers)) return map;
+    if (!raw || !raw.exists || !Array.isArray(raw.tiers)) {
+      return map;
+    }
 
     for (const t of raw.tiers) {
       if (!isFiniteNumber(t.id)) continue;
@@ -514,7 +520,7 @@ async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
       });
     }
   } catch {
-    // молча падаем в пустую Map – фронт работает по старому
+    // fall back to empty map – frontend will still work with EUR-only data
     return map;
   }
 

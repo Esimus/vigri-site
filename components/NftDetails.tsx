@@ -297,7 +297,7 @@ function DetailsCard(props: {
           </span>
         )}
 
-        {/* Сейчас / После — теперь в SOL, если он есть */}
+        {/* Price */}
         {(hasSol || hasEurNow) && (
           <span className="chip">
             {t('nft.price.now')}:{' '}
