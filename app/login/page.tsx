@@ -1,3 +1,4 @@
+// app/login/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -15,7 +16,6 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
     });
     if (!r.ok) {
-    // можно подсветить ошибку
     return;
   }
   window.location.href = '/dashboard';

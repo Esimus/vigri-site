@@ -88,12 +88,6 @@ export default function AuthModal() {
   const canSubmitForgot = isEmailValid && !loading && isForgot;
   const canSubmitReset  = isPassValid && isConfirmValid && !loading && isReset && !!resetToken;
 
-  const inputClass =
-    'w-full rounded-xl border border-zinc-200/70 dark:border-zinc-800/60 ' +
-    'bg-white/80 dark:bg-zinc-900/80 px-3 py-2 text-sm shadow-inner ' +
-    'focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30 ' +
-    'focus:border-[var(--brand-600)] transition';
-
   const setMode = useCallback(
     (m: Exclude<Mode, null> | null) => {
       const params = new URLSearchParams(sp.toString());
@@ -359,14 +353,14 @@ export default function AuthModal() {
 
   const emailInput = (
     <div>
-      <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+      <label className="label">
         {tf('auth.email', 'Email')}
       </label>
       <input
         ref={firstInputRef}
         type="email"
         required
-        className={inputClass}
+        className="input"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         onBlur={() => setEmailTouched(true)}
@@ -375,7 +369,7 @@ export default function AuthModal() {
         aria-describedby="auth-email-help"
       />
       {emailTouched && !isEmailValid && (
-        <div id="auth-email-help" className="mt-1 text-xs text-red-600">
+        <div id="auth-email-help" className="form-error">
           {tf('auth.error_email', 'Please enter a valid email')}
         </div>
       )}
@@ -384,7 +378,7 @@ export default function AuthModal() {
 
   const passwordInput = (
     <div>
-      <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+      <label className="label">
         {tf('auth.password', 'Password')}
       </label>
       <div className="relative">
@@ -392,7 +386,7 @@ export default function AuthModal() {
           type={showPass ? 'text' : 'password'}
           required
           minLength={8}
-          className={inputClass + ' pr-10 appearance-none'}
+          className="input pr-10 appearance-none"
           value={pass}
           onChange={(e) => setPass(e.target.value)}
           onBlur={() => setPassTouched(true)}
@@ -440,7 +434,7 @@ export default function AuthModal() {
 
   const confirmInput = (isSignup || isReset) ? (
     <div>
-      <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+      <label className="label">
         {tf('auth.password_confirm', 'Repeat password')}
       </label>
       <div className="relative">
@@ -448,7 +442,7 @@ export default function AuthModal() {
           type={showPass ? 'text' : 'password'}
           required
           minLength={8}
-          className={inputClass + ' pr-10 appearance-none'}
+          className="input pr-10 appearance-none"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           onBlur={() => setConfirmTouched(true)}
@@ -498,11 +492,11 @@ export default function AuthModal() {
           aria-labelledby={titleId}
           tabIndex={-1}
           className="w-full max-w-sm overflow-hidden rounded-3xl
-                     bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm
-                     shadow-2xl ring-1 ring-black/5 dark:ring-white/10
-                     border border-zinc-200/60 dark:border-zinc-800/50 outline-none"
+                      card backdrop-blur-sm
+                      shadow-2xl ring-1 ring-black/40 dark:ring-white/10
+                      outline-none"
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-gradient-to-b from-white/70 to-transparent dark:from-zinc-900/70">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800/60 bg-[color:var(--card)]">
             <div id={titleId} className="text-lg font-semibold">{title}</div>
             <button
               onClick={close}
