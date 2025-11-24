@@ -480,6 +480,7 @@
   "nft.read_less": "Näita vähem",
   "nft.my_title": "Minu NFT-d",
   "nft.my_empty": "NFT pole veel. Lisa esimene →",
+  "nft.my_recent_mints": "Minu viimased mündid",
   "nft.add_more": "Lisa NFT",
 
   "nft.details": "Loe lähemalt",
@@ -776,5 +777,11 @@
   "rewards.show_last": "Näita viimast 25",
   "rewards.hide_list": "Peida nimekiri",
   "rewards.echo_history": "Echo ajalugu",
-  "rewards.no_records": "Kirjeid veel pole."
+  "rewards.no_records": "Kirjeid veel pole.",
+
+  "wallet.connect": "Ühenda rahakott",
+  "wallet.connecting": "Ühendame rahakotti…",
+  "wallet.connected": "Rahakott on ühendatud",
+  "wallet.error_phantom_missing": "Phantomi rahakotti ei leitud. Palun paigalda Phantomi brauserilaiendus.",
+  "wallet.pill.title": "Minu rahakott"
 }

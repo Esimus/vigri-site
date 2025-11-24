@@ -39,6 +39,17 @@ model User {
   @@index([referrerId])
 }
 
+model NftMintEvent {
+  id          String   @id @default(cuid())
+  userId      String?
+  wallet      String
+  tierId      Int
+  quantity    Int      @default(1)
+  txSignature String
+  network     String
+  createdAt   DateTime @default(now())
+}
+
 // Key = identity credential (password or OAuth). For password, store hash here.
 model Key {
   id             String   @id // recommended format: "providerId:providerUserId"

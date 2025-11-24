@@ -1,11 +1,13 @@
 // components/MyNftsStrip.tsx
 'use client';
 
+import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { api } from '@/lib/api';
 import { useI18n } from '@/hooks/useI18n';
+import { usePhantomWallet } from '@/hooks/usePhantomWallet';
+import { NFT_CATALOG } from '@/constants/nftCatalog';
 
 type CSSWithExtras = React.CSSProperties & {
   overflowX?: React.CSSProperties['overflowX'] | 'clip';
@@ -31,32 +33,155 @@ function pngNameFor(id: string): string {
   }
 }
 
-type Item  = { id: string; name: string; ownedQty?: number };
+function nftIdFromTier(tierId: number): string | null {
+  switch (tierId) {
+    case 0:
+      return 'nft-tree-steel';
+    case 1:
+      return 'nft-bronze';
+    case 2:
+      return 'nft-silver';
+    case 3:
+      return 'nft-gold';
+    case 4:
+      return 'nft-platinum';
+    case 5:
+      return 'nft-ws-20';
+    default:
+      return null;
+  }
+}
+
 type Group = { id: string; name: string; qty: number; src: string };
+type MintEvent = {
+  id: string;
+  userId: string | null;
+  wallet: string;
+  tierId: number;
+  quantity: number;
+  txSignature: string;
+  network: string;
+  createdAt: string;
+};
+
+type MintLogResp = {
+  ok: boolean;
+  items: MintEvent[];
+};
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString();
+}
+
+function shortTx(sig: string): string {
+  if (!sig) return '';
+
+  const prefix = 14;
+  const suffix = 10;
+
+  if (sig.length <= prefix + suffix + 3) {
+    return sig;
+  }
+
+  return `${sig.slice(0, prefix)}…${sig.slice(-suffix)}`;
+}
 
 export default function MyNftsStrip() {
   const { t } = useI18n();
+  const { address } = usePhantomWallet();
   const [groups, setGroups] = useState<Group[]>([]);
+  const [events, setEvents] = useState<MintEvent[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const r = await api.nft.list();
-      if (!r.ok) return setGroups([]);
-      const gs: Group[] = r.items
-        .filter((it: Item) => (it.ownedQty ?? 0) > 0)
-        .map((it: Item) => ({
-          id: it.id,
-          name: it.name,
-          qty: it.ownedQty ?? 0,
-          src: `/images/nft/${pngNameFor(it.id)}`,
+    if (!address) {
+      setGroups([]);
+      setEvents([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const params = new URLSearchParams({
+          wallet: address,
+          network: 'devnet',
+        });
+
+        const res = await fetch(`/api/nft/mint-log?${params.toString()}`, {
+          cache: 'no-store',
+        });
+
+        const data: MintLogResp = await res.json().catch(() => ({
+          ok: false,
+          items: [],
         }));
-      setGroups(gs);
-    })();
-  }, []);
+
+        if (!res.ok || !data.ok) {
+          if (!cancelled) {
+            setGroups([]);
+            setEvents([]);
+          }
+          return;
+        }
+
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (!cancelled) {
+          setEvents(items);
+        }
+
+        const map = new Map<string, Group>();
+
+        for (const ev of items) {
+          const nftId = nftIdFromTier(ev.tierId);
+          if (!nftId) continue;
+
+          const existing = map.get(nftId);
+          const meta = NFT_CATALOG[nftId];
+          const name =
+            (meta?.nameKey ? t(meta.nameKey) : meta?.name) ?? nftId;
+          const src = `/images/nft/${pngNameFor(nftId)}`;
+          const qty = (existing?.qty ?? 0) + (ev.quantity || 1);
+
+          map.set(nftId, {
+            id: nftId,
+            name,
+            qty,
+            src,
+          });
+        }
+
+        if (!cancelled) {
+          setGroups(Array.from(map.values()));
+        }
+      } catch {
+        if (!cancelled) {
+          setGroups([]);
+          setEvents([]);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [address, t]);
 
   const hasAny = groups.length > 0;
+    const recentEvents = useMemo(() => {
+    if (!events.length) return [];
+    const sorted = [...events].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    return sorted.slice(0, 10);
+  }, [events]);
   const step = useMemo(() => TILE_W + GAP, []);
 
   const scrollByOne = (dir: 1 | -1) => {
@@ -283,6 +408,39 @@ export default function MyNftsStrip() {
         </button>
       </div>
 
+            {recentEvents.length > 0 && (
+        <div
+          className="mt-3 text-[11px] leading-snug"
+          style={{ marginInline: EDGE_PAD }}
+        >
+          <div className="mb-1 font-semibold opacity-70">
+            {t('nft.my_recent_mints') ?? 'My devnet mints (diagnostic)'}
+          </div>
+          <ul className="space-y-0.5 opacity-75">
+            {recentEvents.map((ev) => {
+              const nftId = nftIdFromTier(ev.tierId);
+              const meta = nftId ? NFT_CATALOG[nftId] : undefined;
+              const tierName =
+                (meta?.nameKey ? t(meta.nameKey) : meta?.name) ??
+                (nftId ?? `Tier #${ev.tierId}`);
+
+              return (
+                <li key={ev.id}>
+                  {tierName} · {formatDate(ev.createdAt)} ·{' '}
+                  <a
+                    href={`https://solscan.io/tx/${ev.txSignature}?cluster=devnet`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    {shortTx(ev.txSignature)}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       <div className="mt-2 h-px bg-zinc-200 rounded-full" style={{ marginInline: EDGE_PAD }} />
     </section>
   );

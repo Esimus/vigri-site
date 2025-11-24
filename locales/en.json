@@ -480,6 +480,7 @@
   "nft.read_less": "Show less",
   "nft.my_title": "My NFTs",
   "nft.my_empty": "No NFTs yet. Add your first one →",
+  "nft.my_recent_mints": "My recent mints",
   "nft.add_more": "Add NFT",
 
   "nft.details": "Details",
@@ -776,5 +777,11 @@
   "rewards.show_last": "Show last 25",
   "rewards.hide_list": "Hide list",
   "rewards.echo_history": "Echo history",
-  "rewards.no_records": "No records yet."
+  "rewards.no_records": "No records yet.",
+
+  "wallet.connect": "Connect wallet",
+  "wallet.connecting": "Connecting wallet…",
+  "wallet.connected": "Wallet connected",
+  "wallet.error_phantom_missing": "Phantom wallet not found. Please install the Phantom browser extension.",
+  "wallet.pill.title": "My wallet"
 }

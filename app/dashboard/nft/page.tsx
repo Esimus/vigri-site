@@ -6,8 +6,11 @@ import MyNftsStrip from '@/components/MyNftsStrip';
 export default function NftPage() {
   return (
     <div className="space-y-4">
-      {/* Removed H1 "NFT" to reduce noise */}
-      <NftIntro />
+      <div className="flex items-start justify-between gap-3">
+        {/* Intro on the left, wallet connect on the right */}
+        <NftIntro />
+      </div>
+
       <MyNftsStrip />
       <NftList />
     </div>

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PRESALE_END_ISO, presaleRemainingMs, formatRemaining } from '@/lib/config';
 import SalesBar from '@/components/ui/SalesBar';
+import NftWalletBar from '@/components/NftWalletBar';
 
 type Item = {
   id: string;
@@ -83,7 +84,6 @@ function usePresaleCountdown() {
 export default function NftList() {
   const { t } = useI18n();
   const [items, setItems] = useState<Item[]>([]);
-  const [msg, setMsg] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   // Load base list and merge global summary (single source of truth for totals)
@@ -128,25 +128,8 @@ export default function NftList() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        {msg ? <div className="text-sm">{msg}</div> : <div />}
-        <div className="flex items-center gap-2">
-          <button
-            className="btn btn-outline px-3 py-1 text-xs"
-            onClick={async () => { await api.nft.invite(true); await load(); setMsg(t('nft.dev.invite_grant')); }}
-          >
-            {t('nft.dev.invite_grant')}
-          </button>
-          <button
-            className="btn btn-outline px-3 py-1 text-xs"
-            onClick={async () => { await api.nft.invite(false); await load(); setMsg(t('nft.dev.invite_revoke')); }}
-          >
-            {t('nft.dev.invite_revoke')}
-          </button>
-          <form action="/api/nft/reset" method="POST">
-            <button className="btn btn-outline px-3 py-1 text-xs">{t('nft.reset')}</button>
-          </form>
-        </div>
+      <div className="flex justify-end">
+        <NftWalletBar />
       </div>
 
       {/* 2 cols on mobile, 3 on md+ */}

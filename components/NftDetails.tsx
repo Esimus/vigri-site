@@ -8,6 +8,9 @@ import { useI18n } from '@/hooks/useI18n';
 import PillCarousel from '@/components/ui/PillCarousel';
 import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
 import SalesBar from '@/components/ui/SalesBar';
+import { usePhantomWallet } from '@/hooks/usePhantomWallet';
+import { Transaction, SystemProgram } from '@solana/web3.js';
+
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -56,6 +59,17 @@ type NftListResp = { ok: true; items: Item[] };
 type RightsResp = { ok: true; items: Rights[]; tgePriceEur?: number };
 type ClaimResp = { ok: true; vigriClaimed: number };
 type DiscountResp = { ok: true; vigriBought: number; unitEur: number };
+type PhantomProviderLike = {
+  signAndSendTransaction: (
+    tx: Transaction
+  ) => Promise<{ signature?: string } | string>;
+};
+
+function getPhantomProviderClient(): PhantomProviderLike | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as { solana?: PhantomProviderLike };
+  return w.solana ?? null;
+}
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
@@ -380,6 +394,7 @@ function ExplainerText({ text }: { text: string }) {
 
 export default function NftDetails({ id }: { id: string }) {
   const { t } = useI18n();
+  const { connected, publicKey, cluster, connection } = usePhantomWallet();
 
   // Static catalog metadata for given id
   const meta = NFT_CATALOG[id];
@@ -396,6 +411,7 @@ export default function NftDetails({ id }: { id: string }) {
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
   const [discMsg, setDiscMsg] = useState<string | null>(null);
   const [discEur, setDiscEur] = useState<number>(0);
+  const [mintMsg, setMintMsg] = useState<string | null>(null);
 
   // Summary for this id (from /api/nft/summary)
   type SummaryItem = { id: string; total: number; sold: number; left: number; pct: number };
@@ -494,6 +510,76 @@ export default function NftDetails({ id }: { id: string }) {
       default: return 'Base';
     }
   }
+
+  // Mint handler 
+  const handleMintDevnet = async () => {
+    setMintMsg(null);
+
+    if (cluster !== 'devnet') {
+      setMintMsg('Mint is enabled only on devnet for now.');
+      return;
+    }
+
+    if (!connected || !publicKey) {
+      setMintMsg('Please connect your Solana wallet first.');
+      return;
+    }
+
+    const provider = getPhantomProviderClient();
+    if (!provider) {
+      setMintMsg('Phantom wallet not found in this browser.');
+      return;
+    }
+
+    try {
+      const { blockhash, lastValidBlockHeight } =
+        await connection.getLatestBlockhash('finalized');
+
+      const tx = new Transaction({
+        feePayer: publicKey,
+        blockhash,
+        lastValidBlockHeight,
+      }).add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: publicKey,
+          lamports: 1,
+        }),
+      );
+
+      const res = await provider.signAndSendTransaction(tx);
+      const sig = typeof res === 'string' ? res : res.signature || '';
+
+      if (!sig) {
+        setMintMsg('Transaction sent, but no signature returned.');
+        return;
+      }
+
+      // non-blocking logging to backend (devnet only)
+      if (item?.onchain && typeof item.onchain.tierId === 'number') {
+        try {
+          await fetch('/api/nft/mint-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              wallet: publicKey.toBase58(),
+              tierId: item.onchain.tierId,
+              quantity: 1,
+              txSignature: sig,
+              network: 'devnet',
+            }),
+          });
+        } catch (logErr) {
+          console.error('mint-log error', logErr);
+        }
+      }
+
+      setMintMsg(`Devnet test tx sent: ${sig}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setMintMsg(`Mint tx failed: ${msg}`);
+    }
+  };
 
   // Purchase (mock)
   const buy = async () => {
@@ -882,6 +968,27 @@ export default function NftDetails({ id }: { id: string }) {
           )}
         </div>
       </div>
+
+      {/* Devnet mint block for all on-chain tiers */}
+      {item.onchain && typeof item.onchain.tierId === 'number' && (
+        <div className="card p-3 md:p-4 space-y-2">
+          <div className="text-sm font-medium">Mint on devnet (testing)</div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className="btn btn-outline text-xs md:text-sm rounded-2xl"
+              onClick={handleMintDevnet}
+            >
+              Mint now (devnet)
+            </button>
+            {mintMsg && (
+              <div className="text-xs opacity-80">
+                {mintMsg}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Explainers */}
       {(meta?.explainers?.length ?? 0) > 0 && (
