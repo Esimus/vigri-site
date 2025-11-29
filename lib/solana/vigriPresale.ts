@@ -10,7 +10,7 @@ export const VIGRI_PRESALE_PROGRAM_ID = new PublicKey(
 );
 
 // PDA seed for GlobalConfig
-export const VIGRI_PRESALE_GLOBAL_CONFIG_SEED = 'global-config';
+export const VIGRI_PRESALE_GLOBAL_CONFIG_SEED = 'vigri-presale-config';
 
 // Create a Solana connection (devnet for now)
 export function getSolanaConnection(): Connection {

@@ -4,6 +4,7 @@ type Tier = {
   id: number;
   supplyTotal: number;
   supplyMinted: number;
+  adminMinted: number;
   kycRequired: boolean;
   inviteOnly: boolean;
   transferable: boolean;

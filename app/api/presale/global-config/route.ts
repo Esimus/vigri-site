@@ -6,6 +6,7 @@ interface RawTier {
   id: number;
   supply_total: number;
   supply_minted: number;
+  admin_minted: number;
   kyc_required: boolean;
   invite_only: boolean;
   transferable: boolean;
@@ -107,6 +108,7 @@ export async function GET() {
         id: tier.id,
         supplyTotal: tier.supply_total,
         supplyMinted: tier.supply_minted,
+        adminMinted: tier.admin_minted,
         kycRequired: tier.kyc_required,
         inviteOnly: tier.invite_only,
         transferable: tier.transferable,
