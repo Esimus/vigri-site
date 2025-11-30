@@ -208,7 +208,7 @@ export default function Home() {
           <div className="relative">
             {/* Auth CTA above presale card */}
             <div className="rounded-3xl border border-zinc-400 surface-accent shadow-md px-6 pb-6 pt-8">
-              <PresaleWidget t={t} />
+              <PresaleWidget t={t} me={me} openAuth={openAuth} />
             </div>
             {!isMainnet && (
               <div className="absolute -bottom-4 -left-4 rotate-2 badge-primary">
@@ -529,7 +529,16 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PresaleWidget({ t }: { t: (k: string) => string }) {
+function PresaleWidget({
+  t,
+  me,
+  openAuth,
+}: {
+  t: (k: string) => string;
+  me: { email: string } | null;
+  openAuth: (mode: 'login' | 'signup') => void;
+}) {
+
   // End moment comes from lib/config (UTC ISO with Z)
   const end = new Date(PRESALE_END_ISO);
   const endStr = end.toUTCString().slice(5, 16);
@@ -553,8 +562,9 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
   const pad = (n: number | null) => (n == null ? '--' : String(n).padStart(2, '0'));
 
   // ---- Dynamic presale totals (computed from /api/nft) ----
-  const [targetEur, setTargetEur] = useState<number>(0);
-  const [currentEur, setCurrentEur] = useState<number>(0); // placeholder for real raised amount
+  const [targetSol, setTargetSol] = useState<number>(0);
+  const [currentSol, setCurrentSol] = useState<number>(0);
+  const [promoOpen, setPromoOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -562,47 +572,49 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
         const r = await fetch('/api/nft', { cache: 'no-store' });
         const j = await r.json();
         if (r.ok && j?.ok && Array.isArray(j.items)) {
-          // Target = sum(price * limited) for saleable items
-          // Current = sum(price * sold) where sold = min(minted, limited)
           let target = 0;
           let current = 0;
 
           for (const it of j.items) {
-            const price = typeof it.eurPrice === 'number' ? it.eurPrice : 0;
-            const lim = Number.isFinite(it.limited) ? (it.limited || 0) : 0;
-            const minted = Number.isFinite(it.minted) ? (it.minted || 0) : 0;
+            const onchain = it.onchain;
+            if (!onchain) continue;
 
-            const forSale = price > 0 && lim > 0;         // exclude invite-only / WS-20
+            const price = typeof onchain.priceSol === 'number' ? onchain.priceSol : 0;
+            const supplyTotal =
+              typeof onchain.supplyTotal === 'number' ? onchain.supplyTotal : 0;
+            const supplyMinted =
+              typeof onchain.supplyMinted === 'number' ? onchain.supplyMinted : 0;
+
+            // Skip invite-only / zero-price tiers (например, WS-20)
+            const forSale = price > 0 && supplyTotal > 0;
             if (!forSale) continue;
 
-            const sold = Math.min(minted, lim);
-            target += price * lim;
+            const sold = Math.min(supplyMinted, supplyTotal);
+
+            target += price * supplyTotal;
             current += price * sold;
           }
 
-          setTargetEur(target);
-          setCurrentEur(current);
+          setTargetSol(target);
+          setCurrentSol(current);
         } else {
-          setTargetEur(0);
-          setCurrentEur(0);
+          setTargetSol(0);
+          setCurrentSol(0);
         }
       } catch {
-        setTargetEur(0);
-        setCurrentEur(0);
+        setTargetSol(0);
+        setCurrentSol(0);
       }
     })();
   }, []);
 
-
-  const fmt = new Intl.NumberFormat('en', {
-    style: 'currency',
-    currency: 'EUR',
+  const fmtSol = new Intl.NumberFormat('en', {
     maximumFractionDigits: 0,
   });
 
   const pct =
-    targetEur > 0
-      ? Math.max(0, Math.min(100, Math.round((currentEur / targetEur) * 100)))
+    targetSol > 0
+      ? Math.max(0, Math.min(100, Math.round((currentSol / targetSol) * 100)))
       : 0;
 
   return (
@@ -617,9 +629,9 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <span className="chip">{t('accepted')}: SOL • USDC</span>
+        <span className="chip">{t('presale_main_chip')}</span>
         <span className="chip">
-          {t('target')}: {fmt.format(targetEur)}
+          {t('target')}: {fmtSol.format(targetSol)} SOL
         </span>
       </div>
 
@@ -643,10 +655,10 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
       <div className="mt-5">
         <div className="flex items-baseline justify-between text-sm">
           <div className="font-medium">
-            {fmt.format(currentEur)} {t('raised')}
+            {fmtSol.format(currentSol)} SOL {t('raised')}
           </div>
           <div className="text-zinc-500">
-            {pct}% {t('of')} {fmt.format(targetEur)}
+            {pct}% {t('of')} {fmtSol.format(targetSol)} SOL
           </div>
         </div>
         <div className="mt-2 progress-track">
@@ -654,10 +666,52 @@ function PresaleWidget({ t }: { t: (k: string) => string }) {
         </div>
       </div>
 
+      <div className="mt-4 flex items-center gap-3 text-xs font-semibold">
+        <button
+          type="button"
+          onClick={() => setPromoOpen((v) => !v)}
+          className="inline-flex items-center justify-center w-14 h-8 p-0 rounded-md border border-brand-200 bg-white text-orange-500 text-[18px] font-bold shadow hover:bg-brand-50"
+          aria-label={t('presale_promo_details_title')}
+        >
+          <span className="leading-none mr-[1px]">i</span>
+          <span className="text-[14px] leading-none">▾</span>
+        </button>
+        <span className="text-blue-400">
+          {t('presale_promo_note')}
+        </span>
+      </div>
+
+      {promoOpen && (
+        <div className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-[11px] text-zinc-700">
+          <div className="font-semibold mb-1">{t('presale_promo_details_title')}</div>
+          <ul className="list-disc pl-4 space-y-0.5">
+            <li>{t('presale_promo_details_1')}</li>
+            <li>{t('presale_promo_details_2')}</li>
+            <li>{t('presale_promo_details_3')}</li>
+            <li>{t('presale_promo_details_4')}</li>
+            <li>{t('presale_promo_details_5')}</li>
+          </ul>
+          <div className="mt-2">
+            {t('presale_promo_details_footer')}
+          </div>
+        </div>
+      )}
+
       <div className="mt-5 flex flex-wrap gap-2">
-        <Link href="/dashboard/nft" className="btn btn-primary">
-          {t('join_presale')}
-        </Link>
+        {me ? (
+          <Link href="/dashboard/nft" className="btn btn-primary">
+            {t('join_presale')}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => openAuth('signup')}
+          >
+            {t('join_presale')}
+          </button>
+        )}
+
         <Link href="/litepaper" className="btn btn-outline">
           {t('read_litepaper')}
         </Link>
