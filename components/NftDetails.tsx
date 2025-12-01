@@ -317,9 +317,7 @@ function DetailsCard(props: {
 
         {hasAfter && (
           <span className="chip">
-            {t('nft.price.after')}{' '}
-            {new Date(meta!.priceAfter!.date).toLocaleDateString()}:{' '}
-            {solPrice! * 2} SOL
+            {t('nft.price.after')}
           </span>
         )}
       </div>

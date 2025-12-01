@@ -283,7 +283,7 @@ export default function NftList() {
                     </div>
                     {hasSol && (
                       <span className="chip">
-                        {t('nft.after')} {afterDateLabel}: {solPrice * 2} SOL
+                        {t('nft.after')}
                       </span>
                     )}
                   </div>
