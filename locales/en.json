@@ -64,7 +64,9 @@
   "assets.nft.paidSol": "Total paid",
   "assets.nft.priceSol": "Current price",
   "assets.nft.valueSol": "Current value",
-  "assets.nft.empty": "You don't own any VIGRI NFTs yet.",
+  "assets.nft.empty": "Your NFT portfolio will appear here.\nConnect the Phantom wallet you used to buy your VIGRI NFTs.",
+  "assets.nft.priceSol_hint": "Price of one NFT of this tier at the current presale stage.",
+  "assets.nft.valueSol_hint": "Current valuation of all your NFTs of this tier: quantity × current price.",
 
   "nav_why": "Why",
   "nav_tokenomics": "Tokenomics",

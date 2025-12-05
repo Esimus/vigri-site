@@ -98,22 +98,38 @@ export default function AssetsPage() {
     []
   );
 
-  const load = async (wallet: string) => {
-    const params = new URLSearchParams({
-      wallet,
-      network: 'devnet',
-    });
+  const load = async (wallet?: string) => {
+    try {
+      const params = new URLSearchParams();
 
-    const r = await fetch(`/api/assets?${params.toString()}`, {
-      cache: 'no-store',
-    });
-    const j: GetResp = await r.json();
-    if (r.ok && j.ok) setData(j);
+      if (wallet) {
+        params.set('wallet', wallet);
+        params.set('network', 'devnet');
+      }
+
+      const qs = params.toString();
+      const res = await fetch(`/api/assets${qs ? `?${qs}` : ''}`, {
+        cache: 'no-store',
+      });
+
+      if (!res.ok) {
+        console.error('Failed to load assets', res.status);
+        return;
+      }
+
+      const j: GetResp = await res.json();
+      if (j.ok) {
+        setData(j);
+      }
+    } catch (err) {
+      console.error('Assets load error', err);
+    }
   };
 
   useEffect(() => {
     if (!address) {
       setData(null);
+      void load();
       return;
     }
     void load(address);
@@ -277,7 +293,7 @@ export default function AssetsPage() {
               </table>
             </div>
         ) : (
-          <p className="text-xs text-zinc-600">
+          <p className="px-4 text-xs text-zinc-600">
             {t('assets.nft.empty')}
           </p>
         )}

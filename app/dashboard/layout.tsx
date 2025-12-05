@@ -5,7 +5,7 @@ import { DashboardShell } from '@/components/layout';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = getCookie('vigri_session');
-  if (!session) redirect('/login');
+  if (!session) redirect('/');
 
   return <DashboardShell>{children}</DashboardShell>;
 }

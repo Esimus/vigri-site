@@ -64,7 +64,7 @@
   "assets.nft.paidSol": "Оплачено всего",
   "assets.nft.priceSol": "Текущая цена за 1 NFT",
   "assets.nft.valueSol": "Текущая стоимость портфеля",
-  "assets.nft.empty": "У вас пока нет VIGRI NFT.",
+  "assets.nft.empty": "Здесь будет отображаться ваш NFT-портфель.\nПодключите тот кошелёк Phantom, через который вы покупали VIGRI NFT.",
   "assets.nft.priceSol_hint": "Цена одного NFT этого уровня на текущем этапе пресейла.",
   "assets.nft.valueSol_hint": "Текущая оценка всех ваших NFT этого уровня: количество × текущая цена.",
 

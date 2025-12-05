@@ -64,7 +64,9 @@
   "assets.nft.paidSol": "Makstud kokku",
   "assets.nft.priceSol": "Praegune hind",
   "assets.nft.valueSol": "Praegune väärtus",
-  "assets.nft.empty": "Sul ei ole veel ühtegi VIGRI NFT-d.",
+  "assets.nft.empty": "Teie NFT-portfell kuvatakse siin.\nÜhendage see Phantom rahakott, millega ostsite oma VIGRI NFT-sid.",
+  "assets.nft.priceSol_hint": "Selle taseme ühe NFT hind praeguses eelmüügi etapis.",
+  "assets.nft.valueSol_hint": "Kõigi selle taseme NFT-de hetkeline väärtus: kogus × hetkehind.",
 
   "nav_why": "Miks",
   "nav_tokenomics": "Tokenoomika",
