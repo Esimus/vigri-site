@@ -16,6 +16,23 @@ export default function DashboardPage() {
   useEffect(() => {
     let alive = true;
 
+    let justLoggedIn = false;
+    try {
+      justLoggedIn = sessionStorage.getItem('vigri_postlogin') === '1';
+    } catch {
+      /* ignore */
+    }
+
+    if (justLoggedIn) {
+      try {
+        sessionStorage.removeItem('vigri_postlogin');
+      } catch {
+        /* ignore */
+      }
+      router.replace('/dashboard/nft');
+      return;
+    }
+
     (async () => {
       try {
         const r = await api.nft.list();
@@ -26,30 +43,9 @@ export default function DashboardPage() {
 
         if (!alive) return;
         setHasNft(owned);
-
-        // Redirect to /dashboard/nft only right after successful login (one-shot flag).
-        let justLoggedIn = false;
-        try {
-          justLoggedIn = sessionStorage.getItem('vigri_postlogin') === '1';
-        } catch {
-          /* ignore */
-        }
-
-        if (!owned && justLoggedIn) {
-          try {
-            sessionStorage.removeItem('vigri_postlogin');
-          } catch {
-            /* ignore */
-          }
-          router.replace('/dashboard/nft');
-          return;
-        }
-
-        // Otherwise, show Overview even if user has no NFTs.
         setReady(true);
       } catch {
         if (!alive) return;
-        // On error, still allow Overview to render (no forced redirect).
         setReady(true);
       }
     })();
