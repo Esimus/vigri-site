@@ -6,11 +6,15 @@ import { createHash } from 'crypto';
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const base =
+    process.env.APP_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    url.origin;
   try {
-    const url = new URL(req.url);
     const token = url.searchParams.get('token')?.trim();
     if (!token) {
-      return NextResponse.redirect(new URL('/?verify=invalid', req.url));
+      return NextResponse.redirect(`${base}/?verify=invalid`);
     }
 
     const tokenHash = createHash('sha256').update(token).digest('hex');
@@ -23,7 +27,7 @@ export async function GET(req: Request) {
     const now = new Date();
 
     if (!record || record.consumedAt || record.expiresAt <= now) {
-      return NextResponse.redirect(new URL('/?verify=invalid', req.url));
+      return NextResponse.redirect(`${base}/?verify=invalid`);
     }
 
     // mark user verified and consume the token
@@ -42,9 +46,9 @@ export async function GET(req: Request) {
     ]);
 
     // redirect to home (or dashboard) with a flag
-    return NextResponse.redirect(new URL('/?verify=ok', req.url));
+    return NextResponse.redirect(`${base}/?verify=ok`);
   } catch (e) {
     console.error('verify error', e);
-    return NextResponse.redirect(new URL('/?verify=invalid', req.url));
+    return NextResponse.redirect(`${base}/?verify=invalid`);
   }
 }

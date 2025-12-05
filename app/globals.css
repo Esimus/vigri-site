@@ -434,3 +434,28 @@
   --blob-b: #0b1b33;
   opacity: .55;
 }
+
+/* Verify banner text colors (light + dark by data-theme) */
+.verify-banner--ok {
+  color: #166534; /* green-700 */
+}
+
+.verify-banner--sent {
+  color: #1d4ed8; /* blue-700 */
+}
+
+.verify-banner--warn {
+  color: #92400e; /* amber-700 */
+}
+
+:root[data-theme="dark"] .verify-banner--ok {
+  color: #bbf7d0; /* мягкий зелёный в тёмной */
+}
+
+:root[data-theme="dark"] .verify-banner--sent {
+  color: #bfdbfe; /* мягкий голубой в тёмной */
+}
+
+:root[data-theme="dark"] .verify-banner--warn {
+  color: #fed7aa; /* мягкий янтарный в тёмной */
+}
