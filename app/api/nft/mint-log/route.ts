@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
       quantity?: number;
       txSignature?: string;
       network?: string;
+      paidSol?: number;
     } | null;
 
     if (!body) {
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { wallet, tierId, quantity, txSignature, network } = body;
+    const { wallet, tierId, quantity, txSignature, network, paidSol } = body;
 
     if (!wallet || typeof wallet !== 'string') {
       return NextResponse.json(
@@ -44,6 +45,8 @@ export async function POST(req: NextRequest) {
 
     const qty = typeof quantity === 'number' && quantity > 0 ? quantity : 1;
     const net = network || 'devnet';
+    const paid =
+      typeof paidSol === 'number' && paidSol > 0 ? paidSol : 0;
 
     const event = await prisma.nftMintEvent.create({
     data: {
@@ -53,9 +56,9 @@ export async function POST(req: NextRequest) {
         quantity: qty,
         txSignature,
         network: net,
-    },
+        paidSol: paid,
+      },
     });
-
 
     return NextResponse.json({ ok: true, eventId: event.id });
   } catch (err) {

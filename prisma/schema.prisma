@@ -48,6 +48,7 @@ model NftMintEvent {
   txSignature String
   network     String
   createdAt   DateTime @default(now())
+  paidSol     Float    @default(0)
 }
 
 // Key = identity credential (password or OAuth). For password, store hash here.

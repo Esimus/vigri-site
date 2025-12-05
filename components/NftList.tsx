@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { useI18n } from '@/hooks/useI18n';
 import Link from 'next/link';
 import Image from 'next/image';
-import { PRESALE_END_ISO, presaleRemainingMs, formatRemaining } from '@/lib/config';
+import { presaleRemainingMs, formatRemaining } from '@/lib/config';
 import SalesBar from '@/components/ui/SalesBar';
 import NftWalletBar from '@/components/NftWalletBar';
 
@@ -116,14 +116,6 @@ export default function NftList() {
   useEffect(() => { load(); }, []);
 
   const cf = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }), []);
-  const afterDateLabel = useMemo(() => {
-    const d = new Date(PRESALE_END_ISO);
-    const dd = String(d.getUTCDate()).padStart(2, '0');
-    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const yyyy = d.getUTCFullYear();
-    return `${dd}.${mm}.${yyyy}`;
-  }, []);
-
   const presale = usePresaleCountdown();
 
   return (

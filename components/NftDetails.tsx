@@ -555,6 +555,11 @@ export default function NftDetails({ id }: { id: string }) {
 
       // non-blocking logging to backend (devnet only)
       if (item?.onchain && typeof item.onchain.tierId === 'number') {
+        const totalPaidSol =
+          typeof item.onchain.priceSol === 'number'
+            ? item.onchain.priceSol * 1 // quantity is 1 for now
+            : 0;
+            
         try {
           await fetch('/api/nft/mint-log', {
             method: 'POST',
@@ -565,6 +570,7 @@ export default function NftDetails({ id }: { id: string }) {
               quantity: 1,
               txSignature: sig,
               network: 'devnet',
+              paidSol: totalPaidSol,
             }),
           });
         } catch (logErr) {
