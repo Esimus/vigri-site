@@ -18,10 +18,10 @@ function isObject(v: unknown): v is Record<string, unknown> {
 }
 
 /** Cross-version cookie reader (Next may return string or { value }) */
-function readServerCookie(name: string): string | undefined {
-  // Normalize cookies() to a minimal shape with .get to avoid type drift across Next versions
-  const store = cookies() as unknown as { get: (n: string) => unknown };
-  const c = store.get(name);
+async function readServerCookie(name: string): Promise<string | undefined> {
+  const store = await cookies();
+  const c = store.get(name) as unknown;
+
   if (typeof c === "string") return c;
   if (isObject(c) && typeof (c as { value?: unknown }).value === "string") {
     return (c as { value: string }).value;
@@ -29,10 +29,10 @@ function readServerCookie(name: string): string | undefined {
   return undefined;
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Read theme cookies on the server
-  const pref = readServerCookie("vigri_theme") ?? "auto"; // 'auto' | 'light' | 'dark'
-  const resolved = readServerCookie("vigri_theme_resolved") as "light" | "dark" | undefined;
+  const pref = (await readServerCookie("vigri_theme")) ?? "auto"; // 'auto' | 'light' | 'dark'
+  const resolved = (await readServerCookie("vigri_theme_resolved")) as "light" | "dark" | undefined;
 
   // If explicit pref is set, use it; otherwise fallback to last resolved (set by client), else 'light'
   const initial: "light" | "dark" =

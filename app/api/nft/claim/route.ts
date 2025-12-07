@@ -33,13 +33,15 @@ function num(v: unknown, d: number): number { return typeof v === 'number' && is
 
 function defaultState(): ClaimState { return { claimed: false }; }
 
-function readState(): ClaimState {
-  const raw = getCookie(COOKIE);
+async function readState(): Promise<ClaimState> {
+  const raw = await getCookie(COOKIE);
   if (!raw) return defaultState();
   try {
     const p = JSON.parse(raw) as Partial<ClaimState>;
     return { claimed: !!p.claimed, ts: typeof p.ts === 'number' ? p.ts : undefined };
-  } catch { return defaultState(); }
+  } catch {
+    return defaultState();
+  }
 }
 
 function writeState(s: ClaimState) {
@@ -91,7 +93,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const purchaseTs = Date.now();
-  const state = readState();
+  const state = await readState();
   if (!state.claimed) { state.claimed = true; state.ts = purchaseTs; }
   const res = writeState(state);
 

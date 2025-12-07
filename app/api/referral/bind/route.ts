@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   }
 
   // inviter code from cookie (MVP: inviter's userId)
-  const ref = getCookie('vigri_ref');
+  const ref = await getCookie('vigri_ref');
   if (!ref) {
     return NextResponse.json({ ok: false, error: 'no_ref_cookie' }, { status: 400 });
   }

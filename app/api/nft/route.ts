@@ -82,8 +82,8 @@ function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
 
-function readState(): State {
-  const raw = getCookie(COOKIE);
+async function readState(): Promise<State> {
+  const raw = await getCookie(COOKIE);
   if (!raw) return emptyState();
 
   try {
@@ -319,39 +319,39 @@ function drawUpgrade(tier: Nft['tier']): 'none' | 'rare' | 'ultra' {
 
 /** ---- GET ---- */
 export async function GET() {
-  const session = getCookie('vigri_session');
+  const session = await getCookie('vigri_session');
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
 
-    const invited = getCookie(COOKIE_WS_INVITED) === '1';
-    const s = readState();
+  const invited = (await getCookie(COOKIE_WS_INVITED)) === '1';
+  const s = await readState();
 
-    const presaleTiers = await loadPresaleTiers();
+  const presaleTiers = await loadPresaleTiers();
 
-    const items: RespItem[] = CATALOG.map((n) => {
-      const tierId = tierToOnchainId(n.tier);
-      const t = tierId !== null ? presaleTiers.get(tierId) : undefined;
+  const items: RespItem[] = CATALOG.map((n) => {
+  const tierId = tierToOnchainId(n.tier);
+  const t = tierId !== null ? presaleTiers.get(tierId) : undefined;
 
-      const base: RespItem = {
-        ...n,
-        invited: n.id === 'nft-ws-20' ? invited : undefined,
-        ownedQty: s.bag[n.id] || 0,
-        ownedDesigns: s.designs?.[n.id] || {},
-        userActivation: s.activation?.[n.id] ?? null,
-        upgrades: s.upgrades?.[n.id] || { rare: 0, ultra: 0 },
-        expiresAt: s.expires?.[n.id] ?? null,
-        minted: s.minted?.[n.id] || 0,
-      };
+  const base: RespItem = {
+    ...n,
+    invited: n.id === 'nft-ws-20' ? invited : undefined,
+    ownedQty: s.bag[n.id] || 0,
+    ownedDesigns: s.designs?.[n.id] || {},
+    userActivation: s.activation?.[n.id] ?? null,
+    upgrades: s.upgrades?.[n.id] || { rare: 0, ultra: 0 },
+    expiresAt: s.expires?.[n.id] ?? null,
+    minted: s.minted?.[n.id] || 0,
+  };
 
-      if (t && tierId !== null) {
-      base.onchain = {
-        tierId,
-        priceSol: isFiniteNumber(t.priceSol) ? t.priceSol : 0,
-        supplyTotal: isFiniteNumber(t.supplyTotal) ? t.supplyTotal : 0,
-        supplyMinted: isFiniteNumber(t.supplyMinted) ? t.supplyMinted : 0,
-      };
-    }
-      return base;
-    });
+  if (t && tierId !== null) {
+  base.onchain = {
+    tierId,
+    priceSol: isFiniteNumber(t.priceSol) ? t.priceSol : 0,
+    supplyTotal: isFiniteNumber(t.supplyTotal) ? t.supplyTotal : 0,
+    supplyMinted: isFiniteNumber(t.supplyMinted) ? t.supplyMinted : 0,
+  };
+  }
+    return base;
+  });
 
   return NextResponse.json({ ok: true, items });
 }
@@ -366,7 +366,7 @@ type PostBody = {
 };
 
 export async function POST(req: Request) {
-  const session = getCookie('vigri_session');
+  const session = await getCookie('vigri_session');
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
 
   let bodyUnknown: unknown = {};
@@ -382,18 +382,19 @@ export async function POST(req: Request) {
   const item = CATALOG.find((x) => x.id === id);
   if (!item) return NextResponse.json({ ok: false, error: 'Unknown NFT' }, { status: 400 });
 
-  const kyc = (getCookie('vigri_kyc') ?? 'none') as 'none' | 'pending' | 'approved' | 'rejected';
+  const kRaw = await getCookie('vigri_kyc');
+  const kyc = (kRaw ?? 'none') as 'none' | 'pending' | 'approved' | 'rejected';
   if (item.kycRequired && kyc !== 'approved') {
     return NextResponse.json({ ok: false, error: 'KYC required' }, { status: 403 });
   }
 
-  const s = readState();
+  const s = await readState();
   s.bag[id] = s.bag[id] || 0;
   s.minted = s.minted || {};
   s.minted[id] = s.minted[id] || 0;
 
   if (id === 'nft-ws-20') {
-    const invited = getCookie(COOKIE_WS_INVITED) === '1';
+    const invited = (await getCookie(COOKIE_WS_INVITED)) === '1';
     if (!invited) return NextResponse.json({ ok: false, error: 'Invite only' }, { status: 403 });
     if (s.bag[id] >= 1) return NextResponse.json({ ok: false, error: 'Already owned' }, { status: 409 });
 

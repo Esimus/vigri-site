@@ -15,9 +15,10 @@ function defaultState(): DiscountState {
   return { percent: 0 };
 }
 
-function readState(): DiscountState {
-  const raw = getCookie(COOKIE);
+async function readState(): Promise<DiscountState> {
+  const raw = await getCookie(COOKIE);
   if (!raw) return defaultState();
+
   try {
     const parsed = JSON.parse(raw) as Partial<DiscountState>;
     const pct = Number(parsed.percent);
@@ -45,7 +46,7 @@ function writeState(s: DiscountState) {
 
 // Return current discount percent
 export async function GET() {
-  const s = readState();
+  const s = await readState();
   return NextResponse.json({ ok: true, percent: s.percent, ts: s.ts });
 }
 
@@ -57,11 +58,13 @@ export async function POST(req: Request) {
   } catch {
     // ignore malformed JSON
   }
+
   const pct = Number((bodyUnknown as { percent?: number }).percent);
   const next = Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct : 0;
 
   const s: DiscountState = { percent: next, ts: Date.now() };
   const res = writeState(s);
+
   return NextResponse.json(
     { ok: true, percent: s.percent, ts: s.ts },
     { headers: res.headers }

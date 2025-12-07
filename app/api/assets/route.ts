@@ -36,6 +36,8 @@ type State = {
   history: HistoryItem[];
 };
 
+type AssetsCookieState = State;
+
 type NftPortfolioItem = {
   tierId: string;
   label: string;
@@ -68,14 +70,12 @@ function defaultState(): State {
   };
 }
 
-function readState(): State {
-  const raw = getCookie(COOKIE);
+async function readState(): Promise<State> {
+  const raw = await getCookie(COOKIE);
   if (!raw) return defaultState();
+
   try {
-    const s = JSON.parse(raw) as State;
-    if (!s?.balances) return defaultState();
-    s.history ||= [];
-    return s;
+    return JSON.parse(raw) as AssetsCookieState;
   } catch {
     return defaultState();
   }
@@ -167,7 +167,7 @@ async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
 
 export async function GET(req: NextRequest) {
   // auth guard
-  const session = getCookie('vigri_session');
+  const session = await getCookie('vigri_session');
   if (!session) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
@@ -177,7 +177,7 @@ export async function GET(req: NextRequest) {
   const network = url.searchParams.get('network') ?? 'devnet';
 
   // token balances & history from cookies (mock for now)
-  const s = readState();
+  const s = await readState();
   const { positions, totalValueEUR } = positionsOf(s);
   let history: HistoryItem[] = [...s.history];
 

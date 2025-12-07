@@ -17,7 +17,9 @@ export async function getAuthUserBySid(sid: string | null): Promise<SafeUser | n
 
   const now = BigInt(Date.now());
   if (s.idleExpires < now || s.activeExpires < now) {
-    try { await prisma.session.delete({ where: { id: sid } }); } catch {}
+    try {
+      await prisma.session.delete({ where: { id: sid } });
+    } catch {}
     return null;
   }
 
@@ -26,6 +28,6 @@ export async function getAuthUserBySid(sid: string | null): Promise<SafeUser | n
 
 /** Read sid from cookie and delegate to getAuthUserBySid. */
 export async function getAuthUser(): Promise<SafeUser | null> {
-  const sid = getCookie(SESSION_COOKIE);
+  const sid = await getCookie(SESSION_COOKIE);
   return sid ? getAuthUserBySid(sid) : null;
 }

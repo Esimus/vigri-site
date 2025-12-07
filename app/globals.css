@@ -1,3 +1,4 @@
+@custom-variant dark (&:where([data-theme="dark"] &));
 @import "tailwindcss";
 
 /* ---------- Base brand palette (light) ---------- */
@@ -458,4 +459,38 @@
 
 :root[data-theme="dark"] .verify-banner--warn {
   color: #fed7aa; /* мягкий янтарный в тёмной */
+}
+
+/* Inline loader: three running squares */
+.vigri-loader-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.vigri-loader-square {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 0.1rem;
+  background: #38bdf8; /* tailwind sky-400 */
+  animation: vigri-loader-bounce 0.8s infinite ease-in-out;
+}
+
+.vigri-loader-square:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.vigri-loader-square:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes vigri-loader-bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-0.2rem);
+    opacity: 1;
+  }
 }

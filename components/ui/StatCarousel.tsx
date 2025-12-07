@@ -1,11 +1,15 @@
 // components/ui/StatCarousel.tsx
 'use client';
 
-import { useRef } from 'react';
+import { useRef, type WheelEventHandler } from 'react';
+import type { ReactNode } from 'react';
 
-type Item = { title: string; value: string; hint?: string };
+type Item = {
+  title: string;
+  value: ReactNode;
+  hint?: string;
+};
 
-/** Mobile-first KPI carousel: snap, arrows-as-paddles, touch & wheel scroll */
 export default function StatCarousel({ items }: { items: Item[] }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
 
@@ -15,17 +19,25 @@ export default function StatCarousel({ items }: { items: Item[] }) {
     if (!el) return;
     const first = el.querySelector<HTMLElement>('[data-slide]');
     const gap = 12; // must match gap-3 below
-    const step = first ? first.getBoundingClientRect().width + gap : el.clientWidth * 0.45;
+    const step = first
+      ? first.getBoundingClientRect().width + gap
+      : el.clientWidth * 0.45;
     el.scrollBy({ left: dir * step, behavior: 'smooth' });
   };
 
-  // Allow mouse-wheel to scroll horizontally on desktop trackpads/mice
-  const onWheel: React.WheelEventHandler<HTMLDivElement> = (e) => {
+  // Wheel: always scroll the carousel horizontally and block page scroll
+  const onWheelCapture: WheelEventHandler<HTMLDivElement> = (e) => {
     const el = trackRef.current;
     if (!el) return;
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+
+    const dominant =
+      Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+
+    // If there is any wheel movement, prevent the page itself from scrolling
+    if (dominant !== 0) {
       e.preventDefault();
-      el.scrollBy({ left: e.deltaY, behavior: 'auto' });
+      e.stopPropagation();
+      el.scrollBy({ left: dominant, behavior: 'auto' });
     }
   };
 
@@ -42,9 +54,15 @@ export default function StatCarousel({ items }: { items: Item[] }) {
             absolute inset-y-0 left-0 w-7 z-10 grid place-items-center rounded-l-xl border 
             hover:brightness-110 active:brightness-95 transition
           "
-          style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--fg)' }}
+          style={{
+            background: 'var(--card)',
+            borderColor: 'var(--border)',
+            color: 'var(--fg)',
+          }}
         >
-          <span aria-hidden className="text-xl leading-none select-none">‹</span>
+          <span aria-hidden className="text-xl leading-none select-none">
+            ‹
+          </span>
         </button>
 
         {/* Right paddle (full height) */}
@@ -56,43 +74,60 @@ export default function StatCarousel({ items }: { items: Item[] }) {
             absolute inset-y-0 right-0 w-7 z-10 grid place-items-center rounded-r-xl border 
             hover:brightness-110 active:brightness-95 transition
           "
-          style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--fg)' }}
+          style={{
+            background: 'var(--card)',
+            borderColor: 'var(--border)',
+            color: 'var(--fg)',
+          }}
         >
-          <span aria-hidden className="text-xl leading-none select-none">›</span>
+          <span aria-hidden className="text-xl leading-none select-none">
+            ›
+          </span>
         </button>
 
         {/* Track (native swipe + wheel; scrollbar hidden) */}
         <div
           ref={trackRef}
-          onWheel={onWheel}
+          onWheelCapture={onWheelCapture}
           className="
             flex gap-3 overflow-x-auto snap-x snap-mandatory py-1
-            touch-pan-x select-none
+            touch-pan-x select-none overscroll-contain
             [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
           "
           role="region"
           aria-label="Quick stats"
         >
-          {items.map((it, i) => (
-            <div
-              key={i}
-              data-slide
-              className="
-                snap-start shrink-0
-                basis-[42%] sm:basis-[38%] /* narrower than 1/2; shows neighbor nicely */
-                max-w-[520px]
-              "
-              tabIndex={0}
-              aria-label={`${it.title}: ${it.value}`}
-            >
-              {/* Equal-height card */}
-              <div className="card p-3 min-w-0 h-full min-h-[110px] flex flex-col justify-between">
-                <div className="text-[11px] opacity-70">{it.title}</div>
-                <div className="text-xl font-semibold mt-1 truncate">{it.value}</div>
-                {it.hint && <div className="text-[11px] opacity-60 mt-1">{it.hint}</div>}
+          {items.map((it, i) => {
+            const valueText = typeof it.value === 'string' ? it.value : '';
+            return (
+              <div
+                key={i}
+                data-slide
+                className="
+                  snap-start shrink-0
+                  basis-[42%] sm:basis-[38%]
+                  max-w-[520px]
+                "
+                tabIndex={0}
+                aria-label={
+                  valueText ? `${it.title}: ${valueText}` : it.title
+                }
+              >
+                {/* Equal-height card */}
+                <div className="card p-3 min-w-0 h-full min-h-[110px] flex flex-col justify-between">
+                  <div className="text-[11px] opacity-70">{it.title}</div>
+                  <div className="text-xl font-semibold mt-1 truncate">
+                    {it.value}
+                  </div>
+                  {it.hint && (
+                    <div className="text-[11px] opacity-60 mt-1">
+                      {it.hint}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

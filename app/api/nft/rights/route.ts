@@ -11,9 +11,10 @@ function defaultState(): State {
   return {};
 }
 
-function readState(): State {
-  const raw = getCookie(COOKIE);
+async function readState(): Promise<State> {
+  const raw = await getCookie(COOKIE);
   if (!raw) return defaultState();
+
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (parsed && typeof parsed === 'object') {
@@ -46,7 +47,7 @@ function writeState(s: State) {
 
 // Return current rights map
 export async function GET() {
-  const state = readState();
+  const state = await readState();
   return NextResponse.json({ ok: true, state });
 }
 
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
   }
   const body = bodyUnknown as PostBody;
 
-  const current = readState();
+  const current = await readState();
 
   if ('key' in body && typeof body?.key === 'string') {
     const k = body.key;

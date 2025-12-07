@@ -6,7 +6,8 @@ type Kyc = 'none' | 'pending' | 'approved' | 'rejected';
 
 // Read current KYC status from cookie (or 'none' if absent)
 export async function GET() {
-  const status = (getCookie('vigri_kyc') as Kyc | null) ?? 'none';
+  const raw = await getCookie('vigri_kyc');
+  const status = (raw as Kyc | null) ?? 'none';
   return NextResponse.json({ ok: true, status });
 }
 
