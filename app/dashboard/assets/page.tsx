@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/useI18n';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
+import Link from 'next/link';
+import InlineLoader from '@/components/ui/InlineLoader';
 
 type Position = {
   symbol: string;
@@ -40,6 +42,28 @@ type GetResp = {
   history: HistoryEntry[];
 };
 
+// Claim per 1 NFT (100%) by tier – same logic as on DashboardOverview
+const CLAIM_PER_NFT: Record<string, number> = {
+  tree_steel: 62500,
+  bronze: 187500,
+  silver: 1250000,
+  gold: 6250000,
+  platinum: 12500000,
+  ws20: 625000,
+};
+
+const VIGRI_TGE_PRICE_EUR = 0.0008;
+
+function calcClaimFromNft(portfolio?: NftPortfolioItem[]): number {
+  if (!portfolio || portfolio.length === 0) return 0;
+
+  return portfolio.reduce((sum, item) => {
+    const perNft = CLAIM_PER_NFT[item.tierId] ?? 0;
+    const count = item.count || 0;
+    return sum + perNft * count;
+  }, 0);
+}
+
 function summarizeNftPortfolio(items?: NftPortfolioItem[]) {
   if (!items || !items.length) {
     return { count: 0, valueSol: 0 };
@@ -59,6 +83,30 @@ export default function AssetsPage() {
   const [data, setData] = useState<GetResp | null>(null);
   const totals = summarizeNftPortfolio(data?.nftPortfolio);
   const { address } = usePhantomWallet();
+  const shortAddress =
+    address && address.length > 12
+      ? `${address.slice(0, 4)}·${address.slice(4, 8)}…${address.slice(-4)}`
+      : address || null;
+
+  const walletHref = shortAddress ? '/dashboard/assets' : '/dashboard/nft';
+
+  const claimFromNft = useMemo(
+    () => calcClaimFromNft(data?.nftPortfolio),
+    [data?.nftPortfolio]
+  );
+
+  const positions = data?.positions ?? [];
+  const nonVigriPositions = positions.filter((p) => p.symbol !== 'VIGRI');
+
+  const vigriFromNftValueEur = claimFromNft * VIGRI_TGE_PRICE_EUR;
+
+  let displayTotalEur = 0;
+  for (const p of nonVigriPositions) {
+    displayTotalEur += p.valueEUR;
+  }
+  if (claimFromNft > 0) {
+    displayTotalEur += vigriFromNftValueEur;
+  }
 
   // Psychological trigger for future VIGRI purchase
   const [buyAmount, setBuyAmount] = useState<number>(1000);
@@ -129,11 +177,11 @@ export default function AssetsPage() {
   useEffect(() => {
     if (!address) {
       setData(null);
-      void load();
       return;
     }
     void load(address);
   }, [address]);
+
 
   // Just show info message for now, no API calls
   const buy = () => {
@@ -146,8 +194,62 @@ export default function AssetsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">{t('assets.title')}</h1>
+      {/* Wallet status block (same as on Overview) */}
+      <div className="card flex items-center justify-between gap-3 px-3 py-2 md:px-4 md:py-3">
+        <div className="flex items-center gap-3">
+          {/* Icon bubble */}
+          <div
+            className="h-9 w-9 md:h-10 md:w-10 rounded-full grid place-items-center text-lg md:text-xl shadow-lg"
+            style={{
+              background:
+                'radial-gradient(circle at 30% 20%, rgba(110, 231, 183, 0.9), transparent 55%), radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.9), transparent 55%)',
+            }}
+          >
+            <span aria-hidden>◎</span>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="text-[11px] md:text-xs opacity-70">
+              {t('overview.wallet_title')}
+            </div>
+
+            {shortAddress ? (
+              <div className="font-mono text-xs md:text-sm tracking-tight">
+                {shortAddress}
+              </div>
+            ) : (
+              <div className="text-xs md:text-sm opacity-70">
+                {t('overview.wallet_disconnected')}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span
+            className={
+              'h-2.5 w-2.5 rounded-full ' +
+              (shortAddress
+                ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)]'
+                : 'bg-zinc-500/60')
+            }
+            aria-hidden
+          />
+          <span className="text-[11px] md:text-xs mr-1">
+            {shortAddress
+              ? t('overview.wallet_status_connected')
+              : t('overview.wallet_status_disconnected')}
+          </span>
+
+          <Link
+            href={walletHref}
+            className="btn btn-outline !rounded-full !px-3 !py-1 text-[11px] md:text-xs whitespace-nowrap"
+          >
+            {shortAddress
+              ? t('assets.wallet_refresh')
+              : t('overview.wallet_connect')}
+          </Link>
+        </div>
       </div>
 
       {/* VIGRI purchase block with psychological trigger + "coming soon" */}
@@ -202,8 +304,17 @@ export default function AssetsPage() {
             {t('assets.nft.title')}
           </div>
         </div>
-
-        {data?.nftPortfolio && data.nftPortfolio.length > 0 ? (
+        {data === null ? (
+          address ? (
+            <div className="px-4 pb-4">
+              <InlineLoader label={t('overview.loading_nft')} />
+            </div>
+          ) : (
+            <p className="px-4 pb-4 text-xs text-zinc-600">
+              {t('assets.nft.wallet_required')}
+            </p>
+          )
+        ) : data?.nftPortfolio && data.nftPortfolio.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-zinc-50">
@@ -301,56 +412,114 @@ export default function AssetsPage() {
 
       {/* Token positions table */}
       <div className="card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-50">
-            <tr>
-              <th className="text-left px-4 py-2 w-40 text-xs font-medium text-zinc-600">
-                {t('assets.symbol')}
-              </th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-zinc-600">
-                {t('assets.amount')}
-              </th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-zinc-600">
-                {t('assets.price')}
-              </th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-zinc-600">
-                {t('assets.value')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.positions?.map((p) => (
-              <tr key={p.symbol} className="border-t border-zinc-200">
+        {data === null ? (
+          address ? (
+            <div className="p-4">
+              <InlineLoader label={t('assets.positions.loading')} />
+            </div>
+          ) : (
+            <p className="p-4 text-xs text-zinc-600">
+              {t('assets.positions.wallet_required')}
+            </p>
+          )
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-zinc-50">
+              <tr>
+                <th className="text-left px-4 py-2 w-40 text-xs font-medium text-zinc-600">
+                  {t('assets.symbol')}
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-zinc-600">
+                  {t('assets.amount')}
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-zinc-600">
+                  {t('assets.price')}
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-zinc-600">
+                  {t('assets.value')}
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {claimFromNft > 0 && (
+                <tr className="border-t border-zinc-200">
+                  <td className="px-4 py-2 text-zinc-700">
+                    <div className="font-medium">VIGRI</div>
+                    <div className="text-xs opacity-70">
+                      {t('assets.vigri.from_nft')}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 text-zinc-700">
+                    {claimFromNft.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2 text-zinc-700">
+                    {VIGRI_TGE_PRICE_EUR.toLocaleString('en-US', {
+                      minimumFractionDigits: 4,
+                      maximumFractionDigits: 4,
+                    })}{' '}
+                    €
+                  </td>
+                  <td className="px-4 py-2 text-zinc-700">
+                    {cf.format(vigriFromNftValueEur)}
+                  </td>
+                </tr>
+              )}
+
+              <tr className="border-t border-zinc-200">
                 <td className="px-4 py-2 text-zinc-700">
-                  <div className="font-medium">{p.symbol}</div>
-                  <div className="text-xs opacity-70">{p.name}</div>
+                  <div className="font-medium">VIGRI</div>
+                  <div className="text-xs opacity-70">Vigri Token</div>
                 </td>
                 <td className="px-4 py-2 text-zinc-700">
-                  {p.amount.toLocaleString()}
+                  {(0).toLocaleString()}
                 </td>
                 <td className="px-4 py-2 text-zinc-700">
-                  {cf.format(p.priceEUR)}
+                  {VIGRI_TGE_PRICE_EUR.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4,
+                  })}{' '}
+                  €
                 </td>
                 <td className="px-4 py-2 text-zinc-700">
-                  {cf.format(p.valueEUR)}
+                  {cf.format(0)}
                 </td>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-zinc-200 bg-zinc-50">
-              <td
-                className="px-4 py-2 text-right font-medium"
-                colSpan={3}
-              >
-                {t('assets.total')}
-              </td>
-              <td className="px-4 py-2 font-semibold">
-                {cf.format(data?.totalValueEUR || 0)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+
+              {nonVigriPositions.map((p) => (
+                <tr key={p.symbol} className="border-t border-zinc-200">
+                  <td className="px-4 py-2 text-zinc-700">
+                    <div className="font-medium">{p.symbol}</div>
+                    <div className="text-xs opacity-70">{p.name}</div>
+                  </td>
+                  <td className="px-4 py-2 text-zinc-700">
+                    {p.amount.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2 text-zinc-700">
+                    {cf.format(p.priceEUR)}
+                  </td>
+                  <td className="px-4 py-2 text-zinc-700">
+                    {cf.format(p.valueEUR)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+
+            <tfoot>
+              <tr className="border-t border-zinc-200 bg-zinc-50">
+                <td
+                  className="px-4 py-2 text-right font-medium"
+                  colSpan={3}
+                >
+                  {t('assets.total')}
+                </td>
+                <td className="px-4 py-2 font-semibold">
+                  {cf.format(displayTotalEur)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        )}
       </div>
 
       {/* History */}
@@ -358,7 +527,15 @@ export default function AssetsPage() {
         <div className="text-sm font-medium mb-2">
           {t('assets.history')}
         </div>
-        {data?.history?.length ? (
+        {data === null ? (
+          address ? (
+            <InlineLoader label={t('overview.loading_history')} />
+          ) : (
+            <div className="text-sm opacity-70">
+              {t('assets.history.wallet_required')}
+            </div>
+          )
+        ) : data?.history?.length ? (
           <ul className="text-sm">
             {data.history.slice(0, 10).map((h) => (
               <li

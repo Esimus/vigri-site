@@ -52,6 +52,7 @@
   "assets.msg.fail": "Ebaõnnestus. Proovi uuesti.",
   "assets.reset": "Taasta vaikeseaded",
   "assets.history": "Ajalugu",
+  "assets.history.wallet_required": "Ühenda rahakott, et näha oma tehingute ajalugu.",
   "assets.symbol": "Vara",
   "assets.amount": "Kogus",
   "assets.price": "Hind (EUR)",
@@ -67,6 +68,13 @@
   "assets.nft.empty": "Siia kuvatakse sinu NFT-portfell.\nPraegu pole meil andmeid sinu VIGRI NFT-de kohta, mis on ostetud vigri.ee platvormi kaudu.",
   "assets.nft.priceSol_hint": "Selle taseme ühe NFT hind praeguses eelmüügi etapis.",
   "assets.nft.valueSol_hint": "Kõigi selle taseme NFT-de hetkeline väärtus: kogus × hetkehind.",
+  "assets.nft.wallet_required": "Ühenda rahakott, et näha oma NFT-portfelli.",
+  "assets.wallet_refresh": "Värskenda varasid",
+
+  "assets.positions.loading": "Laen varade andmeid…",
+  "assets.positions.wallet_required": "Ühenda rahakott, et näha oma varasid.",
+  "assets.positions.empty": "Sul ei ole veel platvormil varasid.",
+  "assets.vigri.from_nft": "NFT-de pealt arvestatud (tulevased VIGRI)",
 
   "nav_why": "Miks",
   "nav_tokenomics": "Tokenoomika",

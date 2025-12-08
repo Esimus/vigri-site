@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getCookie } from '@/lib/cookies';
+import { Connection, PublicKey, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js';
 
 const prisma = new PrismaClient();
 
@@ -176,8 +177,29 @@ export async function GET(req: NextRequest) {
   const wallet = url.searchParams.get('wallet');
   const network = url.searchParams.get('network') ?? 'devnet';
 
-  // token balances & history from cookies (mock for now)
   const s = await readState();
+
+  if (wallet) {
+    try {
+      const endpoint =
+        network === 'devnet'
+          ? clusterApiUrl('devnet')
+          : clusterApiUrl('mainnet-beta');
+
+      const connection = new Connection(endpoint, 'confirmed');
+      const pubkey = new PublicKey(wallet);
+      const balanceLamports = await connection.getBalance(pubkey);
+      const solAmount = balanceLamports / LAMPORTS_PER_SOL;
+
+      s.balances.SOL = solAmount;
+    } catch (e) {
+      console.error('Failed to load SOL balance', e);
+      s.balances.SOL = 0;
+    }
+  } else {
+    s.balances.SOL = 0;
+  }
+
   const { positions, totalValueEUR } = positionsOf(s);
   let history: HistoryItem[] = [...s.history];
 

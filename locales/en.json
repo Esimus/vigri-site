@@ -52,6 +52,7 @@
   "assets.msg.fail": "Failed. Try again.",
   "assets.reset": "Reset to defaults",
   "assets.history": "History",
+  "assets.history.wallet_required": "Connect your wallet to see your activity history.",
   "assets.symbol": "Asset",
   "assets.amount": "Amount",
   "assets.price": "Price (EUR)",
@@ -67,6 +68,13 @@
   "assets.nft.empty": "Your NFT portfolio will appear here.\nRight now we have no records of your VIGRI NFTs purchased via the vigri.ee platform.",
   "assets.nft.priceSol_hint": "Price of one NFT of this tier at the current presale stage.",
   "assets.nft.valueSol_hint": "Current valuation of all your NFTs of this tier: quantity × current price.",
+  "assets.nft.wallet_required": "Connect your wallet to see your NFT portfolio.",
+  "assets.wallet_refresh": "Refresh assets",
+
+  "assets.positions.loading": "Loading your assets…",
+  "assets.positions.wallet_required": "Connect your wallet to see your assets.",
+  "assets.positions.empty": "You don't have any assets here yet.",
+  "assets.vigri.from_nft": "Accrued from NFTs (future VIGRI)",
 
   "nav_why": "Why",
   "nav_tokenomics": "Tokenomics",

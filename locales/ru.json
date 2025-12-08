@@ -52,6 +52,7 @@
   "assets.msg.fail": "Не удалось. Повторите.",
   "assets.reset": "Сбросить по умолчанию",
   "assets.history": "История операций",
+  "assets.history.wallet_required": "Подключи кошелёк, чтобы увидеть историю операций.",
   "assets.symbol": "Актив",
   "assets.amount": "Количество",
   "assets.price": "Цена (EUR)",
@@ -67,6 +68,13 @@
   "assets.nft.empty": "Здесь будет отображаться ваш NFT-портфель.\nСейчас у нас нет данных о ваших VIGRI NFT, купленных через платформу vigri.ee.",
   "assets.nft.priceSol_hint": "Цена одного NFT этого уровня на текущем этапе пресейла.",
   "assets.nft.valueSol_hint": "Текущая оценка всех ваших NFT этого уровня: количество × текущая цена.",
+  "assets.nft.wallet_required": "Подключи кошелёк, чтобы увидеть свой NFT-портфель.",
+  "assets.wallet_refresh": "Обновить активы",
+
+  "assets.positions.loading": "Загружаем данные по активам…",
+  "assets.positions.wallet_required": "Подключи кошелёк, чтобы увидеть свои активы.",
+  "assets.positions.empty": "Пока нет активов на платформе.",
+  "assets.vigri.from_nft": "Начислено по NFT (будущие VIGRI)",
 
   "nav_why": "Почему",
   "nav_tokenomics": "Токеномика",
