@@ -779,6 +779,7 @@
   "overview.wallet_status_disconnected": "не подключён",
   "overview.wallet_manage": "Смотреть все активы",
   "overview.wallet_connect": "Подключить кошелёк",
+  "overview.wallet_disconnect": "Отключить кошелёк",
 
   "rewards.title": "Награды",
   "rewards.dev_hint_userid": "Dev: добавь ?userId=... чтобы посмотреть конкретного пользователя",

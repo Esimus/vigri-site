@@ -779,6 +779,7 @@
   "overview.wallet_status_disconnected": "ei ole ühendatud",
   "overview.wallet_manage": "Vaata kõiki varasid",
   "overview.wallet_connect": "Ühenda rahakott",
+  "overview.wallet_disconnect": "Lahuta rahakott",
 
   "rewards.title": "Preemiad",
   "rewards.dev_hint_userid": "Dev: lisa ?userId=... konkreetse kasutaja vaatamiseks",

@@ -98,8 +98,9 @@ export default function MyNftsStrip() {
 
   useEffect(() => {
     if (!address) {
-      setGroups([]);
-      setEvents([]);
+      // Clear once; subsequent calls become no-op (same reference back).
+      setGroups((prev) => (prev.length ? [] : prev));
+      setEvents((prev) => (prev.length ? [] : prev));
       return;
     }
 
@@ -123,8 +124,8 @@ export default function MyNftsStrip() {
 
         if (!res.ok || !data.ok) {
           if (!cancelled) {
-            setGroups([]);
-            setEvents([]);
+            setGroups((prev) => (prev.length ? [] : prev));
+            setEvents((prev) => (prev.length ? [] : prev));
           }
           return;
         }
@@ -160,8 +161,8 @@ export default function MyNftsStrip() {
         }
       } catch {
         if (!cancelled) {
-          setGroups([]);
-          setEvents([]);
+          setGroups((prev) => (prev.length ? [] : prev));
+          setEvents((prev) => (prev.length ? [] : prev));
         }
       }
     };

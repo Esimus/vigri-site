@@ -779,6 +779,7 @@
   "overview.wallet_status_disconnected": "not connected",
   "overview.wallet_manage": "View all assets",
   "overview.wallet_connect": "Connect wallet",
+  "overview.wallet_disconnect": "Disconnect wallet",
 
   "rewards.title": "Rewards",
   "rewards.dev_hint_userid": "Dev: add ?userId=... to preview a specific user",

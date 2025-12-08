@@ -16,6 +16,30 @@ const RPC_URL =
 
 const connection = new Connection(RPC_URL, 'confirmed');
 
+const DISCONNECT_FLAG_KEY = 'vigri_phantom_disconnected';
+
+function setManualDisconnectFlag(value: boolean) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (value) {
+      window.localStorage.setItem(DISCONNECT_FLAG_KEY, '1');
+    } else {
+      window.localStorage.removeItem(DISCONNECT_FLAG_KEY);
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function hasManualDisconnectFlag(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(DISCONNECT_FLAG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 type PhantomProvider = {
   isPhantom?: boolean;
   publicKey?: PublicKey;
@@ -78,9 +102,9 @@ export function usePhantomWallet(): WalletState {
       const addr = pubkey.toBase58();
       setPublicKey(pubkey);
       setAddress(addr);
+      setManualDisconnectFlag(false);
       await fetchBalance(pubkey);
     } catch (err: unknown) {
-      // 4001 = user rejected
       const e = err as { code?: number; message?: string };
       if (e.code !== 4001) {
         setError(e.message ?? 'Failed to connect wallet');
@@ -104,6 +128,7 @@ export function usePhantomWallet(): WalletState {
       setAddress(null);
       setBalance(null);
       setPublicKey(null);
+      setManualDisconnectFlag(true);
     }
   }, []);
 
@@ -112,11 +137,12 @@ export function usePhantomWallet(): WalletState {
     if (!provider) return;
 
     const updateFromPubkey = (pubkey: PublicKey) => {
-  const addr = pubkey.toBase58();
-  setPublicKey(pubkey);
-  setAddress(addr);
-  fetchBalance(pubkey);
-};
+      const addr = pubkey.toBase58();
+      setPublicKey(pubkey);
+      setAddress(addr);
+      setManualDisconnectFlag(false);
+      fetchBalance(pubkey);
+    };
 
     const handleConnect = (...args: unknown[]) => {
       const first = args[0];
@@ -129,6 +155,7 @@ export function usePhantomWallet(): WalletState {
       setPublicKey(null);
       setAddress(null);
       setBalance(null);
+      setManualDisconnectFlag(true);
     };
 
     const handleAccountChanged = (...args: unknown[]) => {
@@ -146,8 +173,10 @@ export function usePhantomWallet(): WalletState {
     provider.on?.('disconnect', handleDisconnect);
     provider.on?.('accountChanged', handleAccountChanged);
 
-    // Try to auto-connect trusted session once
-    provider.connect?.({ onlyIfTrusted: true }).catch(() => {});
+    // Auto-connect only if user has not manually disconnected in this browser
+    if (!hasManualDisconnectFlag()) {
+      provider.connect?.({ onlyIfTrusted: true }).catch(() => {});
+    }
 
     return () => {
       provider.off?.('connect', handleConnect);
