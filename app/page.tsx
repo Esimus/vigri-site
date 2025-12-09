@@ -506,6 +506,11 @@ export default function Home() {
                       {t('footer_terms')}
                     </a>
                   </li>
+                  <li>
+                    <a className="hover:underline" href="/contact" rel="noreferrer">
+                      {t('footer_contact')}
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>

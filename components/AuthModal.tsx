@@ -36,7 +36,7 @@ export default function AuthModal() {
   const mode = (sp.get('auth') as Mode) ?? null;
   const isSignup = mode === 'signup';
   const isForgot = mode === 'forgot';
-  const isReset  = mode === 'reset';
+  const isReset = mode === 'reset';
   const resetToken = sp.get('token')?.trim() || null;
 
   const open = mode === 'login' || isSignup || isForgot || isReset;
@@ -53,6 +53,9 @@ export default function AuthModal() {
 
   const [forgotSent, setForgotSent] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptTouched, setAcceptTouched] = useState(false);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
@@ -84,9 +87,19 @@ export default function AuthModal() {
       ? tf('auth.password_too_short', 'Minimum 8 characters')
       : '';
 
-  const canSubmitAuth   = isEmailValid && isPassValid && isConfirmValid && !loading && !isReset && !isForgot;
+  const requiresAccept = isSignup;
+  const isAcceptValid = !requiresAccept || acceptTerms;
+
+  const canSubmitAuth =
+    isEmailValid &&
+    isPassValid &&
+    isConfirmValid &&
+    isAcceptValid &&
+    !loading &&
+    !isReset &&
+    !isForgot;
   const canSubmitForgot = isEmailValid && !loading && isForgot;
-  const canSubmitReset  = isPassValid && isConfirmValid && !loading && isReset && !!resetToken;
+  const canSubmitReset = isPassValid && isConfirmValid && !loading && isReset && !!resetToken;
 
   const setMode = useCallback(
     (m: Exclude<Mode, null> | null) => {
@@ -186,6 +199,8 @@ export default function AuthModal() {
       setEmailTouched(false);
       setPassTouched(false);
       setConfirmTouched(false);
+      setAcceptTerms(false);
+      setAcceptTouched(false);
     };
   }, [open, close]);
 
@@ -232,7 +247,10 @@ export default function AuthModal() {
     e.preventDefault();
     setEmailTouched(true);
     setPassTouched(true);
-    if (isSignup) setConfirmTouched(true);
+    if (isSignup) {
+      setConfirmTouched(true);
+      setAcceptTouched(true);
+    }
     setErr(null);
     setCanResend(false);
 
@@ -284,7 +302,9 @@ export default function AuthModal() {
         window.location.replace('/?verify=sent');
       } else {
         // === THE ONLY CHANGE: set one-shot post-login flag ===
-        try { sessionStorage.setItem('vigri_postlogin', '1'); } catch {}
+        try {
+          sessionStorage.setItem('vigri_postlogin', '1');
+        } catch {}
         window.location.replace('/dashboard');
       }
     } catch {
@@ -399,16 +419,42 @@ export default function AuthModal() {
           onClick={() => setShowPass((v) => !v)}
           className="absolute inset-y-0 right-2 flex items-center px-2 text-zinc-500 hover:text-zinc-700
                      focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30 rounded-md"
-          aria-label={showPass ? tf('auth.hide_password', 'Hide password') : tf('auth.show_password', 'Show password')}
+          aria-label={
+            showPass
+              ? tf('auth.hide_password', 'Hide password')
+              : tf('auth.show_password', 'Show password')
+          }
           tabIndex={0}
         >
           {showPass ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.29 20.29 0 0 1 5.06-5.94" />
               <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
               <path d="M3 3l18 18" />
@@ -418,13 +464,20 @@ export default function AuthModal() {
         </button>
       </div>
       {passHelp && (
-        <p id="auth-pass-help" className={`mt-1 text-xs ${passTooShort ? 'text-red-600' : 'text-zinc-500'}`}>
+        <p
+          id="auth-pass-help"
+          className={`mt-1 text-xs ${passTooShort ? 'text-red-600' : 'text-zinc-500'}`}
+        >
           {passHelp}
         </p>
       )}
       {mode === 'login' && (
         <div className="mt-2 text-right">
-          <button type="button" onClick={() => setMode('forgot')} className="text-xs text-zinc-600 hover:text-zinc-900 hover:underline">
+          <button
+            type="button"
+            onClick={() => setMode('forgot')}
+            className="text-xs text-zinc-600 hover:text-zinc-900 hover:underline"
+          >
             {tf('auth.forgot', 'Forgot password?')}
           </button>
         </div>
@@ -432,54 +485,84 @@ export default function AuthModal() {
     </div>
   );
 
-  const confirmInput = (isSignup || isReset) ? (
-    <div>
-      <label className="label">
-        {tf('auth.password_confirm', 'Repeat password')}
-      </label>
-      <div className="relative">
-        <input
-          type={showPass ? 'text' : 'password'}
-          required
-          minLength={8}
-          className="input pr-10 appearance-none"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          onBlur={() => setConfirmTouched(true)}
-          autoComplete="new-password"
-          aria-invalid={confirmTouched && !isConfirmValid}
-          aria-describedby="auth-pass-confirm-help"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPass((v) => !v)}
-          className="absolute inset-y-0 right-2 flex items-center px-2 text-zinc-500 hover:text-zinc-700
-                     focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30 rounded-md"
-          aria-label={showPass ? tf('auth.hide_password', 'Hide password') : tf('auth.show_password', 'Show password')}
-          tabIndex={0}
+  const confirmInput =
+    isSignup || isReset ? (
+      <div>
+        <label className="label">
+          {tf('auth.password_confirm', 'Repeat password')}
+        </label>
+        <div className="relative">
+          <input
+            type={showPass ? 'text' : 'password'}
+            required
+            minLength={8}
+            className="input pr-10 appearance-none"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            onBlur={() => setConfirmTouched(true)}
+            autoComplete="new-password"
+            aria-invalid={confirmTouched && !isConfirmValid}
+            aria-describedby="auth-pass-confirm-help"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPass((v) => !v)}
+            className="absolute inset-y-0 right-2 flex items-center px-2 text-zinc-500 hover:text-zinc-700
+                       focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30 rounded-md"
+            aria-label={
+              showPass
+                ? tf('auth.hide_password', 'Hide password')
+                : tf('auth.show_password', 'Show password')
+            }
+            tabIndex={0}
+          >
+            {showPass ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.29 20.29 0 0 1 5.06-5.94" />
+                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                <path d="M3 3l18 18" />
+                <path d="M10.73 5.08A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.29 20.29 0 0 1-2.56 3.57" />
+              </svg>
+            )}
+          </button>
+        </div>
+        <div
+          id="auth-pass-confirm-help"
+          className={`mt-1 text-xs ${confirmMismatch ? 'text-red-600' : 'text-zinc-500'}`}
         >
-          {showPass ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.29 20.29 0 0 1 5.06-5.94" />
-              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-              <path d="M3 3l18 18" />
-              <path d="M10.73 5.08A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.29 20.29 0 0 1-2.56 3.57" />
-            </svg>
-          )}
-        </button>
+          {confirmMismatch
+            ? tf('auth.password_mismatch', 'Passwords do not match')
+            : tf('auth.password_confirm_hint', 'Repeat your password to avoid mistakes')}
+        </div>
       </div>
-      <div id="auth-pass-confirm-help" className={`mt-1 text-xs ${confirmMismatch ? 'text-red-600' : 'text-zinc-500'}`}>
-        {confirmMismatch
-          ? tf('auth.password_mismatch', 'Passwords do not match')
-          : tf('auth.password_confirm_hint', 'Repeat your password to avoid mistakes')}
-      </div>
-    </div>
-  ) : null;
+    ) : null;
 
   return (
     <div className="fixed inset-0 z-50">
@@ -497,7 +580,9 @@ export default function AuthModal() {
                       outline-none"
         >
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800/60 bg-[color:var(--card)]">
-            <div id={titleId} className="text-lg font-semibold">{title}</div>
+            <div id={titleId} className="text-lg font-semibold">
+              {title}
+            </div>
             <button
               onClick={close}
               className="rounded-lg p-2.5 text-zinc-500 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60
@@ -540,7 +625,11 @@ export default function AuthModal() {
                     {loading ? tf('auth.loading', 'Please wait…') : submitLabel}
                   </button>
                   <div className="text-xs text-center text-zinc-600 dark:text-zinc-400">
-                    <button type="button" onClick={() => setMode('login')} className="hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => setMode('login')}
+                      className="hover:underline"
+                    >
                       {altLinkLabel}
                     </button>
                   </div>
@@ -562,7 +651,11 @@ export default function AuthModal() {
                     {loading ? tf('auth.loading', 'Please wait…') : submitLabel}
                   </button>
                   <div className="text-xs text-center text-zinc-600 dark:text-zinc-400">
-                    <button type="button" onClick={() => setMode('login')} className="hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => setMode('login')}
+                      className="hover:underline"
+                    >
                       {tf('auth.back_to_login', 'Back to sign in')}
                     </button>
                   </div>
@@ -588,6 +681,59 @@ export default function AuthModal() {
               {emailInput}
               {passwordInput}
               {confirmInput}
+
+              {isSignup && (
+                <div className="space-y-1">
+                  <div className="flex items-start gap-2">
+                    <input
+                      id="auth-accept"
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-zinc-400 bg-white
+                                  accent-[color:var(--brand-600)]
+                                  focus:ring-[var(--brand-600)] focus:ring-opacity-40"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      onBlur={() => setAcceptTouched(true)}
+                    />
+                    <label
+                      htmlFor="auth-accept"
+                      className="text-xs text-zinc-600 dark:text-zinc-400"
+                    >
+                      {tf(
+                        'auth.accept_terms',
+                        'I confirm that I have read and agree to the Vigri Terms of Use and Privacy Policy.'
+                      )}{' '}
+                      <a
+                        href="/terms"
+                        className="underline hover:no-underline"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {tf('nav.terms', 'Terms of Use')}
+                      </a>{' '}
+                      {tf('auth.and', 'and')}{' '}
+                      <a
+                        href="/privacy"
+                        className="underline hover:no-underline"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {tf('nav.privacy', 'Privacy Policy')}
+                      </a>
+                      .
+                    </label>
+                  </div>
+                  {acceptTouched && !isAcceptValid && (
+                    <p className="text-xs text-red-600">
+                      {tf(
+                        'auth.accept_required',
+                        'You must agree to the terms to continue.'
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {err && (
                 <div className="text-sm text-red-600">
                   {err}
@@ -602,9 +748,26 @@ export default function AuthModal() {
                                    disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {resending ? (
-                          <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25" />
-                            <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <svg
+                            className="mr-2 h-4 w-4 animate-spin"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                              opacity="0.25"
+                            />
+                            <path
+                              d="M22 12a10 10 0 0 1-10 10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
                           </svg>
                         ) : null}
                         {tf('auth.resend', 'Send again')}
@@ -622,11 +785,19 @@ export default function AuthModal() {
               </button>
               <div className="text-xs text-center text-zinc-600 dark:text-zinc-400">
                 {mode === 'signup' ? (
-                  <button type="button" onClick={() => setMode('login')} className="hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="hover:underline"
+                  >
                     {altLinkLabel}
                   </button>
                 ) : (
-                  <button type="button" onClick={() => setMode('signup')} className="hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="hover:underline"
+                  >
                     {altLinkLabel}
                   </button>
                 )}

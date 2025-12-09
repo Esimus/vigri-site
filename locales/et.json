@@ -33,6 +33,11 @@
   "auth.forgot_submit": "Saada lähtestuslink",
   "auth.back_to_login": "Tagasi sisselogimisele",
   "auth.reset_info": "Kui see e-post on registreeritud, saatsime parooli lähtestamise lingi. Palun kontrolli postkasti (ja rämpsposti). Link kehtib 1 tunni.",
+  "auth.accept_terms": "Я подтверждаю, что ознакомился и согласен с Условиями использования и Политикой конфиденциальности Vigri.",
+  "auth.and": "и",
+  "auth.accept_required": "Чтобы продолжить, необходимо согласиться с условиями.",
+  "nav.terms": "Условия использования",
+  "nav.privacy": "Политика конфиденциальности",
 
   "activity.buy_vigri": "VIGRI ost",
   "activity.sell_vigri": "VIGRI müük",
@@ -88,6 +93,16 @@
   "btn_community": "Kogukond",
   "btn_tokenomics": "Tokenoomika",
 
+  "back_home": "Tagasi avalehele",
+
+  "dashboard.header.title": "VIGRI — Töölaud",
+  "dashboard.nav.overview": "Ülevaade",
+  "dashboard.nav.assets": "Varad",
+  "dashboard.nav.nft": "NFT",
+  "dashboard.nav.rewards": "Preemiad",
+  "dashboard.nav.profile": "Profiil",
+  "dashboard.nav.contact": "Kontakt",
+
   "common.sign_in": "Logi sisse",
   "common.sign_up": "Loo konto",
   "common.go_dashboard": "Ava juhtpaneel",
@@ -112,6 +127,18 @@
   "common.cookies.save": "Salvesta valik",
   "common.cookies.read_more": "Loe lähemalt",
   "common.cookies.footer_hint": "Saate oma valikut hiljem brauseri seadetes muuta.",
+
+  "contact.title": "Kontakt ja operaator",
+  "contact.lead": "Siit leiad Vigri platvormi juriidilise operaatori andmed.",
+  "contact.operator": "Platvormi operaator",
+  "contact.reg_code": "Registrikood",
+  "contact.vat": "KMKR number",
+  "contact.address": "Juriidiline aadress",
+  "contact.email": "E-posti aadress",
+  "contact.website": "Veebileht",
+  "contact.note": "ADET Impex OÜ vastutab vigri.ee veebilehe ning Vigri projekti arenduse eest algfaasis. Ettevõtte ametlikud andmed on kättesaadavad e-Äriregistris.",
+  "contact.registry_link": "Vaata ettevõtet e-Äriregistris",
+  "contact.tagline": "Õigusinfo ja kontakt",
 
   "emails.verify.subject": "Kinnita oma e-posti aadress VIGRI jaoks",
   "emails.verify.text": "Oma e-posti aadressi kinnitamiseks ava see link: {link}\nKui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.",
@@ -445,6 +472,7 @@
   "footer_terms": "Kasutustingimused",
   "footer_tech": "Tehniline",
   "footer_hash_label": "Token JSON räsi (SHA-256)",
+  "footer_contact": "Kontakt",
 
   "center.title": "Rahvusvaheline spordi- ja tantsu treening- ja rehabilitatsioonikeskus",
   "center.image_caption": "Rahvusvaheline spordi- ja tantsu treening- ja rehabilitatsioonikeskus — kontseptsioon",
@@ -461,15 +489,6 @@
   "transparency.addresses": "Avalikud aadressid (faasi kaupa)",
   "transparency.reports": "Aruanded ja uuendused",
   "transparency.soon": "Avaldatakse peagi",
-
-  "back_home": "Tagasi avalehele",
-
-  "dashboard.header.title": "VIGRI — Töölaud",
-  "dashboard.nav.overview": "Ülevaade",
-  "dashboard.nav.assets": "Varad",
-  "dashboard.nav.nft": "NFT",
-  "dashboard.nav.rewards": "Preemiad",
-  "dashboard.nav.profile": "Profiil",
 
   "nft.availability": "Saadavus",
   "nft.available_short": "alles",

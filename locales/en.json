@@ -33,6 +33,11 @@
   "auth.forgot_submit": "Send reset link",
   "auth.back_to_login": "Back to sign in",
   "auth.reset_info": "If this email is registered, we’ve sent a password reset link. Please check your inbox (and Spam). The link is valid for 1 hour.",
+  "auth.accept_terms": "I confirm that I have read and agree to the Vigri Terms of Use and Privacy Policy.",
+  "auth.and": "and",
+  "auth.accept_required": "You must agree to the terms to continue.",
+  "nav.terms": "Terms of Use",
+  "nav.privacy": "Privacy Policy",
 
   "activity.buy_vigri": "Bought VIGRI",
   "activity.sell_vigri": "Sold VIGRI",
@@ -87,6 +92,16 @@
   "btn_buy_on_dex": "Coming soon to DEX",
   "btn_community": "Community",
   "btn_tokenomics": "Tokenomics",
+  
+  "back_home": "Back to home",
+
+  "dashboard.header.title": "VIGRI — Dashboard",
+  "dashboard.nav.overview": "Overview",
+  "dashboard.nav.assets": "Assets",
+  "dashboard.nav.nft": "NFT",
+  "dashboard.nav.rewards": "Rewards",
+  "dashboard.nav.profile": "Profile",
+  "dashboard.nav.contact": "Contact",
 
   "common.sign_in": "Sign in",
   "common.sign_up": "Create account",
@@ -112,6 +127,18 @@
   "common.cookies.save": "Save selection",
   "common.cookies.read_more": "Read more",
   "common.cookies.footer_hint": "You can change your choice later in your browser settings.",
+
+  "contact.title": "Contact & operator",
+  "contact.lead": "Below you can find information about the legal operator of the Vigri platform.",
+  "contact.operator": "Platform operator",
+  "contact.reg_code": "Registry code",
+  "contact.vat": "VAT number",
+  "contact.address": "Legal address",
+  "contact.email": "Email",
+  "contact.website": "Website",
+  "contact.note": "ADET Impex OÜ is responsible for the vigri.ee website and for the early-stage development of the Vigri project. Official company data is available in the Estonian e-Business Register.",
+  "contact.registry_link": "View record in e-Business Register",
+  "contact.tagline": "Legal information & contact",
 
   "emails.verify.subject": "Verify your email for VIGRI",
   "emails.verify.text": "To verify your email, open this link: {link}\nIf you didn't request this, ignore this email.",
@@ -445,6 +472,7 @@
   "footer_terms": "Terms of Use",
   "footer_tech": "Technical",
   "footer_hash_label": "Token JSON hash (SHA-256)",
+  "footer_contact": "Contact",
 
   "center.title": "International Training & Rehabilitation Center",
   "center.image_caption": "International Training and Rehabilitation Center for Sports and Dance — concept image",
@@ -461,15 +489,6 @@
   "transparency.addresses": "Public addresses (phase-specific)",
   "transparency.reports": "Reports & updates",
   "transparency.soon": "To be published",
-
-  "back_home": "Back to home",
-
-  "dashboard.header.title": "VIGRI — Dashboard",
-  "dashboard.nav.overview": "Overview",
-  "dashboard.nav.assets": "Assets",
-  "dashboard.nav.nft": "NFT",
-  "dashboard.nav.rewards": "Rewards",
-  "dashboard.nav.profile": "Profile",
 
   "nft.availability": "Availability",
   "nft.available_short": "left",

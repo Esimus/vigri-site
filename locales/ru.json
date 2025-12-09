@@ -33,7 +33,12 @@
   "auth.forgot_submit": "Отправить ссылку",
   "auth.back_to_login": "Вернуться к входу",
   "auth.reset_info": "Если этот email зарегистрирован, мы отправили письмо со ссылкой для сброса. Проверьте почту (и Спам). Ссылка действует 1 час.!",
-
+  "auth.accept_terms": "Я подтверждаю, что ознакомился и согласен с Условиями использования и Политикой конфиденциальности Vigri.",
+  "auth.and": "и",
+  "auth.accept_required": "Чтобы продолжить, необходимо согласиться с условиями.",
+  "nav.terms": "Условия использования",
+  "nav.privacy": "Политика конфиденциальности",
+  
   "activity.buy_vigri": "Покупка VIGRI",
   "activity.sell_vigri": "Продажа VIGRI",
   "activity.deposit": "Пополнение",
@@ -88,6 +93,16 @@
   "btn_community": "Сообщество",
   "btn_tokenomics": "Токеномика",
 
+  "back_home": "На главную",
+
+  "dashboard.header.title": "VIGRI — Кабинет",
+  "dashboard.nav.overview": "Обзор",
+  "dashboard.nav.assets": "Активы",
+  "dashboard.nav.nft": "NFT",
+  "dashboard.nav.rewards": "Награды",
+  "dashboard.nav.profile": "Профиль",
+  "dashboard.nav.contact": "Контакт",
+
   "common.sign_in": "Войти",
   "common.sign_up": "Создать аккаунт",
   "common.go_dashboard": "Кабинет",
@@ -112,6 +127,18 @@
   "common.cookies.save": "Сохранить выбор",
   "common.cookies.read_more": "Подробнее",
   "common.cookies.footer_hint": "Вы можете изменить выбор позже в настройках браузера.",
+
+  "contact.title": "Контакт и оператор платформы",
+  "contact.lead": "Здесь указаны данные юридического лица, которое отвечает за платформу Vigri.",
+  "contact.operator": "Оператор платформы",
+  "contact.reg_code": "Регистрационный код",
+  "contact.vat": "Номер НДС (KMKR)",
+  "contact.address": "Юридический адрес",
+  "contact.email": "Электронная почта",
+  "contact.website": "Веб-сайт",
+  "contact.note": "ADET Impex OÜ отвечает за сайт vigri.ee и за развитие проекта Vigri на стартовом этапе. Официальные данные компании доступны в эстонском e-Äriregister.",
+  "contact.registry_link": "Посмотреть запись в e-Äriregister",
+  "contact.tagline": "Юр. информация и контакт",
 
   "emails.verify.subject": "Подтвердите ваш email для VIGRI",
   "emails.verify.text": "Чтобы подтвердить email, откройте ссылку: {link}\nЕсли вы не запрашивали это письмо, просто проигнорируйте его.",
@@ -445,6 +472,7 @@
   "footer_terms": "Условия использования",
   "footer_tech": "Техническое",
   "footer_hash_label": "Хеш Token JSON (SHA-256)",
+  "footer_contact": "Контакт",
 
   "center.title": "Международный тренировочно-реабилитационный центр спорта и танцев",
   "center.image_caption": "Международный тренировочно-реабилитационный центр спорта и танцев — концепт",
@@ -461,15 +489,6 @@
   "transparency.addresses": "Публичные адреса (по фазам)",
   "transparency.reports": "Отчёты и обновления",
   "transparency.soon": "Будет опубликовано",
-
-  "back_home": "На главную",
-
-  "dashboard.header.title": "VIGRI — Кабинет",
-  "dashboard.nav.overview": "Обзор",
-  "dashboard.nav.assets": "Активы",
-  "dashboard.nav.nft": "NFT",
-  "dashboard.nav.rewards": "Награды",
-  "dashboard.nav.profile": "Профиль",
 
   "nft.availability": "Доступность",
   "nft.available_short": "осталось",
