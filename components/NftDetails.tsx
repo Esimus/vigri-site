@@ -112,6 +112,12 @@ type BuyPayload = {
   activation?: 'claim100' | 'split50' | 'discount100';
 };
 
+function shortAddress(addr?: string | null): string {
+  if (!addr) return '';
+  if (addr.length <= 10) return addr;
+  return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
+}
+
 function BuyPanelMobile(props: {
   item: Item | null;
   designs: Design[];
@@ -158,6 +164,7 @@ function BuyPanelMobile(props: {
                   name="nft-design-mobile"
                   checked={design === d.id}
                   onChange={() => setDesign(d.id)}
+                  style={{ accentColor: 'var(--brand-400)' }}
                 />
                 <span className="text-xs">{d.label}</span>
               </label>
@@ -172,15 +179,15 @@ function BuyPanelMobile(props: {
           <div className="text-xs mb-1">{t('nft.activation.title')}</div>
           <div className="flex flex-col gap-1">
             <label className="inline-flex items-center gap-2">
-              <input type="radio" name="act" checked={act === 'claim100'} onChange={() => setAct('claim100')} />
+              <input type="radio" name="act" checked={act === 'claim100'} onChange={() => setAct('claim100')} style={{ accentColor: 'var(--brand-400)' }} />
               {t('nft.activation.claim100')}
             </label>
             <label className="inline-flex items-center gap-2">
-              <input type="radio" name="act" checked={act === 'split50'} onChange={() => setAct('split50')} />
+              <input type="radio" name="act" checked={act === 'split50'} onChange={() => setAct('split50')} style={{ accentColor: 'var(--brand-400)' }} />
               {t('nft.activation.split50')}
             </label>
             <label className="inline-flex items-center gap-2">
-              <input type="radio" name="act" checked={act === 'discount100'} onChange={() => setAct('discount100')} />
+              <input type="radio" name="act" checked={act === 'discount100'} onChange={() => setAct('discount100')} style={{ accentColor: 'var(--brand-400)' }} />
               {t('nft.activation.discount100')}
             </label>
           </div>
@@ -198,6 +205,7 @@ function BuyPanelMobile(props: {
                 name="physical-mobile"
                 checked={withPhysical === true}
                 onChange={() => setWithPhysical(true)}
+                style={{ accentColor: 'var(--brand-400)' }}
               />
               <span className="text-xs">{t('nft.physical.with')}</span>
             </label>
@@ -207,6 +215,7 @@ function BuyPanelMobile(props: {
                 name="physical-mobile"
                 checked={withPhysical === false}
                 onChange={() => setWithPhysical(false)}
+                style={{ accentColor: 'var(--brand-400)' }}
               />
               <span className="text-xs">{t('nft.physical.without')}</span>
             </label>
@@ -224,6 +233,7 @@ function BuyPanelMobile(props: {
           className="input w-24 text-sm"
           value={qty}
           onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
+          style={{ accentColor: 'var(--brand-400)' }}
         />
       </div>
 
@@ -392,7 +402,7 @@ function ExplainerText({ text }: { text: string }) {
 
 export default function NftDetails({ id }: { id: string }) {
   const { t } = useI18n();
-  const { connected, publicKey, cluster, connection } = usePhantomWallet();
+  const { connected, publicKey, cluster, connection, address, connect, disconnect, } = usePhantomWallet();
 
   // Static catalog metadata for given id
   const meta = NFT_CATALOG[id];
@@ -411,49 +421,63 @@ export default function NftDetails({ id }: { id: string }) {
   const [discEur, setDiscEur] = useState<number>(0);
   const [mintMsg, setMintMsg] = useState<string | null>(null);
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const isConnected = connected && !!address;
+  const walletHref = '/dashboard/nft';
+
   // Summary for this id (from /api/nft/summary)
   type SummaryItem = { id: string; total: number; sold: number; left: number; pct: number };
   type SummaryResp = { ok?: boolean; items?: Array<SummaryItem> };
   const [sum, setSum] = useState<SummaryItem | null>(null);
 
-  async function loadAll() {
-    // 1) NFT list (mock API)
-    const r = await fetch('/api/nft', { cache: 'no-store' });
-    const j: unknown = await r.json().catch(() => ({}));
-    if (r.ok && isNftListResp(j)) {
-      const found = j.items.find((i) => i.id === id) || null;
-      setItem(found);
-
-      // Initial design for Tree on first render
-      if (found?.id !== 'nft-ws-20') {
-        const fromMeta = meta?.designs?.[0]?.id;
-        const fromApi = found?.designs?.[0]?.id;
-        const initial = fromMeta ?? fromApi ?? null;
-        if (initial) setDesign(initial);
-      }
-
-      if (meta?.activationType === 'flex' && found?.userActivation && found.userActivation !== 'fixed') {
-        setAct(found.userActivation);
-      }
-    }
-
-    // 2) Rights
+  async function loadAll(withSpinner = false) {
+    if (withSpinner) setIsLoading(true);
     try {
-      const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
-      const raw: unknown = await rr.json().catch(() => ({}));
-      if (rr.ok && isRightsResp(raw)) {
-        const mine = raw.items.find((x) => x.id === id) || null;
-        setRights(mine);
+      // 1) NFT list (mock API)
+      const r = await fetch('/api/nft', { cache: 'no-store' });
+      const j: unknown = await r.json().catch(() => ({}));
+      if (r.ok && isNftListResp(j)) {
+        const found = j.items.find((i) => i.id === id) || null;
+        setItem(found);
+
+        // Initial design for Tree on first render
+        if (found?.id !== 'nft-ws-20') {
+          const fromMeta = meta?.designs?.[0]?.id;
+          const fromApi = found?.designs?.[0]?.id;
+          const initial = fromMeta ?? fromApi ?? null;
+          if (initial) setDesign(initial);
+        }
+
+        if (meta?.activationType === 'flex' && found?.userActivation && found.userActivation !== 'fixed') {
+          setAct(found.userActivation);
+        }
       } else {
+        setItem(null);
+      }
+
+      // 2) Rights
+      try {
+        const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
+        const raw: unknown = await rr.json().catch(() => ({}));
+        if (rr.ok && isRightsResp(raw)) {
+          const mine = raw.items.find((x) => x.id === id) || null;
+          setRights(mine);
+        } else {
+          setRights(null);
+        }
+      } catch {
         setRights(null);
       }
     } catch {
+      setItem(null);
       setRights(null);
+    } finally {
+      if (withSpinner) setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    void loadAll();
+    void loadAll(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -647,7 +671,7 @@ export default function NftDetails({ id }: { id: string }) {
       return;
     }
     setClaimMsg(`${t('nft.claim.ok')} +${Math.round(j.vigriClaimed).toLocaleString()} VIGRI`);
-    await loadAll();
+    await loadAll(false);
   };
 
   // Discount (mock)
@@ -665,7 +689,7 @@ export default function NftDetails({ id }: { id: string }) {
       return;
     }
     setDiscMsg(`${t('nft.discount.ok')} +${Math.round(j.vigriBought).toLocaleString()} VIGRI @ ${cf.format(j.unitEur)}`);
-    await loadAll();
+    await loadAll(false);
   };
 
   const daysLeft = useMemo(() => {
@@ -676,6 +700,24 @@ export default function NftDetails({ id }: { id: string }) {
   }, [rights?.expiresAt]);
 
   if (!item) {
+    // Пока грузится — показываем скелет
+    if (isLoading) {
+      return (
+        <div className="space-y-2">
+          <Link href="/dashboard/nft" className="link-accent text-sm">
+            {t('nft.details.back')}
+          </Link>
+          <div className="card p-4 md:p-5 space-y-3 animate-pulse">
+            <div className="h-4 w-24 rounded bg-zinc-100/70 dark:bg-zinc-800/70" />
+            <div className="h-3 w-3/4 rounded bg-zinc-100/60 dark:bg-zinc-800/60" />
+            <div className="h-3 w-2/3 rounded bg-zinc-100/60 dark:bg-zinc-800/60" />
+            <div className="h-40 rounded bg-zinc-100/70 dark:bg-zinc-800/70 mt-2" />
+          </div>
+        </div>
+      );
+    }
+
+    // Если загрузка закончилась, а item так и не нашёлся — оставляем Not found
     return (
       <div className="space-y-2">
         <Link href="/dashboard/nft" className="link-accent text-sm">
@@ -729,6 +771,95 @@ export default function NftDetails({ id }: { id: string }) {
 
   return (
     <div className="space-y-4">
+      {/* Wallet */}
+      <div className="card flex items-center justify-between gap-3 px-3 py-2 md:px-4 md:py-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="h-9 w-9 md:h-10 md:w-10 rounded-full grid place-items-center text-lg md:text-xl shadow-lg"
+            style={{
+              background:
+                'radial-gradient(circle at 30% 20%, rgba(110, 231, 183, 0.9), transparent 55%), radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.9), transparent 55%)',
+            }}
+          >
+            <span aria-hidden>◎</span>
+          </div>
+
+          <div className="flex flex-col">
+            <div className="text-[11px] md:text-xs opacity-70">
+              {t('overview.wallet_title')}
+            </div>
+
+            {address ? (
+              <div className="font-mono text-xs md:text-sm tracking-tight">
+                {shortAddress(address)}
+              </div>
+            ) : (
+              <div className="text-xs md:text-sm opacity-70">
+                {t('overview.wallet_disconnected')}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span
+              className={
+                'h-2.5 w-2.5 rounded-full ' +
+                (isConnected
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)]'
+                  : 'bg-zinc-500/60')
+              }
+              aria-hidden
+            />
+            <span className="text-[11px] md:text-xs mr-1">
+              {isConnected
+                ? t('overview.wallet_status_connected')
+                : t('overview.wallet_status_disconnected')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void (isConnected ? disconnect() : connect())}
+              className="relative inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] md:text-xs font-medium shadow-md whitespace-nowrap transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: isConnected
+                  ? 'linear-gradient(135deg, #1d4ed8, #22c55e)'
+                  : 'linear-gradient(135deg, #22c55e, #0ea5e9)',
+                color: '#f9fafb',
+                border: '1px solid rgba(148,163,184,0.6)',
+              }}
+            >
+              <span
+                className="flex h-5 w-5 items-center justify-center rounded-full text-xs"
+                style={{
+                  background: 'rgba(15,23,42,0.2)',
+                  border: '1px solid rgba(148,163,184,0.6)',
+                }}
+              >
+                ◎
+              </span>
+              <span>
+                {isConnected
+                  ? t('overview.wallet_disconnect') ?? 'Disconnect wallet'
+                  : t('overview.wallet_connect')}
+              </span>
+            </button>
+
+            {isConnected && (
+              <Link
+                href={walletHref}
+                className="btn btn-outline !rounded-full !px-3 !py-1 text-[11px] md:text-xs whitespace-nowrap"
+              >
+                {t('overview.wallet_manage')}
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Top nav carousel */}
       <PillCarousel
         back={{ id: 'all', label: t('nft.details.back'), href: '/dashboard/nft' }}
@@ -845,6 +976,7 @@ export default function NftDetails({ id }: { id: string }) {
                           name="nft-design"
                           checked={design === d.id}
                           onChange={() => setDesign(d.id)}
+                          style={{ accentColor: 'var(--brand-400)' }}
                         />
                         <span className="text-xs">{d.label}</span>
                       </label>
@@ -864,6 +996,7 @@ export default function NftDetails({ id }: { id: string }) {
                         name="physical"
                         checked={withPhysical === true}
                         onChange={() => setWithPhysical(true)}
+                        style={{ accentColor: 'var(--brand-400)' }}
                       />
                       <span className="text-xs">{t('nft.physical.with')}</span>
                     </label>
@@ -873,6 +1006,7 @@ export default function NftDetails({ id }: { id: string }) {
                         name="physical"
                         checked={withPhysical === false}
                         onChange={() => setWithPhysical(false)}
+                        style={{ accentColor: 'var(--brand-400)' }}
                       />
                       <span className="text-xs">{t('nft.physical.without')}</span>
                     </label>
