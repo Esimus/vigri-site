@@ -39,6 +39,9 @@
   "nav.terms": "Terms of Use",
   "nav.privacy": "Privacy Policy",
 
+  "accountEmailLabel": "Account email",
+  "accountEmailHint": "To change this address, contact support.",
+
   "activity.buy_vigri": "Bought VIGRI",
   "activity.sell_vigri": "Sold VIGRI",
   "activity.deposit": "Deposit",
@@ -109,6 +112,8 @@
   "common.home": "Home",
   "common.logout": "Выйти",
   "common.currency": "Currency",
+  "common.edit": "Edit",
+  "common.cancel": "Cancel",
 
   "common.cookies.title": "This website uses cookies",
   "common.cookies.body": "We use cookies to improve your experience. By using our site, you agree to the use of cookies in accordance with our Policy.",
@@ -734,6 +739,7 @@
   "profile.form.loading": "Loading profile…",
   "profile.form.loadError": "Failed to load profile",
   "profile.form.saveError": "Save failed",
+  "profile.form.savedHint": "All changes have been saved.",
 
   "profile.form.placeholder.phone": "phone number",
   "profile.form.placeholder.street": "Street, house, apt",
@@ -754,7 +760,17 @@
   "profile.form.photoNote": "follow the terms",
   "profile.form.hint.countryResidence": "Country",
   "profile.form.hint.countryTax": "Country",
-
+  "profile.form.viewHint": "Your profile information",
+  "profile.form.filled": "Filled",
+  "profile.form.personal": "Personal",
+  "profile.form.countries": "Countries",
+  "profile.form.missingValue": "Not provided",
+  "profile.form.missing": "Missing",
+  "profile.form.progress": "Filled",
+  "profile.form.progressOf": "of",
+  "profile.form.editTitle": "Edit profile",
+  "profile.form.editHint": "Fill in your details and save. After saving, the profile will be shown as a card.",
+  
   "lang.en": "English",
   "lang.ru": "Russian",
   "lang.et": "Estonian",

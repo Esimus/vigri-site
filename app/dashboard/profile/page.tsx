@@ -8,15 +8,22 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StepBar } from '@/components/ui/StepBar';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 
+// UI status for badges/progress (3 states)
 type KycState = 'none' | 'pending' | 'approved';
+
+// Raw status that comes from /api/me (DB enum)
+type KycStatusApi = 'none' | 'pending' | 'approved' | 'rejected';
 
 type MeOk = {
   ok: true;
   signedIn: boolean;
-  kyc: boolean | 'none' | 'pending' | 'approved';
+  kyc: KycStatusApi;       // from /api/me
+  kycStatus?: KycStatusApi;
+  profileCompleted?: boolean;
   lum: unknown;
   user?: { id: string; email: string } | null;
 };
+
 type MeFail = { ok: false; error?: string };
 type MeResp = MeOk | MeFail;
 
@@ -35,10 +42,16 @@ export default function ProfilePage() {
   const reloadMe = async () => {
     const r = (await api.me()) as MeResp;
     if (isMeOk(r)) {
-      const k = r.kyc;
+      const status = r.kyc; // KycStatusApi
       let mapped: KycState = 'none';
-      if (k === true || k === 'approved') mapped = 'approved';
-      else if (k === 'pending') mapped = 'pending';
+
+      if (status === 'approved') {
+        mapped = 'approved';
+      } else if (status === 'pending' || status === 'rejected') {
+        // for now "rejected" is shown like "pending" in UI
+        mapped = 'pending';
+      }
+
       setKyc(mapped);
       setLum(Boolean(r.lum));
     }
@@ -56,35 +69,6 @@ export default function ProfilePage() {
         setLum(!lum);
         // опционально можно перечитать me: await reloadMe();
       }
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // DEV helpers for KYC mock
-  const setKycNone = async () => {
-    setBusy(true);
-    try {
-      await api.kyc.reset();
-      await reloadMe();
-    } finally {
-      setBusy(false);
-    }
-  };
-  const setKycPending = async () => {
-    setBusy(true);
-    try {
-      await api.kyc.start();
-      await reloadMe();
-    } finally {
-      setBusy(false);
-    }
-  };
-  const setKycApproved = async () => {
-    setBusy(true);
-    try {
-      await api.kyc.approve();
-      await reloadMe();
     } finally {
       setBusy(false);
     }
@@ -134,22 +118,6 @@ export default function ProfilePage() {
       </div>
 
       <ProfileForm />
-
-      {/* DEV: KYC toggles (mock) */}
-      <div className="rounded-xl border p-3 text-xs space-y-2">
-        <div className="font-medium">Dev: KYC mock</div>
-        <div className="flex flex-wrap gap-2">
-          <button className="rounded-xl border px-3 py-1" onClick={setKycNone} disabled={busy}>
-            Set none
-          </button>
-          <button className="rounded-xl border px-3 py-1" onClick={setKycPending} disabled={busy}>
-            Set pending
-          </button>
-          <button className="rounded-xl border px-3 py-1" onClick={setKycApproved} disabled={busy}>
-            Set approved
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

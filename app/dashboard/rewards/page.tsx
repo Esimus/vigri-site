@@ -4,8 +4,6 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/hooks/useI18n';
 
-type MeResp = { ok: boolean; user?: { id: string; email?: string | null; name?: string | null } };
-
 type BalanceResp = {
   ok: boolean;
   balanceEchoUe: number;
@@ -45,7 +43,6 @@ type LevelsResp = {
   L3: { count: number; users: LevelUser[] };
 };
 
-type OkResp = { ok: true };
 type BindResp = { ok: boolean; boundTo?: string; error?: string };
 
 function isRefStats(x: unknown): x is RefStats {
@@ -53,14 +50,13 @@ function isRefStats(x: unknown): x is RefStats {
   const o = x as Record<string, unknown>;
   return o.ok === true && typeof o.user === 'object' && typeof o.count === 'number';
 }
+
 function isLevels(x: unknown): x is LevelsResp {
   if (typeof x !== 'object' || x === null) return false;
   const o = x as Record<string, unknown>;
   return o.ok === true && typeof o.userId === 'string' && typeof o.L1 === 'object' && typeof o.L2 === 'object' && typeof o.L3 === 'object';
 }
-function isOkResp(v: unknown): v is OkResp {
-  return typeof v === 'object' && v !== null && (v as Record<string, unknown>).ok === true;
-}
+
 function isBindResp(v: unknown): v is BindResp {
   if (typeof v !== 'object' || v === null) return false;
   const o = v as Record<string, unknown>;
@@ -124,45 +120,49 @@ export default function RewardsPage() {
   const [showL2, setShowL2] = useState(false);
   const [showL3, setShowL3] = useState(false);
 
-  const [devBuyStatus, setDevBuyStatus] = useState<'idle' | 'doing' | 'ok' | 'fail'>('idle');
-
-  async function devBuy(tier: string) {
-    setDevBuyStatus('doing');
-    try {
-      const r = await fetch(`/api/nft/claim?tier=${encodeURIComponent(tier)}`, { method: 'POST' });
-      const j: unknown = await r.json().catch(() => ({}));
-      if (!r.ok || !isOkResp(j)) {
-        setDevBuyStatus('fail');
-        return;
-      }
-      setDevBuyStatus('ok');
-      setBindStatus('idle'); // trigger reload
-    } catch {
-      setDevBuyStatus('fail');
-    } finally {
-      setTimeout(() => setDevBuyStatus('idle'), 1000);
-    }
-  }
-
   // resolve me and detect cookie
   useEffect(() => {
     let cancelled = false;
+
+    type MeUser = { id: string; email?: string | null };
+    type MeResp = {
+      ok: boolean;
+      signedIn: boolean;
+      user?: MeUser | null;
+    };
+
     async function resolveUser() {
       const sp = new URLSearchParams(window.location.search);
       const override = sp.get('userId');
+
       if (override) {
+        // dev / support override by URL
         setUserId(override);
       } else {
         try {
-          const r = await fetch('/api/me', { cache: 'no-store' });
-          const j = (await r.json()) as MeResp;
-          if (!cancelled && j.ok && j.user?.id) setUserId(j.user.id);
-        } catch { /* ignore */ }
+          const res = await fetch('/api/me', { cache: 'no-store' });
+          const data = (await res.json().catch(() => ({}))) as Partial<MeResp>;
+
+          if (
+            !cancelled &&
+            res.ok &&
+            data.ok &&
+            data.signedIn &&
+            data.user &&
+            typeof data.user.id === 'string'
+          ) {
+            setUserId(data.user.id);
+          }
+        } catch {
+          // ignore
+        }
       }
+
       setBaseUrl(window.location.origin);
       setRefCookie(readCookie('vigri_ref'));
     }
-    resolveUser();
+
+    void resolveUser();
 
     const onVis = () => setRefCookie(readCookie('vigri_ref'));
     document.addEventListener('visibilitychange', onVis);
@@ -274,14 +274,6 @@ export default function RewardsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-end justify-between gap-3">
-        {!userId && (
-          <div className="text-xs opacity-70">
-            Dev: add <code>?userId=...</code> to preview a specific user
-          </div>
-        )}
-      </div>
-
       {/* Summary */}
       <div className="card p-5">
         {loading ? (
@@ -358,47 +350,6 @@ export default function RewardsPage() {
           </div>
         )}
       </div>
-
-      {userId && (
-        <div className="card p-5">
-          <h2 className="text-sm font-semibold mb-2">DEV · Simulate purchase</h2>
-          <div className="flex flex-wrap gap-8">
-            <div className="space-y-2">
-              <div className="text-xs opacity-60">Base</div>
-              <button
-                disabled={devBuyStatus === 'doing'}
-                onClick={() => devBuy('Base')}
-                className="rounded-lg border px-3 py-1.5 text-sm hover:bg-black/5 disabled:opacity-50"
-              >
-                Buy Base
-              </button>
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs opacity-60">Gold</div>
-              <button
-                disabled={devBuyStatus === 'doing'}
-                onClick={() => devBuy('Gold')}
-                className="rounded-lg border px-3 py-1.5 text-sm hover:bg-black/5 disabled:opacity-50"
-              >
-                Buy Gold
-              </button>
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs opacity-60">Platinum</div>
-              <button
-                disabled={devBuyStatus === 'doing'}
-                onClick={() => devBuy('Platinum')}
-                className="rounded-lg border px-3 py-1.5 text-sm hover:bg-black/5 disabled:opacity-50"
-              >
-                Buy Platinum
-              </button>
-            </div>
-          </div>
-          {devBuyStatus === 'doing' && <div className="mt-2 text-xs opacity-70">Processing…</div>}
-          {devBuyStatus === 'ok' && <div className="mt-2 text-xs text-emerald-700">Done.</div>}
-          {devBuyStatus === 'fail' && <div className="mt-2 text-xs text-rose-700">Failed.</div>}
-        </div>
-      )}
 
       {/* DEV: bind referral from cookie */}
       {userId && refCookie && (

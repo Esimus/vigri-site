@@ -39,6 +39,9 @@
   "nav.terms": "Условия использования",
   "nav.privacy": "Политика конфиденциальности",
 
+  "accountEmailLabel": "Konto e-post",
+  "accountEmailHint": "Selle aadressi muutmiseks palun võta ühendust toega.",
+
   "activity.buy_vigri": "VIGRI ost",
   "activity.sell_vigri": "VIGRI müük",
   "activity.deposit": "Sissemakse",
@@ -109,6 +112,8 @@
   "common.home": "Avaleht",
   "common.logout": "Logi välja",
   "common.currency": "Valuuta",
+  "common.edit": "Muuda",
+  "common.cancel": "Tühista",
 
   "common.cookies.title": "See veebisait kasutab küpsiseid",
   "common.cookies.body": "Kasutame küpsiseid kasutuskogemuse parandamiseks. Veebisaiti kasutades nõustute küpsiste kasutamisega vastavalt meie poliitikale.",
@@ -734,6 +739,7 @@
   "profile.form.loading": "Profiili laadimine…",
   "profile.form.loadError": "Profiili laadimine ebaõnnestus",
   "profile.form.saveError": "Salvestamine ebaõnnestus",
+  "profile.form.savedHint": "Kõik muudatused on salvestatud.",
 
   "profile.form.placeholder.phone": "telefoninumber",
   "profile.form.placeholder.street": "Tänav, maja, korter",
@@ -754,6 +760,16 @@
   "profile.form.photoNote": "järgige tingimusi",
   "profile.form.hint.countryResidence": "Riik",
   "profile.form.hint.countryTax": "Riik",
+  "profile.form.viewHint": "Sinu profiili andmed",
+  "profile.form.filled": "Täidetud",
+  "profile.form.personal": "Isikuandmed",
+  "profile.form.countries": "Riigid",
+  "profile.form.missingValue": "Pole märgitud",
+  "profile.form.missing": "Puudub",
+  "profile.form.progress": "Täidetud",
+  "profile.form.progressOf": "/",
+  "profile.form.editTitle": "Muuda profiili",
+  "profile.form.editHint": "Täida andmed ja salvesta. Pärast salvestamist kuvatakse profiil kaardina.",
 
   "lang.en": "Inglise",
   "lang.ru": "Vene",

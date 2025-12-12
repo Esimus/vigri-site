@@ -38,7 +38,10 @@
   "auth.accept_required": "Чтобы продолжить, необходимо согласиться с условиями.",
   "nav.terms": "Условия использования",
   "nav.privacy": "Политика конфиденциальности",
-  
+
+  "accountEmailLabel": "Email аккаунта",
+  "accountEmailHint": "Изменить этот адрес можно только через поддержку.",
+
   "activity.buy_vigri": "Покупка VIGRI",
   "activity.sell_vigri": "Продажа VIGRI",
   "activity.deposit": "Пополнение",
@@ -109,6 +112,8 @@
   "common.home": "Главная",
   "common.logout": "Выйти",
   "common.currency": "Валюта",
+  "common.edit": "Редактировать",
+  "common.cancel": "Отмена",
 
   "common.cookies.title": "Этот сайт использует файлы cookie",
   "common.cookies.body": "Мы используем файлы cookie для улучшения работы сайта. Используя наш сайт, вы соглашаетесь на использование файлов cookie в соответствии с нашей Политикой.",
@@ -734,6 +739,7 @@
   "profile.form.loading": "Загрузка профиля…",
   "profile.form.loadError": "Не удалось загрузить профиль",
   "profile.form.saveError": "Не удалось сохранить",
+  "profile.form.savedHint": "Все изменения сохранены.",
 
   "profile.form.placeholder.phone": "номер телефона",
   "profile.form.placeholder.street": "Улица, дом, квартира",
@@ -754,6 +760,16 @@
   "profile.form.photoNote": "следуйте условиям",
   "profile.form.hint.countryResidence": "Страна",
   "profile.form.hint.countryTax": "Страна",
+  "profile.form.viewHint": "Информация профиля",
+  "profile.form.filled": "Заполнено",
+  "profile.form.personal": "Личные данные",
+  "profile.form.countries": "Страны",
+  "profile.form.missingValue": "Не указано",
+  "profile.form.missing": "Не заполнено",
+  "profile.form.progress": "Заполнено",
+  "profile.form.progressOf": "из",
+  "profile.form.editTitle": "Редактирование профиля",
+  "profile.form.editHint": "Заполни данные и нажми «Сохранить». После сохранения профиль будет показан как карточка.",
 
   "lang.en": "Английский",
   "lang.ru": "Русский",

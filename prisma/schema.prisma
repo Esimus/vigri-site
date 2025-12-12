@@ -10,7 +10,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// -- Core auth models (Lucia-compatible minimal set)
+enum KycStatus {
+  none
+  pending
+  approved
+  rejected
+}
+
+enum CountryZone {
+  green
+  grey
+  red
+}
 
 model User {
   id            String   @id @default(cuid())
@@ -35,6 +46,15 @@ model User {
   referrerId   String?
   referrer     User?   @relation("UserRef", fields: [referrerId], references: [id])
   referrals    User[]  @relation("UserRef")
+
+  // 1:1 profile (создаётся, когда пользователь впервые заполняет профиль)
+  profile UserProfile?
+
+  // KYC
+  kycStatus      KycStatus   @default(none)
+  kycCountryZone CountryZone?
+  kycUpdatedAt   DateTime?
+  kycNote        String?
 
   @@index([referrerId])
 }
@@ -132,4 +152,31 @@ model EchoLog {
   @@index([userId, kind])
   @@index([action])
   @@index([sourceId])
+}
+
+model UserProfile {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName        String
+  middleName       String?
+  lastName         String
+  birthDate        DateTime?
+  phone            String?
+  countryResidence String?  // ISO country code
+  countryTax       String?  // ISO tax residence
+  addressStreet    String?
+  addressRegion    String?
+  addressCity      String?
+  addressPostal    String?
+  language         String?  // en / ru / et
+
+  // Avatar — храним, например, URL
+  photo     String?
+
+  // Estonian personal ID code (если countryResidence = "EE")
+  isikukood String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
