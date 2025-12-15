@@ -6,6 +6,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { COUNTRIES, Country } from '@/constants/countries';
+import { buildProfileCountryOptions } from '@/constants/amlAnnexA';
+
+const PROFILE_COUNTRIES = buildProfileCountryOptions(COUNTRIES);
 
 type Props = {
   label?: string;
@@ -35,14 +38,14 @@ export function CountrySelect({
   const searchRef = useRef<HTMLInputElement>(null);
 
   const selected = useMemo<Country | undefined>(
-    () => COUNTRIES.find((c) => c.code === value),
+    () => PROFILE_COUNTRIES.find((c) => c.code === value),
     [value]
   );
 
   const options = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return COUNTRIES;
-    return COUNTRIES.filter(
+    if (!q) return PROFILE_COUNTRIES;
+    return PROFILE_COUNTRIES.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.code.toLowerCase().includes(q)

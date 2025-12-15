@@ -1,6 +1,18 @@
 // app/api/nft/route.ts
 import { NextResponse } from 'next/server';
 import { getCookie } from '@/lib/cookies';
+import { prisma } from '@/lib/prisma';
+import { SESSION_COOKIE } from '@/lib/session';
+import { resolveAmlZone } from '@/constants/amlAnnexA';
+import type {
+  Session,
+  User,
+  UserProfile,
+  KycStatus,
+  CountryZone as DbCountryZone,
+} from '@prisma/client';
+
+export const runtime = 'nodejs';
 
 /** ---- Types ---- */
 type Design = { id: string; label: string; rarity?: number };
@@ -16,10 +28,10 @@ type Nft = {
   designs: Design[];
   // New fields
   tier: 'tree' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'ws';
-  discountPct: number;            // 0..0.50 (0 allowed for Tree/Steel)
+  discountPct: number; // 0..0.50 (0 allowed for Tree/Steel)
   activationType: 'flex' | 'fixed' | 'none';
-  fixedClaimPct?: number;         // for fixed (gold/platinum/tree)
-  fixedDiscountPct?: number;      // for fixed
+  fixedClaimPct?: number; // for fixed (gold/platinum/tree)
+  fixedDiscountPct?: number; // for fixed
   /** i18n keys for compact feature list (rendered on the catalog grid) */
   summaryKeys?: string[];
 };
@@ -32,7 +44,6 @@ type State = {
   designs?: Record<string, Record<string, number>>;
   upgrades?: Record<string, { rare: number; ultra: number }>;
   activation?: Record<string, ActivationKind>;
-  lum?: boolean;
   expires?: Record<string, string>;
   minted?: Record<string, number>;
 };
@@ -45,6 +56,7 @@ type RespItem = Nft & {
   upgrades?: { rare: number; ultra: number };
   expiresAt?: string | null;
   minted?: number;
+  kycRequiredEffective?: boolean;
   onchain?: {
     tierId: number;
     priceSol: number;
@@ -55,12 +67,18 @@ type RespItem = Nft & {
 
 function tierToOnchainId(tier: Nft['tier']): number | null {
   switch (tier) {
-    case 'tree':      return 0;
-    case 'bronze':    return 1;
-    case 'silver':    return 2;
-    case 'gold':      return 3;
-    case 'platinum':  return 4;
-    case 'ws':        return 5;
+    case 'tree':
+      return 0;
+    case 'bronze':
+      return 1;
+    case 'silver':
+      return 2;
+    case 'gold':
+      return 3;
+    case 'platinum':
+      return 4;
+    case 'ws':
+      return 5;
     default:
       return null;
   }
@@ -70,6 +88,87 @@ const TGE_PRICE_EUR = 0.0008;
 const COOKIE = 'vigri_nfts';
 const COOKIE_WS_INVITED = 'vigri_ws_invited';
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
+/** ---- AML helpers (DB-backed) ---- */
+type KycState = KycStatus;
+type CountryZone = DbCountryZone;
+
+type DbSession = Pick<Session, 'userId' | 'idleExpires'>;
+type DbUserWithProfile = User & { profile: UserProfile | null };
+
+function zoneFromAml(code: string | null | undefined): CountryZone | null {
+  const z = resolveAmlZone(code);
+  if (z === 'unknown') return null;
+  return z; // 'green' | 'grey' | 'red'
+}
+
+function worstZone(a: CountryZone | null, b: CountryZone | null): CountryZone | null {
+  if (a === 'red' || b === 'red') return 'red';
+  if (a === 'grey' || b === 'grey') return 'grey';
+  if (a === 'green' || b === 'green') return 'green';
+  return null;
+}
+
+// Worst-of-two: citizenship + residence (more restrictive wins)
+function resolveCountryZoneFromProfile(
+  citizenship: string | null | undefined,
+  residence: string | null | undefined,
+  tax: string | null | undefined,
+): CountryZone | null {
+  const z1 = zoneFromAml(citizenship);
+  const z2 = zoneFromAml(residence);
+  const z3 = zoneFromAml(tax);
+  return worstZone(worstZone(z1, z2), z3);
+}
+
+async function loadKycContext(sessionId: string): Promise<{
+  kycStatus: KycState;
+  zone: CountryZone | null;
+  isEe: boolean;
+}> {
+
+  const session = (await prisma.session
+    .findUnique({
+      where: { id: sessionId },
+      select: { userId: true, idleExpires: true },
+    })
+    .catch(() => null)) as DbSession | null;
+
+  if (!session) return { kycStatus: 'none', zone: null, isEe: false };
+
+  const now = BigInt(Date.now());
+  if (session.idleExpires <= now) return { kycStatus: 'none', zone: null, isEe: false };
+
+  const user = (await prisma.user
+    .findUnique({
+      where: { id: session.userId },
+      include: { profile: true },
+    })
+    .catch(() => null)) as DbUserWithProfile | null;
+
+  if (!user) return { kycStatus: 'none', zone: null, isEe: false };
+  
+  const isEe =
+    (user.profile?.countryCitizenship ?? '').toUpperCase() === 'EE' &&
+    (user.profile?.countryResidence ?? '').toUpperCase() === 'EE' &&
+    (user.profile?.countryTax ?? '').toUpperCase() === 'EE';
+
+  const profileZone = resolveCountryZoneFromProfile(
+    user.profile?.countryCitizenship ?? null,
+    user.profile?.countryResidence ?? null,
+    user.profile?.countryTax ?? null,
+  );
+
+  // While KYC is not started: follow live profile zone.
+  // After KYC started: never allow profile edits to weaken AML (use worst of snapshot + live).
+  const dbZone = (user.kycCountryZone ?? null) as CountryZone | null;
+  const zone =
+    user.kycStatus === 'none'
+      ? profileZone
+      : worstZone(dbZone, profileZone);
+
+    return { kycStatus: user.kycStatus, zone, isEe };
+}
 
 /** ---- Helpers ---- */
 const eurToVigri = (eur: number) => Math.round(eur / TGE_PRICE_EUR);
@@ -104,7 +203,6 @@ async function readState(): Promise<State> {
       designs: (p.designs ?? {}) as Record<string, Record<string, number>>,
       upgrades: (p.upgrades ?? {}) as Record<string, { rare: number; ultra: number }>,
       activation: (p.activation ?? {}) as Record<string, ActivationKind>,
-      lum: Boolean(p.lum),
       expires: (p.expires ?? {}) as Record<string, string>,
       minted: (p.minted ?? {}) as Record<string, number>,
     };
@@ -136,7 +234,7 @@ const CATALOG: Nft[] = [
     vigriPrice: eurToVigri(50),
     blurb: 'Symbolic entry tier.',
     designs: [
-      { id: 'tree-wood',  label: 'Wood'  },
+      { id: 'tree-wood', label: 'Wood' },
       { id: 'tree-steel', label: 'Steel' },
     ],
     kycRequired: false,
@@ -229,13 +327,13 @@ const CATALOG: Nft[] = [
       { id: 'gold-b', label: 'Design B' },
     ],
     kycRequired: true,
-    limited: 100,         // <-- added
+    limited: 100,
     vesting: 'Vesting',
     tier: 'gold',
-    discountPct: 0.40,
+    discountPct: 0.4,
     activationType: 'none',
-    fixedClaimPct: 0.30,
-    fixedDiscountPct: 0.70,
+    fixedClaimPct: 0.3,
+    fixedDiscountPct: 0.7,
     summaryKeys: [
       'nft.summary.gold_0',
       'nft.summary.gold_1',
@@ -261,13 +359,13 @@ const CATALOG: Nft[] = [
       { id: 'platinum-b', label: 'Design B' },
     ],
     kycRequired: true,
-    limited: 20,          // <-- added
+    limited: 20,
     vesting: 'Vesting',
     tier: 'platinum',
-    discountPct: 0.50,
+    discountPct: 0.5,
     activationType: 'none',
-    fixedClaimPct: 0.20,
-    fixedDiscountPct: 0.80,
+    fixedClaimPct: 0.2,
+    fixedDiscountPct: 0.8,
     summaryKeys: [
       'nft.summary.platinum_0',
       'nft.summary.platinum_1',
@@ -293,7 +391,7 @@ const CATALOG: Nft[] = [
     limited: 20,
     vesting: null,
     tier: 'ws',
-    discountPct: 0.50,
+    discountPct: 0.5,
     activationType: 'none',
     summaryKeys: [
       'nft.summary.ws20_0',
@@ -319,8 +417,8 @@ function drawUpgrade(tier: Nft['tier']): 'none' | 'rare' | 'ultra' {
 
 /** ---- GET ---- */
 export async function GET() {
-  const session = await getCookie('vigri_session');
-  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+  const sessionId = await getCookie(SESSION_COOKIE);
+  if (!sessionId) return NextResponse.json({ ok: false }, { status: 401 });
 
   const invited = (await getCookie(COOKIE_WS_INVITED)) === '1';
   const s = await readState();
@@ -328,28 +426,28 @@ export async function GET() {
   const presaleTiers = await loadPresaleTiers();
 
   const items: RespItem[] = CATALOG.map((n) => {
-  const tierId = tierToOnchainId(n.tier);
-  const t = tierId !== null ? presaleTiers.get(tierId) : undefined;
+    const tierId = tierToOnchainId(n.tier);
+    const t = tierId !== null ? presaleTiers.get(tierId) : undefined;
 
-  const base: RespItem = {
-    ...n,
-    invited: n.id === 'nft-ws-20' ? invited : undefined,
-    ownedQty: s.bag[n.id] || 0,
-    ownedDesigns: s.designs?.[n.id] || {},
-    userActivation: s.activation?.[n.id] ?? null,
-    upgrades: s.upgrades?.[n.id] || { rare: 0, ultra: 0 },
-    expiresAt: s.expires?.[n.id] ?? null,
-    minted: s.minted?.[n.id] || 0,
-  };
+    const base: RespItem = {
+      ...n,
+      invited: n.id === 'nft-ws-20' ? invited : undefined,
+      ownedQty: s.bag[n.id] || 0,
+      ownedDesigns: s.designs?.[n.id] || {},
+      userActivation: s.activation?.[n.id] ?? null,
+      upgrades: s.upgrades?.[n.id] || { rare: 0, ultra: 0 },
+      expiresAt: s.expires?.[n.id] ?? null,
+      minted: s.minted?.[n.id] || 0,
+    };
 
-  if (t && tierId !== null) {
-  base.onchain = {
-    tierId,
-    priceSol: isFiniteNumber(t.priceSol) ? t.priceSol : 0,
-    supplyTotal: isFiniteNumber(t.supplyTotal) ? t.supplyTotal : 0,
-    supplyMinted: isFiniteNumber(t.supplyMinted) ? t.supplyMinted : 0,
-  };
-  }
+    if (t && tierId !== null) {
+      base.onchain = {
+        tierId,
+        priceSol: isFiniteNumber(t.priceSol) ? t.priceSol : 0,
+        supplyTotal: isFiniteNumber(t.supplyTotal) ? t.supplyTotal : 0,
+        supplyMinted: isFiniteNumber(t.supplyMinted) ? t.supplyMinted : 0,
+      };
+    }
     return base;
   });
 
@@ -362,29 +460,47 @@ type PostBody = {
   qty?: number;
   designId?: string;
   activation?: ActivationKind;
-  optInLumiros?: boolean;
 };
 
 export async function POST(req: Request) {
-  const session = await getCookie('vigri_session');
-  if (!session) return NextResponse.json({ ok: false }, { status: 401 });
+  const sessionId = await getCookie(SESSION_COOKIE);
+  if (!sessionId) return NextResponse.json({ ok: false }, { status: 401 });
 
   let bodyUnknown: unknown = {};
-  try { bodyUnknown = await req.json(); } catch {}
+  try {
+    bodyUnknown = await req.json();
+  } catch {}
   const body = bodyUnknown as PostBody;
 
   const id = String(body?.id || '');
   const qty = Math.max(1, Math.min(100, Math.floor(Number(body?.qty) || 1)));
   const designId = typeof body?.designId === 'string' ? body.designId : undefined;
   const activation: ActivationKind | undefined = body?.activation;
-  const optInLumiros: boolean = Boolean(body?.optInLumiros);
 
   const item = CATALOG.find((x) => x.id === id);
   if (!item) return NextResponse.json({ ok: false, error: 'Unknown NFT' }, { status: 400 });
 
-  const kRaw = await getCookie('vigri_kyc');
-  const kyc = (kRaw ?? 'none') as 'none' | 'pending' | 'approved' | 'rejected';
-  if (item.kycRequired && kyc !== 'approved') {
+  // ---- AML / KYC enforcement (DB-backed) ----
+  const ctx = await loadKycContext(sessionId);
+
+  // If we can't determine zone (empty profile / legacy data) => block
+  if (!ctx.zone) {
+    return NextResponse.json({ ok: false, error: 'KYC country missing' }, { status: 403 });
+  }
+
+  if (ctx.zone === 'red') {
+    return NextResponse.json({ ok: false, error: 'Country blocked' }, { status: 403 });
+  }
+
+  // grey => always require approved KYC (even for Tree/Bronze)
+  let effectiveKycRequired = Boolean(item.kycRequired) || ctx.zone === 'grey';
+
+  // Estonia exception: if overall zone is green and any of 3 countries is EE, Silver is allowed without KYC
+  if (item.id === 'nft-silver' && ctx.zone === 'green' && ctx.isEe) {
+    effectiveKycRequired = false;
+  }
+
+  if (effectiveKycRequired && ctx.kycStatus !== 'approved') {
     return NextResponse.json({ ok: false, error: 'KYC required' }, { status: 403 });
   }
 
@@ -451,8 +567,6 @@ export async function POST(req: Request) {
     s.minted[id] += qty;
   }
 
-  if (optInLumiros) s.lum = true;
-
   const res = writeState(s);
   return NextResponse.json(
     {
@@ -492,8 +606,7 @@ async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
     // Internal server-to-server call: always hit the Node app directly,
     // bypassing nginx/basic auth on the public domain.
     const base =
-      typeof process.env.INTERNAL_API_BASE === 'string' &&
-      process.env.INTERNAL_API_BASE.length > 0
+      typeof process.env.INTERNAL_API_BASE === 'string' && process.env.INTERNAL_API_BASE.length > 0
         ? process.env.INTERNAL_API_BASE
         : 'http://127.0.0.1:3000';
 

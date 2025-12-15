@@ -57,7 +57,9 @@ export default function DashboardKycBanner() {
         {/* readable fallbacks if translations are missing */}
         ⚠ {text}: <b>{status}</b>. {hint}
       </div>
-      <Link href="/kyc" className="btn btn-outline ml-3">{start}</Link>
+      <Link href="/dashboard/profile#kyc" className="btn btn-outline ml-3">
+        {start}
+      </Link>
     </div>
   );
 }

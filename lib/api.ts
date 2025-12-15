@@ -74,6 +74,7 @@ export type Profile = {
   phone?: string;
 
   countryResidence?: string; // ISO alpha-2
+  countryCitizenship?: string; // ISO alpha-2 (citizenship / passport)
   countryTax?: string; // ISO alpha-2
 
   addressStreet?: string;
@@ -91,22 +92,17 @@ class ApiClient {
       ApiResponse<{
         signedIn: boolean;
         kyc: boolean | 'none' | 'pending' | 'approved';
-        lum: unknown;
         user?: { id: string; email: string } | null;
         profile?: Profile;
       }>
     >('/api/me', 'GET');
   }
 
-  setLum(lum: boolean) {
-    return request<ApiResponse<Empty>>('/api/me', 'POST', { lum });
-  }
-
   profile = {
     async get() {
       const r = await request<ApiResponse<{ profile?: Profile }>>('/api/me', 'GET');
       if ('ok' in r && r.ok === true) {
-        return { ok: true, profile: r.profile ?? {} as Profile } satisfies ApiOk<{ profile: Profile }>;
+        return { ok: true, profile: (r.profile ?? {}) as Profile } satisfies ApiOk<{ profile: Profile }>;
       }
       return r as ApiFail;
     },
@@ -120,8 +116,7 @@ class ApiClient {
       const r = await request<ApiResponse<{ kyc: boolean | 'none' | 'pending' | 'approved' }>>('/api/me', 'GET');
       if (!('ok' in r) || !r.ok) return r as ApiFail;
       const v = r.kyc;
-      const normalized: 'none' | 'pending' | 'approved' =
-        v === true ? 'approved' : v === false ? 'none' : v;
+      const normalized: 'none' | 'pending' | 'approved' = v === true ? 'approved' : v === false ? 'none' : v;
       return { ok: true, status: normalized } as ApiOk<{ status: 'none' | 'pending' | 'approved' }>;
     },
     start() {

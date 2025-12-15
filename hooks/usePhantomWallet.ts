@@ -97,7 +97,7 @@ export function usePhantomWallet(): WalletState {
 
     try {
       setConnecting(true);
-      const res = await provider.connect();
+      const res = await provider.connect({ onlyIfTrusted: false });
       const pubkey: PublicKey = res.publicKey;
       const addr = pubkey.toBase58();
       setPublicKey(pubkey);
@@ -118,7 +118,10 @@ export function usePhantomWallet(): WalletState {
     setError(null);
 
     const provider = getPhantomProvider();
-    if (!provider) return;
+    if (!provider) {
+      setError('Phantom wallet not found');
+      return;
+    }
 
     try {
       await provider.disconnect();

@@ -1,7 +1,7 @@
 // components/profile/ProfileForm.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent, ReactNode } from 'react';
 import type { Profile } from '@/lib/api';
 import { api } from '@/lib/api';
@@ -9,6 +9,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { CountrySelect } from '@/components/ui/CountrySelect';
 import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import { PHONE_CODES, getDialByCountry, getIsoByDial, formatLocalByIso } from '@/constants/phoneCodes';
+import { resolveAmlZone } from '@/constants/amlAnnexA';
 
 /** Narrow utility types to avoid `any` */
 type Empty = Record<string, never>;
@@ -18,6 +19,7 @@ type GetProfileResp = ApiOk<{ profile: Partial<Profile> & { phone?: string; coun
 type SaveProfileResp = ApiOk | ApiErr;
 
 type Mode = 'view' | 'edit';
+type ProfileX = Profile & { isikukood?: string | null };
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
@@ -37,7 +39,56 @@ function isSaveProfileResp(v: unknown): v is SaveProfileResp {
   return hasOkFlag(v);
 }
 
-const EMPTY: Profile = {
+type CountryZone = 'green' | 'grey' | 'red' | null;
+type KycStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
+type MeResp =
+  | {
+      ok: true;
+      signedIn: boolean;
+      kycStatus: KycStatus;
+      kycCountryZone: CountryZone;
+      profileCompleted: boolean;
+      profile?: {
+        countryResidence?: string;
+        countryCitizenship?: string;
+        countryTax?: string;
+      };
+    }
+  | { ok: false; signedIn?: boolean; error?: string };
+
+type KycResp = { ok: true; status: KycStatus } | { ok: false; error?: string };
+
+function isMeResp(v: unknown): v is MeResp {
+  return hasOkFlag(v);
+}
+function isKycResp(v: unknown): v is KycResp {
+  return hasOkFlag(v);
+}
+
+type KycGetResp =
+  | {
+      ok: true;
+      status: KycStatus;
+      data: null | {
+        pepDeclared: boolean | null;
+        pepDetails: string | null;
+        consent: boolean | null;
+        passportNumber: string | null;
+        passportCountry: string | null;
+        passportIssuedAt: string | null;
+        passportExpiresAt: string | null;
+        passportIssuer: string | null;
+        documentImage: string | null;
+      };
+    }
+  | { ok: false; error?: string };
+
+function isKycGetResp(v: unknown): v is KycGetResp {
+  return hasOkFlag(v);
+}
+
+const EMPTY: ProfileX = {
   firstName: '',
   middleName: '',
   lastName: '',
@@ -45,12 +96,14 @@ const EMPTY: Profile = {
   birthDate: '',
   phone: '',
   countryResidence: '',
+  countryCitizenship: '',
   countryTax: '',
   addressStreet: '',
   addressRegion: '',
   addressCity: '',
   addressPostal: '',
   photo: null as unknown as Profile['photo'],
+  isikukood: '',
 };
 
 function Req({ children }: { children: ReactNode }) {
@@ -91,8 +144,28 @@ function splitPhone(full?: string): { code: string; local: string } {
   return { code: '', local: s };
 }
 
-function isProfileComplete(p: Profile): boolean {
-  return Boolean(p.firstName && p.lastName && p.birthDate && p.addressCity && p.countryResidence);
+function isProfileComplete(p: ProfileX): boolean {
+  return Boolean(
+    p.firstName &&
+    p.lastName &&
+    p.birthDate &&
+    p.addressCity &&
+    p.countryResidence &&
+    p.countryCitizenship &&
+    p.countryTax
+  );
+}
+
+function isProfileEmpty(p: ProfileX): boolean {
+  return !(
+    p.firstName ||
+    p.lastName ||
+    p.birthDate ||
+    p.addressCity ||
+    p.countryResidence ||
+    p.countryCitizenship ||
+    p.countryTax
+  );
 }
 
 function safeCountryName(code: string, lang: string): string {
@@ -217,18 +290,21 @@ function clamp01(n: number): number {
 }
 
 export function ProfileForm() {
-  const { t } = useI18n();
+  const { t, lang: uiLang } = useI18n();
 
   // Translation helper: fallback if i18n returns the key itself
-  const tr = (key: string, fallback: string) => {
-    const v = t(key);
-    return v && v !== key ? v : fallback;
-  };
+  const tr = useCallback(
+    (key: string, fallback: string) => {
+      const v = t(key);
+      return v && v !== key ? v : fallback;
+    },
+    [t],
+  );
 
-  const [mode, setMode] = useState<Mode>('edit');
+  const [mode, setMode] = useState<Mode>('view');
 
-  const [data, setData] = useState<Profile>(EMPTY);
-  const [initial, setInitial] = useState<Profile>(EMPTY);
+  const [data, setData] = useState<ProfileX>(EMPTY);
+  const [initial, setInitial] = useState<ProfileX>(EMPTY);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -239,6 +315,141 @@ export function ProfileForm() {
   const [showSavedBanner, setShowSavedBanner] = useState(false);
 
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
+
+  const [kycBusy, setKycBusy] = useState(false);
+  const [kycErr, setKycErr] = useState<string | null>(null);
+
+  // KYC form (base)
+  const [pepDeclared, setPepDeclared] = useState<boolean | null>(null);
+  const [pepDetails, setPepDetails] = useState<string>('');
+  const [kycConsent, setKycConsent] = useState<boolean>(false);
+
+  // KYC form (extra for Gold/Platinum, non-EE)
+  const [passportNumber, setPassportNumber] = useState<string>('');
+  const [passportCountry, setPassportCountry] = useState<string>('');
+  const [passportIssuedAt, setPassportIssuedAt] = useState<string>('');   // YYYY-MM-DD
+  const [passportExpiresAt, setPassportExpiresAt] = useState<string>(''); // YYYY-MM-DD
+  const [passportIssuer, setPassportIssuer] = useState<string>('');
+  const [documentImage, setDocumentImage] = useState<string | null>(null);
+
+  const [signedIn, setSignedIn] = useState(false);
+  const [meProfileCompleted, setMeProfileCompleted] = useState(false);
+  const [meZone, setMeZone] = useState<CountryZone>(null);
+  const [meKycStatus, setMeKycStatus] = useState<KycStatus>('none');
+  const [meCountryCode, setMeCountryCode] = useState<string>('');
+
+  const loadMe = useCallback(async () => {
+    const res = await fetch('/api/me', { cache: 'no-store' });
+    const raw: unknown = await res.json().catch(() => ({}));
+
+    if (!res.ok || !isMeResp(raw) || !raw.ok) {
+      setSignedIn(false);
+      setMeProfileCompleted(false);
+      setMeZone(null);
+      setMeKycStatus('none');
+      setMeCountryCode('');
+      return;
+    }
+
+    setSignedIn(Boolean(raw.signedIn));
+    setMeProfileCompleted(Boolean(raw.profileCompleted));
+    setMeZone(raw.kycCountryZone ?? null);
+    setMeKycStatus(raw.kycStatus ?? 'none');
+
+    const cc = (raw.profile?.countryResidence ?? raw.profile?.countryCitizenship ?? raw.profile?.countryTax ?? '').toUpperCase();
+    setMeCountryCode(cc);
+  }, []);
+
+  const loadKycData = useCallback(async () => {
+    try {
+      const res = await fetch('/api/kyc', { cache: 'no-store' });
+      const raw: unknown = await res.json().catch(() => ({}));
+      if (!res.ok || !isKycGetResp(raw) || !raw.ok) return;
+
+      const d = raw.data;
+      if (!d) return;
+
+      setPepDeclared(d.pepDeclared ?? null);
+      setPepDetails(d.pepDetails ?? '');
+      setKycConsent(d.consent === true);
+
+      setPassportNumber(d.passportNumber ?? '');
+      setPassportCountry(d.passportCountry ?? '');
+      setPassportIssuedAt(d.passportIssuedAt ? String(d.passportIssuedAt).slice(0, 10) : '');
+      setPassportExpiresAt(d.passportExpiresAt ? String(d.passportExpiresAt).slice(0, 10) : '');
+      setPassportIssuer(d.passportIssuer ?? '');
+      setDocumentImage(d.documentImage ?? null);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setKycErr(null);
+        await loadMe();
+      } catch (e: unknown) {
+        setKycErr(e instanceof Error ? e.message : tr('kyc.loadError', 'Failed to load KYC state.'));
+      }
+    })();
+  }, [loadMe, tr]);
+
+    useEffect(() => {
+    if (!signedIn) return;
+    void loadKycData();
+  }, [signedIn, loadKycData]);
+
+  const submitKyc = useCallback(async () => {
+    setKycBusy(true);
+    setKycErr(null);
+
+    try {
+      const res = await fetch('/api/kyc', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          status: 'pending' satisfies KycStatus,
+          pepDeclared,
+          pepDetails,
+          consent: kycConsent,
+          passportNumber,
+          passportCountry,
+          passportIssuedAt,
+          passportExpiresAt,
+          passportIssuer,
+          documentImage,
+        }),
+      });
+
+      const raw: unknown = await res.json().catch(() => ({}));
+      if (!res.ok || !isKycResp(raw) || !raw.ok) {
+        setKycErr(tr('kyc.submitError', 'Failed to submit KYC.'));
+        return;
+      }
+
+      setMeKycStatus(raw.status);
+      await loadMe();
+      await loadKycData();
+    } catch (e: unknown) {
+      setKycErr(e instanceof Error ? e.message : tr('kyc.submitError', 'Failed to submit KYC.'));
+    } finally {
+      setKycBusy(false);
+    }
+      }, [
+        loadMe,
+        loadKycData,
+        tr,
+        pepDeclared,
+        pepDetails,
+        kycConsent,
+        passportNumber,
+        passportCountry,
+        passportIssuedAt,
+        passportExpiresAt,
+        passportIssuer,
+        documentImage,
+      ]);
 
   // phone UI
   const [phoneCode, setPhoneCode] = useState<string>('');
@@ -254,7 +465,7 @@ export function ProfileForm() {
     return iso || '';
   }, [data.countryResidence, phoneCode]);
 
-  const syncPhoneFromProfile = (p: Profile) => {
+  const syncPhoneFromProfile = (p: ProfileX) => {
     const parts = splitPhone(p.phone);
     const iso = p.countryResidence || getIsoByDial(parts.code);
     const dial = parts.code || (p.countryResidence ? getDialByCountry(p.countryResidence) : '');
@@ -292,50 +503,50 @@ export function ProfileForm() {
     return () => window.clearTimeout(timer);
   }, [mode, focusId]);
 
-  // LOAD PROFILE ONCE
+  const profileLoadedRef = useRef(false);
+  
   useEffect(() => {
-    (async () => {
-      try {
-        const raw = (await api.profile.get()) as unknown;
+  if (profileLoadedRef.current) return;
+  profileLoadedRef.current = true;
 
-        if (isGetProfileResp(raw) && raw.ok) {
-          setError(null);
+  (async () => {
+    try {
+      const raw = (await api.profile.get()) as unknown;
 
-          const prof = { ...EMPTY, ...raw.profile };
+      if (isGetProfileResp(raw) && raw.ok) {
+        setError(null);
 
-          // legacy `country` fallback if present
-          const legacyCountry = (() => {
-            const p = (raw as { profile?: unknown }).profile;
-            return isObject(p) && typeof (p as { country?: unknown }).country === 'string'
-              ? (p as { country: string }).country
-              : undefined;
-          })();
-          if (!prof.countryResidence && legacyCountry) {
-            prof.countryResidence = legacyCountry;
-          }
+        const prof = { ...EMPTY, ...raw.profile };
 
-          if (prof.birthDate) prof.birthDate = normalizeDate(prof.birthDate);
-          if (!prof.language) prof.language = 'en';
+        const legacyCountry = (() => {
+          const p = (raw as { profile?: unknown }).profile;
+          return isObject(p) && typeof (p as { country?: unknown }).country === 'string'
+            ? (p as { country: string }).country
+            : undefined;
+        })();
 
-          setData(prof);
-          setInitial(prof);
+        if (!prof.countryResidence && legacyCountry) prof.countryResidence = legacyCountry;
 
-          syncPhoneFromProfile(prof);
+        if (prof.birthDate) prof.birthDate = normalizeDate(prof.birthDate);
+        if (!prof.language) prof.language = 'en';
 
-          setMode(isProfileComplete(prof) ? 'view' : 'edit');
-        } else {
-          setError(tr('profile.form.loadError', 'Failed to load profile.'));
-          setMode('edit');
-        }
-      } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : tr('profile.form.loadError', 'Failed to load profile.'));
-        setMode('edit');
-      } finally {
-        setLoading(false);
+        setData(prof);
+        setInitial(prof);
+        syncPhoneFromProfile(prof);
+
+        setMode((prev) => (prev === 'edit' ? 'edit' : (isProfileEmpty(prof) ? 'edit' : 'view')));
+      } else {
+        setError(tr('profile.form.loadError', 'Failed to load profile.'));
+        setMode((prev) => prev);
       }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : tr('profile.form.loadError', 'Failed to load profile.'));
+      setMode((prev) => prev);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [tr]);
 
   // LOAD ACCOUNT EMAIL ONCE (from /api/me)
   useEffect(() => {
@@ -383,9 +594,9 @@ export function ProfileForm() {
       setData((d) => ({ ...d, [key]: val } as Profile));
     };
 
-  const setField = <K extends keyof Profile>(key: K, value: Profile[K]) => {
+  const setField = <K extends keyof ProfileX>(key: K, value: ProfileX[K]) => {
     setSaved(false);
-    setData((d) => ({ ...d, [key]: value } as Profile));
+    setData((d) => ({ ...d, [key]: value } as ProfileX));
   };
 
   // phone handlers
@@ -431,7 +642,17 @@ export function ProfileForm() {
     setSaved(false);
 
     try {
-      if (!data.firstName || !data.lastName || !data.birthDate || !data.addressCity || !data.countryResidence) {
+      if (
+        !data.firstName ||
+        !data.lastName ||
+        !data.birthDate ||
+        !data.addressCity ||
+        !data.countryResidence ||
+        !data.countryCitizenship ||
+        !data.countryTax || 
+        (data.countryResidence === 'EE' && !data.isikukood)
+      ) {
+
         setError(tr('profile.form.saveError', 'Failed to save profile.') + ' (required fields missing)');
         setSaving(false);
         return;
@@ -463,6 +684,35 @@ export function ProfileForm() {
     }
   };
 
+    const liveZone = useMemo(() => {
+      const r = resolveAmlZone((data.countryResidence || '').trim());
+      const c = resolveAmlZone((data.countryCitizenship || '').trim());
+      const t = resolveAmlZone((data.countryTax || '').trim());
+
+      const worst =
+        r === 'red' || c === 'red' || t === 'red'
+          ? 'red'
+          : r === 'grey' || c === 'grey' || t === 'grey'
+            ? 'grey'
+            : r === 'green' || c === 'green' || t === 'green'
+              ? 'green'
+              : 'unknown';
+
+      return worst === 'unknown' ? null : worst;
+    }, [data.countryResidence, data.countryCitizenship, data.countryTax]);
+
+    const effectiveZone = liveZone ?? meZone;
+    
+    const canSubmitKyc =
+      signedIn &&
+      effectiveZone !== 'red' &&
+      meProfileCompleted &&
+      meKycStatus === 'none' &&
+      kycConsent === true &&
+      pepDeclared !== null &&
+      (pepDeclared === false || pepDetails.trim().length > 0) &&
+      (data.countryResidence !== 'EE' || Boolean(data.isikukood));
+
   if (loading) {
     return (
       <div className="rounded-2xl border bg-[var(--card)] shadow p-4 text-sm">
@@ -471,9 +721,9 @@ export function ProfileForm() {
     );
   }
 
-  const lang = (data.language || 'en').toLowerCase();
-  const countryResidenceName = data.countryResidence ? safeCountryName(data.countryResidence, lang) : '';
-  const countryTaxName = data.countryTax ? safeCountryName(data.countryTax, lang) : '';
+  const countryResidenceName = data.countryResidence ? safeCountryName(data.countryResidence, uiLang) : '';
+  const countryCitizenshipName = data.countryCitizenship ? safeCountryName(data.countryCitizenship, uiLang) : '';
+  const countryTaxName = data.countryTax ? safeCountryName(data.countryTax, uiLang) : '';
   const photoUrl = extractPhotoUrl(data.photo);
 
   // ===== Progress model =====
@@ -483,13 +733,14 @@ export function ProfileForm() {
     lastName: Boolean(data.lastName),
     birthDate: Boolean(data.birthDate),
     countryResidence: Boolean(data.countryResidence),
+    countryCitizenship: Boolean(data.countryCitizenship),
+    countryTax: Boolean(data.countryTax),
     addressCity: Boolean(data.addressCity),
   };
 
   const optional = {
     phone: Boolean(data.phone),
     photo: Boolean(photoUrl),
-    countryTax: Boolean(data.countryTax),
     addressStreet: Boolean(data.addressStreet),
     addressRegion: Boolean(data.addressRegion),
     addressPostal: Boolean(data.addressPostal),
@@ -500,10 +751,11 @@ export function ProfileForm() {
     required.lastName,
     required.birthDate,
     required.countryResidence,
+    required.countryCitizenship,
+    required.countryTax,
     required.addressCity,
     optional.phone,
     optional.photo,
-    optional.countryTax,
     optional.addressStreet,
     optional.addressRegion,
     optional.addressPostal,
@@ -518,6 +770,7 @@ export function ProfileForm() {
   const miss = {
     photo: !photoUrl,
     phone: !data.phone,
+    countryCitizenship: !data.countryCitizenship,
     countryTax: !data.countryTax,
     addressStreet: !data.addressStreet,
     addressRegion: !data.addressRegion,
@@ -528,11 +781,11 @@ export function ProfileForm() {
     avatarDone: optional.photo ? 1 : 0,
     avatarTotal: 1,
 
-    personalDone: [required.birthDate, Boolean(data.language), optional.phone].filter(Boolean).length,
-    personalTotal: 3,
+    personalDone: [required.firstName, required.lastName, required.birthDate, optional.phone].filter(Boolean).length,
+    personalTotal: 4,
 
-    countriesDone: [required.countryResidence, optional.countryTax].filter(Boolean).length,
-    countriesTotal: 2,
+    countriesDone: [required.countryResidence, required.countryCitizenship, required.countryTax].filter(Boolean).length,
+    countriesTotal: 3,
 
     addressDone: [optional.addressStreet, optional.addressRegion, required.addressCity, optional.addressPostal].filter(Boolean).length,
     addressTotal: 4,
@@ -641,6 +894,12 @@ export function ProfileForm() {
                   <div className="space-y-2">
                     <ViewRow label={tr('profile.form.birthDate', 'Birth date')} value={data.birthDate || '—'} mono nowrap />
                     <ViewRow
+                      label={tr('profile.form.isikukood', 'Personal ID code (EE)')}
+                      value={data.isikukood ? data.isikukood : '—'}
+                      mono
+                      nowrap
+                    />
+                    <ViewRow
                       label={tr('profile.form.languagePreferred', 'Language')}
                       value={languageLabel(data.language || 'en', tr)}
                       nowrap
@@ -670,6 +929,14 @@ export function ProfileForm() {
                       label={tr('profile.form.countryResidence', 'Residence')}
                       value={countryResidenceName || '—'}
                       nowrap
+                    />
+                    <ViewRow
+                      label={tr('profile.form.countryCitizenship', 'Citizenship / passport')}
+                      value={countryCitizenshipName ? countryCitizenshipName : t('profile.form.missingValue')}
+                      missing={miss.countryCitizenship}
+                      nowrap
+                      onMissingClick={() => goEditAndFocus('pf-countryCitizenship')}
+                      missingText={t('profile.form.missing')}
                     />
                     <ViewRow
                       label={tr('profile.form.countryTax', 'Tax')}
@@ -837,17 +1104,76 @@ export function ProfileForm() {
                     placeholder={tr('profile.form.hint.countryResidence', 'Select country')}
                     className="w-full"
                   />
+                  {Boolean(data.countryResidence) && (
+                    <button
+                      type="button"
+                      className="mt-1 text-xs underline opacity-70"
+                      onClick={() => setField('countryResidence', '')}
+                      disabled={saving}
+                    >
+                      {tr('common.clear', 'Clear')}
+                    </button>
+                  )}
+                </div>
+
+                <div className="min-w-0" id="pf-countryCitizenship">
+                  <CountrySelect
+                    label={tr('profile.form.countryCitizenship', 'Citizenship / passport')}
+                    required
+                    value={data.countryCitizenship ?? ''}
+                    onChange={(code) => setField('countryCitizenship', code as Profile['countryCitizenship'])}
+                    placeholder={tr('profile.form.hint.countryCitizenship', 'Select country')}
+                    className="w-full"
+                  />
+                  {Boolean(data.countryCitizenship) && (
+                    <button
+                      type="button"
+                      className="mt-1 text-xs underline opacity-70"
+                      onClick={() => setField('countryCitizenship', '')}
+                      disabled={saving}
+                    >
+                      {tr('common.clear', 'Clear')}
+                    </button>
+                  )}
                 </div>
 
                 <div className="min-w-0" id="pf-countryTax">
                   <CountrySelect
                     label={tr('profile.form.countryTax', 'Country of tax residence')}
+                    required
                     value={data.countryTax ?? ''}
                     onChange={(code) => setField('countryTax', code as Profile['countryTax'])}
                     placeholder={tr('profile.form.hint.countryTax', 'Select country')}
                     className="w-full"
                   />
+                  {Boolean(data.countryTax) && (
+                    <button
+                      type="button"
+                      className="mt-1 text-xs underline opacity-70"
+                      onClick={() => setField('countryTax', '')}
+                      disabled={saving}
+                    >
+                      {tr('common.clear', 'Clear')}
+                    </button>
+                  )}
                 </div>
+
+                {data.countryResidence === 'EE' && (
+                  <label className="label min-w-0">
+                    <span>
+                      <Req>{tr('profile.form.isikukood', 'Personal code (EE)')}</Req>
+                    </span>
+                    <input
+                      id="pf-isikukood"
+                      className="input w-full font-mono"
+                      value={data.isikukood ?? ''}
+                      onChange={(e) => setField('isikukood', e.target.value)}
+                      disabled={saving}
+                      inputMode="numeric"
+                      placeholder="XXXXXXXXXXX"
+                    />
+                  </label>
+                )}
 
                 <label className="label md:col-span-full min-w-0">
                   <span>{tr('profile.form.addressStreet', 'Street')}</span>
@@ -981,6 +1307,234 @@ export function ProfileForm() {
           </div>
         </form>
       )}
+
+        <div className="card p-4 text-sm space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-medium">KYC</div>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Pill tone={signedIn ? 'ok' : 'warn'}>
+                  {signedIn ? tr('kyc.signedIn', 'Signed in') : tr('kyc.notSignedIn', 'Not signed in')}
+                </Pill>
+
+                <Pill tone={effectiveZone === 'green' ? 'ok' : effectiveZone === 'grey' || effectiveZone === 'red' ? 'warn' : 'info'}>
+                  {meCountryCode ? `${meCountryCode} · ${effectiveZone ?? tr('kyc.zoneUnknown', 'Unknown zone')}` : (effectiveZone ?? tr('kyc.zoneUnknown', 'Unknown zone'))}
+                </Pill>
+
+                <Pill tone={meKycStatus === 'approved' ? 'ok' : meKycStatus === 'pending' ? 'warn' : 'info'}>
+                  {tr('kyc.status', 'Status')}: <span className="ml-1 font-medium">{meKycStatus}</span>
+                </Pill>
+              </div>
+            </div>
+
+            {data.countryResidence ? (
+              <Pill tone="info">
+                {data.countryResidence.toUpperCase()} · {countryResidenceName}
+              </Pill>
+            ) : (
+              <Pill tone="warn">{tr('profile.form.hint.countryResidence', 'Select country')}</Pill>
+            )}
+          </div>
+
+          {!signedIn && (
+            <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/20 dark:text-amber-100 p-4 text-sm">
+              <div className="font-medium">{tr('kyc.needSignIn', 'Please sign in to continue.')}</div>
+              <div className="mt-2 text-xs opacity-80">{tr('kyc.needSignInHint', 'Open Dashboard and sign in, then return here.')}</div>
+            </div>
+          )}
+
+          {signedIn && effectiveZone === 'red' && (
+            <div className="rounded-2xl border border-rose-300/70 bg-rose-50/80 text-rose-900 dark:border-rose-500/35 dark:bg-rose-950/20 dark:text-rose-100 p-4 text-sm">
+              {tr('kyc.redBlocked', 'KYC is not available for your current zone via this flow.')}
+            </div>
+          )}
+
+          {signedIn && effectiveZone !== 'red' && !meProfileCompleted && (
+            <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/20 dark:text-amber-100 p-4 text-sm">
+              <div>{tr('kyc.profileRequired', 'Complete your Profile first (required fields), then submit KYC.')}</div>
+            </div>
+          )}
+
+          {signedIn && effectiveZone !== 'red' && meProfileCompleted && (
+            <div className="space-y-3">
+              <div className="card p-4 text-sm space-y-2">
+
+                <div className="card p-4 text-sm space-y-3">
+                  <div className="font-medium">{tr('kyc.formTitle', 'KYC details')}</div>
+
+                  <div className="space-y-2">
+                    <div className="text-xs opacity-70">{tr('kyc.pepLabel', 'Are you (or close relatives) connected to government / politics / state-owned companies?')}</div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="pepDeclared"
+                          className="accent-blue-600"
+                          checked={pepDeclared === false}
+                          onChange={() => setPepDeclared(false)}
+                          disabled={kycBusy || meKycStatus !== 'none'}
+                        />
+                        <span className="text-sm">{tr('common.no', 'No')}</span>
+                      </label>
+
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="pepDeclared"
+                          className="accent-blue-600"
+                          checked={pepDeclared === true}
+                          onChange={() => setPepDeclared(true)}
+                          disabled={kycBusy || meKycStatus !== 'none'}
+                        />
+                        <span className="text-sm">{tr('common.yes', 'Yes')}</span>
+                      </label>
+                    </div>
+
+                    {pepDeclared === true && (
+                      <label className="label">
+                        <span className="text-xs opacity-70">{tr('kyc.pepDetails', 'Please describe who and the role (country, position, dates).')}</span>
+                        <textarea
+                          className="textarea w-full min-h-[96px]"
+                          value={pepDetails}
+                          onChange={(e) => setPepDetails(e.target.value)}
+                          disabled={kycBusy || meKycStatus !== 'none'}
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                  <label className="inline-flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      className="accent-blue-600"
+                      checked={kycConsent}
+                      onChange={(e) => setKycConsent(e.target.checked)}
+                      disabled={kycBusy || meKycStatus !== 'none'}
+                    />
+                    <span className="text-sm">
+                      {tr('kyc.consent', 'I confirm the data is true and I consent to verification.')}
+                    </span>
+                  </label>
+                  
+                  {data.countryResidence !== 'EE' && (
+                    <div className="mt-2 rounded-2xl border border-[color:var(--border)] bg-[var(--card)] p-3 space-y-3">
+                      <div className="text-sm font-medium">
+                        {tr('kyc.passportTitle', 'Passport & document')}
+                        <span className="ml-2 text-xs opacity-70">
+                          {tr('kyc.passportHint', 'Required for Gold/Platinum (non-EE).')}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:[grid-template-columns:repeat(auto-fit,minmax(220px,1fr))] gap-3">
+                        <label className="label">
+                          <span>{tr('kyc.passportNumber', 'Passport number')}</span>
+                          <input
+                            className="input w-full font-mono"
+                            value={passportNumber}
+                            onChange={(e) => setPassportNumber(e.target.value)}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                        </label>
+
+                        <label className="label">
+                          <span>{tr('kyc.passportCountry', 'Issuing country')}</span>
+                          <input
+                            className="input w-full font-mono"
+                            placeholder="EE / DE / FR ..."
+                            value={passportCountry}
+                            onChange={(e) => setPassportCountry(e.target.value.toUpperCase())}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                        </label>
+
+                        <label className="label">
+                          <span>{tr('kyc.passportIssuedAt', 'Issued date')}</span>
+                          <input
+                            type="date"
+                            className="input w-full font-mono"
+                            value={passportIssuedAt}
+                            onChange={(e) => setPassportIssuedAt(e.target.value)}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                        </label>
+
+                        <label className="label">
+                          <span>{tr('kyc.passportExpiresAt', 'Expiry date')}</span>
+                          <input
+                            type="date"
+                            className="input w-full font-mono"
+                            value={passportExpiresAt}
+                            onChange={(e) => setPassportExpiresAt(e.target.value)}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                        </label>
+
+                        <label className="label md:col-span-full">
+                          <span>{tr('kyc.passportIssuer', 'Issued by')}</span>
+                          <input
+                            className="input w-full"
+                            value={passportIssuer}
+                            onChange={(e) => setPassportIssuer(e.target.value)}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="pt-1">
+                        <AvatarUploader
+                          label={tr('kyc.documentUpload', 'Upload document image')}
+                          value={documentImage}
+                          onChange={setDocumentImage}
+                          size={768}
+                          maxKB={350}
+                          note={tr('kyc.documentNote', 'Photo/scan. This is stored for verification.')}
+                          uploadText={tr('common.upload', 'Upload')}
+                          resetText={tr('common.reset', 'Reset')}
+                          disabled={kycBusy || meKycStatus !== 'none'}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="font-medium">{tr('kyc.stepsTitle', 'Process')}</div>
+                <ol className="list-decimal pl-5 space-y-1 opacity-80">
+                  <li>{tr('kyc.step1', 'Submit KYC request')}</li>
+                  <li>{tr('kyc.step2', 'Upload documents and pass checks')}</li>
+                  <li>{tr('kyc.step3', 'Manual review → approval')}</li>
+                </ol>
+              </div>
+
+              {meKycStatus === 'none' && (
+                <button type="button" className="btn btn-primary" onClick={submitKyc} disabled={!canSubmitKyc || kycBusy}>
+                  {kycBusy ? tr('kyc.submitting', 'Submitting...') : tr('kyc.submit', 'Submit KYC (set to pending)')}
+                </button>
+              )}
+
+              {meKycStatus === 'pending' && (
+                <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/20 dark:text-amber-100 p-4 text-sm">
+                  {tr('kyc.pendingHint', 'Your request is pending review.')}
+                </div>
+              )}
+
+              {meKycStatus === 'approved' && (
+                <div className="rounded-2xl border border-emerald-300/70 bg-emerald-50/80 text-emerald-900 dark:border-emerald-500/35 dark:bg-emerald-950/20 dark:text-emerald-100 p-4 text-sm">
+                  ✅ {tr('kyc.approvedHint', 'KYC approved.')}
+                </div>
+              )}
+
+              {meKycStatus === 'rejected' && (
+                <div className="rounded-2xl border border-rose-300/70 bg-rose-50/80 text-rose-900 dark:border-rose-500/35 dark:bg-rose-950/20 dark:text-rose-100 p-4 text-sm">
+                  {tr('kyc.rejectedHint', 'KYC rejected.')}
+                </div>
+              )}
+            </div>
+          )}
+
+          {kycErr && <div className="text-sm text-red-600">{kycErr}</div>}
+      </div>
     </div>
   );
 }

@@ -53,6 +53,7 @@ model User {
   // KYC
   kycStatus      KycStatus   @default(none)
   kycCountryZone CountryZone?
+  kycData        KycData?
   kycUpdatedAt   DateTime?
   kycNote        String?
 
@@ -164,6 +165,7 @@ model UserProfile {
   birthDate        DateTime?
   phone            String?
   countryResidence String?  // ISO country code
+  countryCitizenship String? // ISO country code (citizenship / passport)
   countryTax       String?  // ISO tax residence
   addressStreet    String?
   addressRegion    String?
@@ -176,6 +178,29 @@ model UserProfile {
 
   // Estonian personal ID code (если countryResidence = "EE")
   isikukood String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model KycData {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Base KYC (always collected)
+  pepDeclared Boolean?
+  pepDetails  String?
+  consent     Boolean?
+
+  // Passport (required later for Gold/Platinum, except EE)
+  passportNumber    String?
+  passportCountry   String?
+  passportIssuedAt  DateTime?
+  passportExpiresAt DateTime?
+  passportIssuer    String?
+
+  // Document upload (temporary: store as dataURL, like avatar)
+  documentImage String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

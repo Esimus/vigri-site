@@ -1,4 +1,3 @@
-
 // constants/countries.ts
 // Full ISO 3166-1 alpha-2 country list (code + English name)
 export type Country = { code: string; name: string };

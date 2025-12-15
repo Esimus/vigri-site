@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { presaleRemainingMs, formatRemaining } from '@/lib/config';
 import SalesBar from '@/components/ui/SalesBar';
+import { resolveAmlZone } from '@/constants/amlAnnexA';
 
 type Item = {
   id: string;
@@ -56,11 +57,7 @@ type SummaryResp = { ok: true; items: SummaryItem[] };
 function isSummaryItem(x: unknown): x is SummaryItem {
   if (!x || typeof x !== 'object') return false;
   const o = x as Record<string, unknown>;
-  return (
-    typeof o.id === 'string' &&
-    typeof o.total === 'number' &&
-    typeof o.sold === 'number'
-  );
+  return typeof o.id === 'string' && typeof o.total === 'number' && typeof o.sold === 'number';
 }
 
 function isSummaryResp(x: unknown): x is SummaryResp {
@@ -71,14 +68,27 @@ function isSummaryResp(x: unknown): x is SummaryResp {
   return o.items.every(isSummaryItem);
 }
 
+type CountryZone = 'green' | 'grey' | 'red' | null;
+
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+function isZone(v: unknown): v is CountryZone {
+  return v === 'green' || v === 'grey' || v === 'red' || v === null;
+}
+
+function asCountryCode(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return s.length === 2 ? s : null;
+}
+
 /** Compact presale countdown: 4 cells (D/H/M/S). */
 function usePresaleCountdown() {
   const [tick, setTick] = useState(() => formatRemaining(presaleRemainingMs()));
   useEffect(() => {
-    const id = setInterval(
-      () => setTick(formatRemaining(presaleRemainingMs())),
-      1000,
-    );
+    const id = setInterval(() => setTick(formatRemaining(presaleRemainingMs())), 1000);
     return () => clearInterval(id);
   }, []);
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -96,8 +106,71 @@ export default function NftList() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
+  // AML zone from /api/me (fallback: compute from profile countries)
+  const [zone, setZone] = useState<CountryZone>(null);
+  const [isEe, setIsEe] = useState(false);
+
+  // small i18n helper with fallback
+  const tr = (key: string, fallback: string) => {
+    const v = t(key);
+    return v && v !== key ? v : fallback;
+  };
+
   // Two-stage load: fast catalog, then slower summary/indicators
   const load = async () => {
+    // also read /api/me once (cheap)
+    void (async () => {
+      try {
+        const res = await fetch('/api/me', { cache: 'no-store' });
+        const raw: unknown = await res.json().catch(() => ({}));
+        if (!isObject(raw) || raw.ok !== true) return;
+
+        // 1) Prefer server-calculated zone (only if non-null)
+const zRaw = isObject(raw) ? (raw as Record<string, unknown>)['kycCountryZone'] : undefined;
+if (isZone(zRaw) && zRaw !== null) {
+  setZone(zRaw);
+
+  const pRaw2 = isObject(raw) ? (raw as Record<string, unknown>)['profile'] : undefined;
+  if (isObject(pRaw2)) {
+    const p2 = pRaw2 as Record<string, unknown>;
+    const r2 = asCountryCode(p2['countryResidence'])?.toUpperCase() ?? null;
+    const c2 = asCountryCode(p2['countryCitizenship'])?.toUpperCase() ?? null;
+    const tx2 = asCountryCode(p2['countryTax'])?.toUpperCase() ?? null;
+    setIsEe(r2 === 'EE' && c2 === 'EE' && tx2 === 'EE');
+  }
+
+  return;
+}
+
+// 2) Fallback: compute from profile (worst of 3)
+const pRaw = isObject(raw) ? (raw as Record<string, unknown>)['profile'] : undefined;
+if (!isObject(pRaw)) return;
+
+const p = pRaw as Record<string, unknown>;
+const r0 = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
+const c0 = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
+const tx0 = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
+setIsEe([r0, c0, tx0].includes('EE'));
+
+const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
+const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
+const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
+setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
+
+// IMPORTANT: do NOT pass '' into AML resolver; use null
+const zones = [r, c, tx].map((x) => resolveAmlZone(typeof x === 'string' ? x : null));
+const z2: CountryZone =
+  zones.includes('red') ? 'red' :
+  zones.includes('grey') ? 'grey' :
+  zones.includes('green') ? 'green' : null;
+
+setZone(z2);
+
+      } catch {
+        // ignore
+      }
+    })();
+
     // 1) Fast stage: base catalog from API
     const r = await api.nft.list();
     if (!r.ok) {
@@ -136,9 +209,7 @@ export default function NftList() {
 
       return src.map((i) => {
         const s = byId.get(i.id);
-        return s
-          ? { ...i, _sum: { total: s.total, sold: s.sold }, minted: s.sold }
-          : i;
+        return s ? { ...i, _sum: { total: s.total, sold: s.sold }, minted: s.sold } : i;
       });
     });
   };
@@ -162,10 +233,7 @@ export default function NftList() {
   const skeletonCards = (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
       {Array.from({ length: 6 }).map((_, idx) => (
-        <div
-          key={idx}
-          className="card p-3 md:p-4 flex flex-col rounded-2xl animate-pulse"
-        >
+        <div key={idx} className="card p-3 md:p-4 flex flex-col rounded-2xl animate-pulse">
           <div
             className="relative w-full mb-3 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/70"
             style={{ aspectRatio: '3 / 4' }}
@@ -192,6 +260,11 @@ export default function NftList() {
             const src = `/images/nft/${pngNameFor(i.id)}`;
             const showCountdown = presale.isPresale && i.id !== 'nft-ws-20';
 
+            // AML overrides for UI badges (server should enforce too)
+            const blockedByAml = zone === 'red';
+            let effectiveKycRequired = Boolean(i.kycRequired) || zone === 'grey';
+            if (i.id === 'nft-silver' && zone === 'green' && isEe) effectiveKycRequired = false;
+
             // Availability: prefer on-chain values; fallback to summary/catalog
             const onchainTotal = i.onchain?.supplyTotal;
             const onchainSold = i.onchain?.supplyMinted;
@@ -205,41 +278,28 @@ export default function NftList() {
                     ? i.limited || 0
                     : 0;
 
-            const soldFromSummary =
-              typeof i._sum?.sold === 'number' ? i._sum.sold : 0;
+            const soldFromSummary = typeof i._sum?.sold === 'number' ? i._sum.sold : 0;
             const soldLocal = Math.min(i.minted || 0, total);
 
             const sold =
-              typeof onchainSold === 'number' && onchainSold >= 0
-                ? onchainSold
-                : Math.max(soldFromSummary, soldLocal);
+              typeof onchainSold === 'number' && onchainSold >= 0 ? onchainSold : Math.max(soldFromSummary, soldLocal);
 
             const pct = total > 0 ? Math.round((sold / total) * 100) : 0;
             const showAvailability = i.id !== 'nft-ws-20' && total > 0;
 
-            const solPrice =
-              typeof i.onchain?.priceSol === 'number'
-                ? i.onchain.priceSol
-                : null;
+            const solPrice = typeof i.onchain?.priceSol === 'number' ? i.onchain.priceSol : null;
 
             const keys = Array.isArray(i.summaryKeys) ? i.summaryKeys : [];
             const hasResume = keys.length > 0;
             const resumeKey = hasResume ? keys[keys.length - 1] : undefined;
             const featureKeys = hasResume ? keys.slice(0, keys.length - 1) : [];
 
-            const progressColor =
-              pct > 70 ? '#EF4444' : pct >= 30 ? '#F59E0B' : '#10B981';
+            const progressColor = pct > 70 ? '#EF4444' : pct >= 30 ? '#F59E0B' : '#10B981';
 
             return (
-              <div
-                key={i.id}
-                className="card p-3 md:p-4 flex flex-col rounded-2xl"
-              >
+              <div key={i.id} className="card p-3 md:p-4 flex flex-col rounded-2xl">
                 {/* Preview with overlays */}
-                <div
-                  className="relative w-full mb-3"
-                  style={{ aspectRatio: '3 / 4' }}
-                >
+                <div className="relative w-full mb-3" style={{ aspectRatio: '3 / 4' }}>
                   <Image
                     src={src}
                     alt={i.name}
@@ -269,16 +329,9 @@ export default function NftList() {
                           { v: presale.m, l: t('nft.timer.m') },
                           { v: presale.s, l: t('nft.timer.s') },
                         ].map(({ v, l }) => (
-                          <div
-                            key={l}
-                            className="flex flex-col items-center leading-none drop-shadow"
-                          >
-                            <div className="text-[11px] font-semibold tabular-nums">
-                              {v}
-                            </div>
-                            <div className="text-[8px] font-light opacity-90 leading-[0.95]">
-                              {l}
-                            </div>
+                          <div key={l} className="flex flex-col items-center leading-none drop-shadow">
+                            <div className="text-[11px] font-semibold tabular-nums">{v}</div>
+                            <div className="text-[8px] font-light opacity-90 leading-[0.95]">{l}</div>
                           </div>
                         ))}
                       </div>
@@ -288,9 +341,7 @@ export default function NftList() {
 
                 {/* Title row + total */}
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="font-semibold text-sm md:text-base">
-                    {i.name}
-                  </div>
+                  <div className="font-semibold text-sm md:text-base">{i.name}</div>
                   {typeof total === 'number' && total > 0 && (
                     <div className="chip shrink-0" title={t('nft.total')}>
                       {t('nft.total')}: {total}
@@ -311,9 +362,7 @@ export default function NftList() {
                     }
                   >
                     <summary className="cursor-pointer select-none text-[11px] md:text-xs opacity-80 underline underline-offset-4">
-                      {expanded[i.id]
-                        ? t('nft.hide') ?? 'Hide features'
-                        : t('nft.show') ?? 'Show features'}
+                      {expanded[i.id] ? t('nft.hide') ?? 'Hide features' : t('nft.show') ?? 'Show features'}
                     </summary>
                     <ul className="mt-2 text-[10px] md:text-xs opacity-80 list-disc pl-4 space-y-1">
                       {featureKeys.map((k, idx) => (
@@ -322,17 +371,11 @@ export default function NftList() {
                     </ul>
                   </details>
                 ) : (
-                  <div className="text-xs md:text-sm opacity-70 mb-2">
-                    {i.blurb}
-                  </div>
+                  <div className="text-xs md:text-sm opacity-70 mb-2">{i.blurb}</div>
                 )}
 
                 {/* Short resume (💬) */}
-                {resumeKey && (
-                  <div className="text-[11px] md:text-xs opacity-80 mb-2">
-                    {t(resumeKey)}
-                  </div>
-                )}
+                {resumeKey && <div className="text-[11px] md:text-xs opacity-80 mb-2">{t(resumeKey)}</div>}
 
                 {/* Price + after-date pill */}
                 {(() => {
@@ -340,33 +383,18 @@ export default function NftList() {
                   const hasEur = i.eurPrice > 0;
 
                   if (!hasSol && !hasEur) {
-                    return (
-                      <div className="text-xs md:text-sm opacity-70 mb-2">
-                        {t('nft.badge.invite')}
-                      </div>
-                    );
+                    return <div className="text-xs md:text-sm opacity-70 mb-2">{t('nft.badge.invite')}</div>;
                   }
 
                   return (
                     <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
                       <div>
-                        {t('nft.price')}:{" "}
-                        {hasSol ? (
-                          <b>{solPrice} SOL</b>
-                        ) : (
-                          <span className="opacity-70">—</span>
-                        )}
+                        {t('nft.price')}: {hasSol ? <b>{solPrice} SOL</b> : <span className="opacity-70">—</span>}
                         {hasSol && hasEur && (
-                          <span className="ml-2 text-[11px] opacity-70">
-                            ≈ {cf.format(i.eurPrice)} (presale reference)
-                          </span>
+                          <span className="ml-2 text-[11px] opacity-70">≈ {cf.format(i.eurPrice)} (presale reference)</span>
                         )}
                       </div>
-                      {hasSol && (
-                        <span className="chip">
-                          {t('nft.after')}
-                        </span>
-                      )}
+                      {hasSol && <span className="chip">{t('nft.after')}</span>}
                     </div>
                   );
                 })()}
@@ -374,48 +402,38 @@ export default function NftList() {
                 {/* Availability (global summary) */}
                 {showAvailability && (
                   <div className="space-y-1.5 mb-3">
-                    <div className="text-[11px] md:text-xs opacity-80">
-                      {t('nft.availability')}
-                    </div>
-                    <SalesBar
-                      t={t}
-                      limited={total}
-                      minted={sold}
-                      progressColor={progressColor}
-                    />
+                    <div className="text-[11px] md:text-xs opacity-80">{t('nft.availability')}</div>
+                    <SalesBar t={t} limited={total} minted={sold} progressColor={progressColor} />
                   </div>
                 )}
 
                 {/* Meta chips */}
                 <div className="flex flex-wrap gap-2 text-[10px] md:text-xs opacity-70 mb-3">
-                  {i.kycRequired && (
-                    <span
-                      className="chip"
-                      title={t('nft.kyc')}
-                      aria-label="KYC"
-                    >
+                  {blockedByAml && (
+                    <span className="chip" title={tr('nft.amlBlocked', 'Blocked by AML')} aria-label="AML blocked">
+                      ⛔ {tr('nft.amlBlocked', 'Blocked')}
+                    </span>
+                  )}
+
+                  {effectiveKycRequired && (
+                    <span className="chip" title={t('nft.kyc')} aria-label="KYC">
                       🔒 {t('nft.kyc')}
                     </span>
                   )}
+
                   {(i.eurPrice <= 0 || i.id === 'nft-ws-20') && (
-                    <span
-                      className="chip"
-                      title={t('nft.badge.invite')}
-                      aria-label="Invite"
-                    >
+                    <span className="chip" title={t('nft.badge.invite')} aria-label="Invite">
                       🔑 {t('nft.badge.invite')}
                     </span>
                   )}
+
                   <span className="chip" title={i.vesting || 'No vesting'}>
                     {t('nft.vesting')}: {i.vesting ? t('nft.yes') : t('nft.no')}
                   </span>
                 </div>
 
                 <div className="mt-auto">
-                  <Link
-                    href={`/dashboard/nft/${i.id}`}
-                    className="btn btn-outline w-full justify-center rounded-2xl"
-                  >
+                  <Link href={`/dashboard/nft/${i.id}`} className="btn btn-outline w-full justify-center rounded-2xl">
                     {t('nft.details')}
                   </Link>
                 </div>

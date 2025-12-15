@@ -10,7 +10,7 @@ import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
 import SalesBar from '@/components/ui/SalesBar';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
 import { Transaction, SystemProgram } from '@solana/web3.js';
-
+import { resolveAmlZone } from '@/constants/amlAnnexA';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -74,6 +74,19 @@ function getPhantomProviderClient(): PhantomProviderLike | null {
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
 }
+
+type CountryZone = 'green' | 'grey' | 'red' | null;
+
+function isZone(v: unknown): v is CountryZone {
+  return v === 'green' || v === 'grey' || v === 'red' || v === null;
+}
+
+function asCountryCode(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return s.length === 2 ? s : null;
+}
+
 function isNftListResp(v: unknown): v is NftListResp {
   return isObject(v) && v.ok === true && Array.isArray(v.items);
 }
@@ -90,6 +103,48 @@ function isDiscountResp(v: unknown): v is DiscountResp {
     typeof v.vigriBought === 'number' &&
     typeof v.unitEur === 'number'
   );
+}
+
+type KycStatus = 'none' | 'pending' | 'approved' | 'rejected';
+type AmlZone = 'green' | 'grey' | 'red' | 'unknown';
+
+function normalizeKyc(v: unknown): KycStatus {
+  if (v === true) return 'approved';
+  if (v === false) return 'none';
+  if (typeof v === 'string') {
+    const s = v.toLowerCase();
+    if (s === 'approved' || s === 'pending' || s === 'none' || s === 'rejected') return s as KycStatus;
+  }
+  return 'none';
+}
+
+function normalizeZone(v: unknown): AmlZone {
+  if (typeof v !== 'string') return 'unknown';
+  const s = v.toLowerCase();
+  if (s === 'grey' || s === 'gray') return 'grey';
+  if (s === 'red' || s === 'black' || s === 'blocked') return 'red';
+  if (s === 'green' || s === 'allowed' || s === 'white') return 'green';
+  return 'unknown';
+}
+
+function pickAmlZoneFromMe(json: unknown): { zone: AmlZone; limitSol: number | null } {
+  if (!isObject(json)) return { zone: 'unknown', limitSol: null };
+
+  // поддерживаем разные формы, чтобы не зависеть от конкретной реализации /api/me
+  const aml = (json as { aml?: unknown }).aml;
+  const zone =
+    normalizeZone(
+      (isObject(aml) ? (aml as { zone?: unknown }).zone : undefined) ??
+      (json as { amlZone?: unknown }).amlZone ??
+      (json as { zone?: unknown }).zone
+    );
+
+  const limitSol =
+    isObject(aml) && typeof (aml as { maxSol?: unknown }).maxSol === 'number'
+      ? (aml as { maxSol: number }).maxSol
+      : null;
+
+  return { zone, limitSol };
 }
 
 // Fallback PNG name from /public/images/nft/
@@ -132,14 +187,19 @@ function BuyPanelMobile(props: {
   setWithPhysical: (v: boolean) => void;
   onBuy: () => void;
   t: ReturnType<typeof useI18n>['t'];
+  purchaseBlocked: boolean;
+  amlReason?: string | null;
   solPrice: number | null;
 }) {
+  
   const {
     item, designs, design, setDesign,
     activationType, act, setAct,
     qty, setQty, withPhysical, setWithPhysical,
     onBuy, t,
     solPrice,
+    purchaseBlocked,
+    amlReason,
   } = props;
 
   if (!item) return null;
@@ -247,7 +307,17 @@ function BuyPanelMobile(props: {
               ≈ {item.eurPrice.toFixed(0)}€ (presale reference)
             </div>
           )}
-          <button className="btn btn-outline mt-2" onClick={onBuy}>
+          <button
+            className={
+              "btn btn-outline mt-2 " + (purchaseBlocked ? "opacity-50 cursor-not-allowed" : "")
+            }
+            onClick={() => {
+              if (purchaseBlocked) return;
+              onBuy();
+            }}
+            disabled={purchaseBlocked}
+            title={purchaseBlocked ? (amlReason ?? '') : undefined}
+          >
             {t('nft.buy')}
           </button>
         </div>
@@ -277,8 +347,10 @@ function DetailsCard(props: {
   meta: DetailsMeta;
   featureLines: string[];
   solPrice: number | null;
+  effectiveKycRequired?: boolean;
+  blockedByAml?: boolean;
   }) {
-  const { t, title, blurb, meta, featureLines, solPrice } = props;
+  const { t, title, blurb, meta, featureLines, solPrice, effectiveKycRequired, blockedByAml } = props;
   const isWS = meta?.tier === 'ws';
 
   const hasSol = typeof solPrice === 'number' && solPrice > 0;
@@ -298,7 +370,13 @@ function DetailsCard(props: {
           </span>
         )}
 
-        {meta?.kycRequired ? (
+        {blockedByAml ? (
+          <span className="chip" title={t('nft.amlBlocked') ?? 'Blocked by AML'} aria-label="AML blocked">
+            ⛔ {t('nft.amlBlocked') ?? 'Blocked'}
+          </span>
+        ) : null}
+
+        {effectiveKycRequired ? (
           <span className="chip inline-flex items-center gap-0.5">
             <LockIcon size={15} />
             {t('nft.kyc')}
@@ -421,6 +499,12 @@ export default function NftDetails({ id }: { id: string }) {
   const [discEur, setDiscEur] = useState<number>(0);
   const [mintMsg, setMintMsg] = useState<string | null>(null);
 
+  const [kycStatus, setKycStatus] = useState<KycStatus>('none');
+  const [countryZone, setCountryZone] = useState<CountryZone>(null);
+  const [isEe, setIsEe] = useState(false);
+  const [amlZone, setAmlZone] = useState<AmlZone>('unknown');
+  const [amlLimitSol, setAmlLimitSol] = useState<number | null>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const isConnected = connected && !!address;
   const walletHref = '/dashboard/nft';
@@ -468,6 +552,7 @@ export default function NftDetails({ id }: { id: string }) {
       } catch {
         setRights(null);
       }
+
     } catch {
       setItem(null);
       setRights(null);
@@ -480,6 +565,68 @@ export default function NftDetails({ id }: { id: string }) {
     void loadAll(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const r = await fetch('/api/me', { cache: 'no-store' });
+        const j: unknown = await r.json().catch(() => ({}));
+
+        if (cancelled || !r.ok || !isObject(j) || (j as { ok?: unknown }).ok !== true) return;
+
+        const k = normalizeKyc((j as { kyc?: unknown }).kyc);
+        const { zone, limitSol } = pickAmlZoneFromMe(j);
+
+        setKycStatus(k);
+        setAmlZone(zone);
+        setAmlLimitSol(limitSol);
+
+        // 1) Prefer server-calculated zone (only if non-null)
+        const zRaw = (j as Record<string, unknown>)['kycCountryZone'];
+        if (isZone(zRaw) && zRaw !== null) {
+          setCountryZone(zRaw);
+
+          const pRaw2 = (j as Record<string, unknown>)['profile'];
+          if (isObject(pRaw2)) {
+            const p2 = pRaw2 as Record<string, unknown>;
+            const r2 = asCountryCode(p2['countryResidence'])?.toUpperCase() ?? null;
+            const c2 = asCountryCode(p2['countryCitizenship'])?.toUpperCase() ?? null;
+            const tx2 = asCountryCode(p2['countryTax'])?.toUpperCase() ?? null;
+            setIsEe(r2 === 'EE' && c2 === 'EE' && tx2 === 'EE');
+          }
+
+          return;
+        }
+
+        // 2) Fallback: compute from profile (worst of 3)
+        const pRaw = (j as Record<string, unknown>)['profile'];
+        if (isObject(pRaw)) {
+          const p = pRaw as Record<string, unknown>;
+          const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
+          const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
+          const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
+
+          setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
+
+          const zones = [r, c, tx].map((x) => resolveAmlZone(typeof x === 'string' ? x : null));
+          const z2: CountryZone =
+            zones.includes('red') ? 'red' :
+            zones.includes('grey') ? 'grey' :
+            zones.includes('green') ? 'green' : null;
+
+          setCountryZone(z2);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Load global summary for this item id
   useEffect(() => {
@@ -512,6 +659,28 @@ export default function NftDetails({ id }: { id: string }) {
     typeof item?.eurPrice === 'number' ? item.eurPrice : undefined;
   const hasEurItem = typeof eurFromItem === 'number' && eurFromItem > 0;
 
+  const blockedByAmlForChips = countryZone === 'red';
+
+  let effectiveKycRequired = Boolean(item?.kycRequired) || countryZone === 'grey';
+  if (item?.id === 'nft-silver' && countryZone === 'green' && isEe) {
+    effectiveKycRequired = false;
+  }
+
+  const purchaseBlocked =
+  amlZone === 'red' || (effectiveKycRequired && kycStatus !== 'approved');
+
+  const purchaseReason =
+    amlZone === 'red'
+      ? t('aml.blocked.red') ?? 'Purchases are not available for this country.'
+      : effectiveKycRequired && kycStatus !== 'approved'
+        ? (countryZone === 'grey'
+            ? (t('aml.blocked.grey_kyc') ?? 'KYC is required for purchases from this country.')
+            : (t('nft.kyc') ?? 'KYC is required for this purchase.'))
+        : null;
+
+  const mintBlocked = purchaseBlocked;
+  const mintBlockedText = purchaseReason ?? '';
+
   // Prefer localized keys from catalog; fall back to plain text or API
   const title = (meta?.nameKey ? t(meta.nameKey) : meta?.name) ?? item?.name ?? '';
   const blurb = (meta?.blurbKey ? t(meta.blurbKey) : meta?.blurb) ?? item?.blurb ?? '';
@@ -536,6 +705,11 @@ export default function NftDetails({ id }: { id: string }) {
   // Mint handler 
   const handleMintDevnet = async () => {
     setMintMsg(null);
+
+    if (mintBlocked) {
+      setMintMsg(mintBlockedText);
+      return;
+    }
 
     if (cluster !== 'devnet') {
       setMintMsg('Mint is enabled only on devnet for now.');
@@ -611,6 +785,11 @@ export default function NftDetails({ id }: { id: string }) {
 
   // Purchase (mock)
   const buy = async () => {
+    if (purchaseBlocked) {
+      setMintMsg(purchaseReason ?? 'KYC/AML restriction');
+      return;
+    }
+
     if (!item) return;
 
     const payload: BuyPayload = { id: item.id, qty: isWS ? 1 : qty };
@@ -638,7 +817,7 @@ export default function NftDetails({ id }: { id: string }) {
 
       // price × qty (EUR comes only from API item.eurPrice)
       const eurSingle = item?.eurPrice ?? 0;
-      const eurTotal  = eurSingle * (isWS ? 1 : qty);
+      const eurTotal = eurSingle * (isWS ? 1 : qty);
 
       const qsClaim = new URLSearchParams();
       qsClaim.set('tier', tierName);
@@ -647,14 +826,14 @@ export default function NftDetails({ id }: { id: string }) {
       if (meId) qsClaim.set('userId', meId);
 
       await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
-      } catch (err) {
+    } catch (err) {
       // swallow: rewards shouldn't block UI
       console.error('claim failed', err);
-      } finally {
+    } finally {
       // refresh global summary (force update SalesBar)
       await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
-      }
-    };
+    }
+  };
 
   // Claim (mock)
   const doClaimAll = async () => {
@@ -860,6 +1039,14 @@ export default function NftDetails({ id }: { id: string }) {
         </div>
       </div>
 
+      {/* AML */}
+      {purchaseBlocked && purchaseReason && (
+        <div className="card p-3 md:p-4 border border-amber-500/30 bg-amber-500/10">
+          <div className="text-sm font-medium">AML restriction</div>
+          <div className="text-xs opacity-80 mt-1">{purchaseReason}</div>
+        </div>
+      )}
+
       {/* Top nav carousel */}
       <PillCarousel
         back={{ id: 'all', label: t('nft.details.back'), href: '/dashboard/nft' }}
@@ -902,6 +1089,8 @@ export default function NftDetails({ id }: { id: string }) {
           onBuy={buy}
           t={t}
           solPrice={solPrice}
+          purchaseBlocked={purchaseBlocked}
+          amlReason={purchaseReason}
         />
       </div>
 
@@ -920,7 +1109,16 @@ export default function NftDetails({ id }: { id: string }) {
 
       {/* Mobile: features card */}
       <div className="block lg:hidden">
-        <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} solPrice={solPrice} />
+        <DetailsCard
+          t={t}
+          title={title}
+          blurb={blurb}
+          meta={metaForDetails}
+          featureLines={featureLines}
+          solPrice={solPrice}
+          effectiveKycRequired={effectiveKycRequired}
+          blockedByAml={blockedByAmlForChips}
+        />
       </div>
 
       {/* Desktop layout */}
@@ -958,7 +1156,16 @@ export default function NftDetails({ id }: { id: string }) {
         <div className="space-y-4">
           {/* Desktop features/specs */}
           <div className="hidden lg:block">
-            <DetailsCard t={t} title={title} blurb={blurb} meta={metaForDetails} featureLines={featureLines} solPrice={solPrice} />
+            <DetailsCard
+              t={t}
+              title={title}
+              blurb={blurb}
+              meta={metaForDetails}
+              featureLines={featureLines}
+              solPrice={solPrice}
+              effectiveKycRequired={effectiveKycRequired}
+              blockedByAml={blockedByAmlForChips}
+            />
           </div>
 
           {/* Purchase (desktop only) */}
@@ -1039,7 +1246,14 @@ export default function NftDetails({ id }: { id: string }) {
                       ≈ {eurFromItem.toFixed(0)}€ (presale reference)
                     </div>
                   )}
-                  <button className="btn btn-outline mt-2" onClick={buy}>
+                  <button
+                    className={
+                      "btn btn-outline mt-2 " + (purchaseBlocked ? "opacity-50 cursor-not-allowed" : "")
+                    }
+                    onClick={buy}
+                    disabled={purchaseBlocked}
+                    title={purchaseBlocked ? (purchaseReason ?? '') : undefined}
+                  >
                     {t('nft.buy')}
                   </button>
                 </div>
@@ -1114,11 +1328,25 @@ export default function NftDetails({ id }: { id: string }) {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              className="btn btn-outline text-xs md:text-sm rounded-2xl"
-              onClick={handleMintDevnet}
+              className={
+                "btn btn-outline text-xs md:text-sm rounded-2xl " +
+                (mintBlocked ? "opacity-50 cursor-not-allowed" : "")
+              }
+              onClick={() => {
+                if (mintBlocked) return;
+                void handleMintDevnet();
+              }}
+              disabled={mintBlocked}
+              title={mintBlocked ? (mintBlockedText ?? '') : undefined}
             >
               Mint now (devnet)
             </button>
+            {mintBlocked && mintBlockedText && (
+              <div className="text-xs opacity-80">
+                {mintBlockedText}
+                {amlZone === 'grey' && amlLimitSol !== null ? ` (Limit: ${amlLimitSol} SOL)` : ''}
+              </div>
+            )}
             {mintMsg && (
               <div className="text-xs opacity-80">
                 {mintMsg}

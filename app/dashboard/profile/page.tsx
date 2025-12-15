@@ -17,10 +17,9 @@ type KycStatusApi = 'none' | 'pending' | 'approved' | 'rejected';
 type MeOk = {
   ok: true;
   signedIn: boolean;
-  kyc: KycStatusApi;       // from /api/me
+  kyc: KycStatusApi; // from /api/me
   kycStatus?: KycStatusApi;
   profileCompleted?: boolean;
-  lum: unknown;
   user?: { id: string; email: string } | null;
 };
 
@@ -35,25 +34,14 @@ export default function ProfilePage() {
   const { t } = useI18n();
 
   const [kyc, setKyc] = useState<KycState>('none');
-  const [lum, setLum] = useState(false);
-  const [busy, setBusy] = useState(false);
 
-  // Read current state
   const reloadMe = async () => {
     const r = (await api.me()) as MeResp;
     if (isMeOk(r)) {
-      const status = r.kyc; // KycStatusApi
-      let mapped: KycState = 'none';
-
-      if (status === 'approved') {
-        mapped = 'approved';
-      } else if (status === 'pending' || status === 'rejected') {
-        // for now "rejected" is shown like "pending" in UI
-        mapped = 'pending';
-      }
-
+      const status = r.kyc;
+      const mapped: KycState =
+        status === 'approved' ? 'approved' : status === 'pending' || status === 'rejected' ? 'pending' : 'none';
       setKyc(mapped);
-      setLum(Boolean(r.lum));
     }
   };
 
@@ -61,62 +49,25 @@ export default function ProfilePage() {
     void reloadMe();
   }, []);
 
-  const toggleLum = async () => {
-    setBusy(true);
-    try {
-      const resp = await api.setLum(!lum); // API returns { ok: true } only
-      if ((resp as { ok?: boolean }).ok) {
-        setLum(!lum);
-        // опционально можно перечитать me: await reloadMe();
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // Map KYC to progress step: 0 none, 2 pending, 3 approved (3 steps total)
   const progressCurrent = kyc === 'approved' ? 3 : kyc === 'pending' ? 2 : 0;
 
   return (
     <div className="space-y-4">
       <div className="card p-4 text-sm space-y-3">
-        {/* KYC row */}
         <div className="flex flex-wrap items-center gap-2">
           <div>
             {t('kyc.status')}:&nbsp;
             <StatusBadge status={kyc}>{t(`kyc.status.${kyc}`)}</StatusBadge>
           </div>
-
-          {kyc !== 'approved' && (
-            <a href="/kyc" className="underline ml-2">
-              {t('kyc.banner.start')}
-            </a>
-          )}
         </div>
 
-        {/* Visual step progress */}
         <div className="pt-1">
           <StepBar
             steps={[t('kyc.step.start'), t('kyc.step.submit'), t('kyc.step.review')]}
             current={progressCurrent}
           />
         </div>
-
-        {/* LUM toggle */}
-        <div className="flex items-center gap-3">
-          <div>
-            {t('profile.status.lum')}: <b>{lum ? t('common.enabled') : t('common.disabled')}</b>
-          </div>
-          <button
-            className="rounded-xl border px-3 py-1 text-xs"
-            onClick={toggleLum}
-            disabled={busy}
-          >
-            {lum ? t('profile.lum.disable') : t('profile.lum.enable')}
-          </button>
-        </div>
       </div>
-
       <ProfileForm />
     </div>
   );
