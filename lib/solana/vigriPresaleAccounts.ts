@@ -1,3 +1,4 @@
+// lib/solana/vigriPresaleAccounts.ts
 import { Connection } from '@solana/web3.js';
 import { BorshCoder, Idl } from '@coral-xyz/anchor';
 import { getSolanaConnection, getGlobalConfigPda } from './vigriPresale';
@@ -13,16 +14,18 @@ export interface GlobalConfigAccount {
 
 // Try to locate the GlobalConfig account name in the IDL
 const GLOBAL_CONFIG_ACCOUNT_NAME =
-  VIGRI_PRESALE_IDL.accounts?.find((acc) =>
-    acc.name.toLowerCase().includes('global') &&
-    acc.name.toLowerCase().includes('config'),
+  VIGRI_PRESALE_IDL.accounts?.find(
+    (acc) =>
+      acc.name.toLowerCase().includes('global') &&
+      acc.name.toLowerCase().includes('config'),
   )?.name ?? 'globalConfig';
 
 export async function fetchGlobalConfigDecoded(
   connection?: Connection,
+  cluster?: 'devnet' | 'mainnet',
 ): Promise<{ pda: string; account: GlobalConfigAccount } | null> {
-  const conn = connection ?? getSolanaConnection();
-  const pda = getGlobalConfigPda();
+  const conn = connection ?? getSolanaConnection(cluster);
+  const pda = getGlobalConfigPda(cluster);
 
   const accountInfo = await conn.getAccountInfo(pda);
   if (!accountInfo) {

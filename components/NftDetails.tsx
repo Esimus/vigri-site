@@ -7,10 +7,12 @@ import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
 import PillCarousel from '@/components/ui/PillCarousel';
 import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
+import InlineLoader from '@/components/ui/InlineLoader';
 import SalesBar from '@/components/ui/SalesBar';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
-import { Transaction, SystemProgram } from '@solana/web3.js';
 import { resolveAmlZone } from '@/constants/amlAnnexA';
+import { Transaction, TransactionInstruction, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
+import { Buffer } from 'buffer';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -40,6 +42,7 @@ type Item = {
     priceSol: number;
     supplyTotal: number;
     supplyMinted: number;
+    treasury?: string;
   };
 };
 
@@ -60,9 +63,8 @@ type RightsResp = { ok: true; items: Rights[]; tgePriceEur?: number };
 type ClaimResp = { ok: true; vigriClaimed: number };
 type DiscountResp = { ok: true; vigriBought: number; unitEur: number };
 type PhantomProviderLike = {
-  signAndSendTransaction: (
-    tx: Transaction
-  ) => Promise<{ signature?: string } | string>;
+  signTransaction?: (tx: Transaction) => Promise<Transaction>;
+  signAndSendTransaction: (tx: Transaction) => Promise<{ signature?: string } | string>;
 };
 
 function getPhantomProviderClient(): PhantomProviderLike | null {
@@ -147,6 +149,41 @@ function pickAmlZoneFromMe(json: unknown): { zone: AmlZone; limitSol: number | n
   return { zone, limitSol };
 }
 
+// --- Presale on-chain constants (devnet) ---
+const PRESALE_PROGRAM_ID = new PublicKey('GmrUAwBvC3ijaM2L7kjddQFMWHevxRnArngf7jFx1yEk');
+const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+const GLOBAL_CONFIG_SEED = new TextEncoder().encode('vigri-presale-config');
+
+async function anchorSighash(ixName: string): Promise<Uint8Array> {
+  // first 8 bytes of sha256("global:<name>")
+  const preimage = new TextEncoder().encode(`global:${ixName}`);
+  const hash = await crypto.subtle.digest('SHA-256', preimage);
+  return new Uint8Array(hash).slice(0, 8);
+}
+
+function findAta(owner: PublicKey, mint: PublicKey): PublicKey {
+  const [ata] = PublicKey.findProgramAddressSync(
+    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+  );
+  return ata;
+}
+
+function findMetadataPda(mint: PublicKey): PublicKey {
+  const [pda] = PublicKey.findProgramAddressSync(
+    [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    TOKEN_METADATA_PROGRAM_ID,
+  );
+  return pda;
+}
+
+function findGlobalConfigPda(): PublicKey {
+  const [pda] = PublicKey.findProgramAddressSync([GLOBAL_CONFIG_SEED], PRESALE_PROGRAM_ID);
+  return pda;
+}
+
 // Fallback PNG name from /public/images/nft/
 function pngNameFor(id: string): string {
   switch (id) {
@@ -190,6 +227,8 @@ function BuyPanelMobile(props: {
   purchaseBlocked: boolean;
   amlReason?: string | null;
   solPrice: number | null;
+  mintMsg: string | null;
+  isBuying: boolean;
 }) {
   
   const {
@@ -200,6 +239,8 @@ function BuyPanelMobile(props: {
     solPrice,
     purchaseBlocked,
     amlReason,
+    mintMsg,
+    isBuying,
   } = props;
 
   if (!item) return null;
@@ -309,17 +350,36 @@ function BuyPanelMobile(props: {
           )}
           <button
             className={
-              "btn btn-outline mt-2 " + (purchaseBlocked ? "opacity-50 cursor-not-allowed" : "")
+              "btn btn-outline mt-2 transition-transform duration-150 " +
+              ((purchaseBlocked || isBuying)
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer hover:scale-[1.01] active:scale-[0.98]")
             }
             onClick={() => {
-              if (purchaseBlocked) return;
+              if (purchaseBlocked || isBuying) return;
               onBuy();
             }}
-            disabled={purchaseBlocked}
+            disabled={purchaseBlocked || isBuying}
             title={purchaseBlocked ? (amlReason ?? '') : undefined}
           >
-            {t('nft.buy')}
+            <span className="flex flex-col items-center leading-tight">
+              <span className="inline-flex items-center justify-center min-h-[18px]">
+                {isBuying ? (
+                  <InlineLoader className="!text-white/80" />
+                ) : (
+                  <span>{t('nft.buy')}</span>
+                )}
+              </span>
+              <span className="text-[10px] opacity-80 mt-0.5">
+                {t('nft.buy_subtitle')}
+              </span>
+            </span>
           </button>
+          {mintMsg ? (
+            <div className="text-xs opacity-80 mt-2 max-w-[220px] break-words">
+              {mintMsg}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
@@ -371,8 +431,8 @@ function DetailsCard(props: {
         )}
 
         {blockedByAml ? (
-          <span className="chip" title={t('nft.amlBlocked') ?? 'Blocked by AML'} aria-label="AML blocked">
-            ⛔ {t('nft.amlBlocked') ?? 'Blocked'}
+          <span className="chip" title={t('nft.amlBlocked')} aria-label="AML blocked">
+            ⛔ {t('nft.amlBlocked')}
           </span>
         ) : null}
 
@@ -498,6 +558,8 @@ export default function NftDetails({ id }: { id: string }) {
   const [discMsg, setDiscMsg] = useState<string | null>(null);
   const [discEur, setDiscEur] = useState<number>(0);
   const [mintMsg, setMintMsg] = useState<string | null>(null);
+  const [isBuying, setIsBuying] = useState<boolean>(false);
+  const [presaleAdmin, setPresaleAdmin] = useState<string | null>(null);
 
   const [kycStatus, setKycStatus] = useState<KycStatus>('none');
   const [countryZone, setCountryZone] = useState<CountryZone>(null);
@@ -551,6 +613,21 @@ export default function NftDetails({ id }: { id: string }) {
         }
       } catch {
         setRights(null);
+      }
+
+      // 3) Presale GlobalConfig (devnet admin/treasury)
+      try {
+        const gr = await fetch(`/api/presale/global-config?ts=${Date.now()}`, { cache: 'no-store' });
+        const gj: unknown = await gr.json().catch(() => ({}));
+
+        if (gr.ok && isObject(gj) && (gj as { ok?: unknown }).ok === true) {
+          const adminPk = (gj as { admin?: unknown }).admin;
+          setPresaleAdmin(typeof adminPk === 'string' ? adminPk : null);
+        } else {
+          setPresaleAdmin(null);
+        }
+      } catch {
+        setPresaleAdmin(null);
       }
 
     } catch {
@@ -671,11 +748,11 @@ export default function NftDetails({ id }: { id: string }) {
 
   const purchaseReason =
     amlZone === 'red'
-      ? t('aml.blocked.red') ?? 'Purchases are not available for this country.'
+      ? t('aml.blocked.red')
       : effectiveKycRequired && kycStatus !== 'approved'
         ? (countryZone === 'grey'
-            ? (t('aml.blocked.grey_kyc') ?? 'KYC is required for purchases from this country.')
-            : (t('nft.kyc') ?? 'KYC is required for this purchase.'))
+            ? t('aml.blocked.grey_kyc')
+            : t('aml.blocked.kyc_required'))
         : null;
 
   const mintBlocked = purchaseBlocked;
@@ -702,8 +779,7 @@ export default function NftDetails({ id }: { id: string }) {
     }
   }
 
-  // Mint handler 
-  const handleMintDevnet = async () => {
+  const mintPresaleDevnet = async (tierId: number) => {
     setMintMsg(null);
 
     if (mintBlocked) {
@@ -712,22 +788,133 @@ export default function NftDetails({ id }: { id: string }) {
     }
 
     if (cluster !== 'devnet') {
-      setMintMsg('Mint is enabled only on devnet for now.');
+      setMintMsg(t('nft.mint.onlyDevnet'));
       return;
     }
 
     if (!connected || !publicKey) {
-      setMintMsg('Please connect your Solana wallet first.');
+      setMintMsg(t('nft.mint.connectWallet'));
       return;
     }
 
     const provider = getPhantomProviderClient();
     if (!provider) {
-      setMintMsg('Phantom wallet not found in this browser.');
+      setMintMsg(t('nft.mint.phantomNotFound'));
       return;
     }
 
     try {
+      // Derive PDAs
+      const globalConfig = findGlobalConfigPda();
+
+      // Load admin/treasury from backend (cluster-aware)
+      let adminPkStr: string | null = presaleAdmin ?? null;
+
+      // Always prefer fresh value from global-config for current cluster
+      try {
+        const gr = await fetch(
+          `/api/presale/global-config?cluster=${cluster}&ts=${Date.now()}`,
+          { cache: 'no-store' },
+        );
+        const gj: unknown = await gr.json().catch(() => ({}));
+
+        if (gr.ok && isObject(gj)) {
+          const a =
+            (gj as { admin?: unknown }).admin ??
+            (gj as { treasury?: unknown }).treasury;
+
+          if (typeof a === 'string' && a.length > 0) {
+            adminPkStr = a;
+            setPresaleAdmin(a);
+          }
+        }
+
+        if (!adminPkStr) {
+          setMintMsg(t('nft.mint.adminMissing'));
+          return;
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        setMintMsg(`${t('nft.mint.failedPrefix')} ${msg}`);
+        return;
+      }
+
+      const admin = adminPkStr ? new PublicKey(adminPkStr) : null;
+      if (!admin) {
+        setMintMsg(t('nft.mint.adminMissing'));
+        return;
+      }
+
+      // Fresh mint keypair (NFT mint)
+      const mintKp = Keypair.generate();
+      const mintPk = mintKp.publicKey;
+
+      const payerAta = findAta(publicKey, mintPk);
+      const metadata = findMetadataPda(mintPk);
+
+      const sig8 = await anchorSighash('mint_nft');
+
+      // Data layout must match IDL: tier_id, design_choice, kyc_proof, invite_proof
+      let data: Uint8Array;
+
+      if (tierId === 0) {
+        // tierId=0 = Tree/Steel requires design_choice Some(u8)
+        if (!design) {
+          setMintMsg(t('nft.design.select'));
+          return;
+        }
+
+        let dc: number | null = null;
+
+        // Tree / Steel: маппим несколько возможных значений design на 1/2
+        if (design === 'tree' || design === 'wood' || design === 'tree-wood') {
+          dc = 1; // TR = Tree
+        } else if (design === 'steel' || design === 'tree-steel') {
+          dc = 2; // FE = Steel
+        }
+
+        if (dc == null) {
+          setMintMsg(`${t('nft.mint.failedPrefix')} Invalid design`);
+          return;
+        }
+
+        // 8 (sighash) + 1 (tier_id) + 2 (design_choice Some) + 1 (kyc None) + 1 (invite None) = 13
+        data = new Uint8Array(13);
+        data.set(sig8, 0);
+        data[8] = tierId & 0xff;
+        data[9] = 1;          // design_choice = Some
+        data[10] = dc & 0xff; // design_choice value
+        data[11] = 0;         // kyc_proof = None
+        data[12] = 0;         // invite_proof = None
+      } else {
+
+        // 8 + 1 (tier_id) + 1 (design_choice None) + 1 (kyc None) + 1 (invite None) = 12
+        data = new Uint8Array(12);
+        data.set(sig8, 0);
+        data[8] = tierId & 0xff;
+        data[9] = 0;  // design_choice = None
+        data[10] = 0; // kyc_proof = None
+        data[11] = 0; // invite_proof = None
+      }
+
+      const ix = new TransactionInstruction({
+        programId: PRESALE_PROGRAM_ID,
+        keys: [
+          { pubkey: publicKey, isSigner: true, isWritable: true }, // payer
+          { pubkey: globalConfig, isSigner: false, isWritable: true }, // global_config (PDA)
+          { pubkey: admin, isSigner: false, isWritable: true }, // admin/treasury
+          { pubkey: mintPk, isSigner: true, isWritable: true }, // mint (init)
+          { pubkey: payerAta, isSigner: false, isWritable: true }, // payer_token_account (init ATA)
+          { pubkey: metadata, isSigner: false, isWritable: true }, // metadata PDA
+          { pubkey: TOKEN_METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
+          { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+          { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+          { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+        ],
+        data: Buffer.from(data),
+      });
+
       const { blockhash, lastValidBlockHeight } =
         await connection.getLatestBlockhash('finalized');
 
@@ -735,56 +922,83 @@ export default function NftDetails({ id }: { id: string }) {
         feePayer: publicKey,
         blockhash,
         lastValidBlockHeight,
-      }).add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: publicKey,
-          lamports: 1,
-        }),
-      );
+      });
 
-      const res = await provider.signAndSendTransaction(tx);
-      const sig = typeof res === 'string' ? res : res.signature || '';
+      tx.add(ix);
+
+      // partial sign with mint keypair (because mint is created by Anchor init)
+      tx.partialSign(mintKp);
+
+      let sig = '';
+
+      // Safer flow: wallet signs, app broadcasts via our selected RPC (connection)
+      if (provider.signTransaction) {
+        const signedTx = await provider.signTransaction(tx);
+        sig = await connection.sendRawTransaction(signedTx.serialize(), {
+          skipPreflight: false,
+        });
+        await connection.confirmTransaction(
+          { signature: sig, blockhash, lastValidBlockHeight },
+          'confirmed',
+        );
+      } else {
+        // Fallback: Phantom signs and broadcasts itself
+        const res = await provider.signAndSendTransaction(tx);
+        sig = typeof res === 'string' ? res : res.signature || '';
+      }
 
       if (!sig) {
-        setMintMsg('Transaction sent, but no signature returned.');
+        setMintMsg(t('nft.mint.noSignature'));
         return;
       }
 
-      // non-blocking logging to backend (devnet only)
-      if (item?.onchain && typeof item.onchain.tierId === 'number') {
-        const totalPaidSol =
-          typeof item.onchain.priceSol === 'number'
-            ? item.onchain.priceSol * 1 // quantity is 1 for now
-            : 0;
-            
-        try {
-          await fetch('/api/nft/mint-log', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              wallet: publicKey.toBase58(),
-              tierId: item.onchain.tierId,
-              quantity: 1,
-              txSignature: sig,
-              network: 'devnet',
-              paidSol: totalPaidSol,
-            }),
-          });
-        } catch (logErr) {
-          console.error('mint-log error', logErr);
-        }
+      // optional: log to backend
+      try {
+        await fetch('/api/nft/mint-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            wallet: publicKey.toBase58(),
+            tierId,
+            quantity: 1,
+            txSignature: sig,
+            network: 'devnet',
+            paidSol: item?.onchain?.priceSol ?? null,
+          }),
+        });
+      } catch (logErr) {
+        console.error('mint-log error', logErr);
       }
 
-      setMintMsg(`Devnet test tx sent: ${sig}`);
+      setMintMsg(`${t('nft.mint.txSent')} ${sig}`);
+
+      // refresh UI
+      await loadAll(false);
+      await fetch(
+        `/api/presale/global-config?cluster=${cluster}&ts=${Date.now()}`,
+        { cache: 'no-store' },
+      );
+      await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      setMintMsg(`Mint tx failed: ${msg}`);
+      const low = msg.toLowerCase();
+
+      const rejected =
+        low.includes('user rejected') ||
+        low.includes('rejected the request') ||
+        low.includes('denied transaction') ||
+        low.includes('declined');
+
+      setMintMsg(
+        rejected ? t('nft.mint.rejected') : `${t('nft.mint.failedPrefix')} ${msg}`,
+      );
     }
   };
 
   // Purchase (mock)
   const buy = async () => {
+    if (isBuying) return;
+
     if (purchaseBlocked) {
       setMintMsg(purchaseReason ?? 'KYC/AML restriction');
       return;
@@ -792,46 +1006,56 @@ export default function NftDetails({ id }: { id: string }) {
 
     if (!item) return;
 
-    const payload: BuyPayload = { id: item.id, qty: isWS ? 1 : qty };
-    if (design) payload.designId = design;
-    if (activationType === 'flex') payload.activation = act;
+    setMintMsg(null);
+    setIsBuying(true);
 
-    // 1) Mock purchase
-    const r = await fetch('/api/nft', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const j: unknown = await r.json().catch(() => ({} as Record<string, unknown>));
-    const ok = typeof j === 'object' && j !== null && (j as { ok?: boolean }).ok === true;
-    if (!r.ok || !ok) return;
-
-    // 2) Trigger rewards/referral (non-blocking)
     try {
-      const meRes = await fetch('/api/me', { cache: 'no-store' });
-      const meJson = await meRes.json().catch(() => ({} as { ok?: boolean; user?: { id?: string } }));
-      const meId = meJson?.ok && meJson?.user?.id ? String(meJson.user.id) : null;
+      // If tier is on-chain AND we are on devnet: BUY = real on-chain mint
+      if (cluster === 'devnet' && item?.onchain && typeof item.onchain.tierId === 'number') {
+        await mintPresaleDevnet(item.onchain.tierId);
+        return;
+      }
 
-      const tierName = tierParamFromItemTier(item.tier);
+      const payload: BuyPayload = { id: item.id, qty: isWS ? 1 : qty };
+      if (design) payload.designId = design;
+      if (activationType === 'flex') payload.activation = act;
 
-      // price × qty (EUR comes only from API item.eurPrice)
-      const eurSingle = item?.eurPrice ?? 0;
-      const eurTotal = eurSingle * (isWS ? 1 : qty);
+      // 1) Mock purchase
+      const r = await fetch('/api/nft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-      const qsClaim = new URLSearchParams();
-      qsClaim.set('tier', tierName);
-      if (eurTotal > 0) qsClaim.set('eur', String(eurTotal));
-      qsClaim.set('qty', String(isWS ? 1 : qty));
-      if (meId) qsClaim.set('userId', meId);
+      const j: unknown = await r.json().catch(() => ({} as Record<string, unknown>));
+      const ok = typeof j === 'object' && j !== null && (j as { ok?: boolean }).ok === true;
+      if (!r.ok || !ok) return;
 
-      await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
-    } catch (err) {
-      // swallow: rewards shouldn't block UI
-      console.error('claim failed', err);
+      // 2) Trigger rewards/referral (non-blocking)
+      try {
+        const meRes = await fetch('/api/me', { cache: 'no-store' });
+        const meJson = await meRes.json().catch(() => ({} as { ok?: boolean; user?: { id?: string } }));
+        const meId = meJson?.ok && meJson?.user?.id ? String(meJson.user.id) : null;
+
+        const tierName = tierParamFromItemTier(item.tier);
+
+        const eurSingle = item?.eurPrice ?? 0;
+        const eurTotal = eurSingle * (isWS ? 1 : qty);
+
+        const qsClaim = new URLSearchParams();
+        qsClaim.set('tier', tierName);
+        if (eurTotal > 0) qsClaim.set('eur', String(eurTotal));
+        qsClaim.set('qty', String(isWS ? 1 : qty));
+        if (meId) qsClaim.set('userId', meId);
+
+        await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
+      } catch (err) {
+        console.error('claim failed', err);
+      } finally {
+        await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
+      }
     } finally {
-      // refresh global summary (force update SalesBar)
-      await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
+      setIsBuying(false);
     }
   };
 
@@ -1042,8 +1266,11 @@ export default function NftDetails({ id }: { id: string }) {
       {/* AML */}
       {purchaseBlocked && purchaseReason && (
         <div className="card p-3 md:p-4 border border-amber-500/30 bg-amber-500/10">
-          <div className="text-sm font-medium">AML restriction</div>
-          <div className="text-xs opacity-80 mt-1">{purchaseReason}</div>
+          <div className="text-sm font-medium">{t('aml.restriction.title')}</div>
+          <div className="text-xs opacity-80 mt-1">
+            {purchaseReason}
+            {amlZone === 'grey' && amlLimitSol !== null ? ` (${t('aml.limit')}: ${amlLimitSol} SOL)` : ''}
+          </div>
         </div>
       )}
 
@@ -1091,6 +1318,8 @@ export default function NftDetails({ id }: { id: string }) {
           solPrice={solPrice}
           purchaseBlocked={purchaseBlocked}
           amlReason={purchaseReason}
+          mintMsg={mintMsg}
+          isBuying={isBuying}
         />
       </div>
 
@@ -1248,14 +1477,31 @@ export default function NftDetails({ id }: { id: string }) {
                   )}
                   <button
                     className={
-                      "btn btn-outline mt-2 " + (purchaseBlocked ? "opacity-50 cursor-not-allowed" : "")
+                      "btn btn-outline mt-2 transition-transform duration-150 " +
+                      ((purchaseBlocked || isBuying)
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer hover:scale-[1.01] active:scale-[0.98]")
                     }
                     onClick={buy}
-                    disabled={purchaseBlocked}
+                    disabled={purchaseBlocked || isBuying}
                     title={purchaseBlocked ? (purchaseReason ?? '') : undefined}
                   >
-                    {t('nft.buy')}
+                    <span className="flex flex-col items-center leading-tight">
+                      <span className="inline-flex items-center justify-center min-h-[18px]">
+                        {isBuying ? (
+                          <InlineLoader className="!text-white/80" />
+                        ) : (
+                          <span>{t('nft.buy')}</span>
+                        )}
+                      </span>
+                      <span className="text-[10px] opacity-80 mt-0.5">
+                        {t('nft.buy_subtitle')}
+                      </span>
+                    </span>
                   </button>
+                  {mintMsg ? (
+                    <div className="text-xs opacity-80 mt-2">{mintMsg}</div>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -1320,41 +1566,6 @@ export default function NftDetails({ id }: { id: string }) {
           )}
         </div>
       </div>
-
-      {/* Devnet mint block for all on-chain tiers */}
-      {item.onchain && typeof item.onchain.tierId === 'number' && (
-        <div className="card p-3 md:p-4 space-y-2">
-          <div className="text-sm font-medium">Mint on devnet (testing)</div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              className={
-                "btn btn-outline text-xs md:text-sm rounded-2xl " +
-                (mintBlocked ? "opacity-50 cursor-not-allowed" : "")
-              }
-              onClick={() => {
-                if (mintBlocked) return;
-                void handleMintDevnet();
-              }}
-              disabled={mintBlocked}
-              title={mintBlocked ? (mintBlockedText ?? '') : undefined}
-            >
-              Mint now (devnet)
-            </button>
-            {mintBlocked && mintBlockedText && (
-              <div className="text-xs opacity-80">
-                {mintBlockedText}
-                {amlZone === 'grey' && amlLimitSol !== null ? ` (Limit: ${amlLimitSol} SOL)` : ''}
-              </div>
-            )}
-            {mintMsg && (
-              <div className="text-xs opacity-80">
-                {mintMsg}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Explainers */}
       {(meta?.explainers?.length ?? 0) > 0 && (

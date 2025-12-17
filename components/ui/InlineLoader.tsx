@@ -1,3 +1,4 @@
+// components/ui/InlineLoader.tsx
 'use client';
 
 type InlineLoaderProps = {

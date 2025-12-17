@@ -1,3 +1,4 @@
+// app/api/presale/global-config/route.ts
 import { NextResponse } from 'next/server';
 import { getSolanaConnection } from '@/lib/solana/vigriPresale';
 import { fetchGlobalConfigDecoded } from '@/lib/solana/vigriPresaleAccounts';
@@ -83,16 +84,20 @@ function lamportsToSol(lamports: number): number {
   return lamports / 1_000_000_000;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const connection = getSolanaConnection();
-    const decoded = await fetchGlobalConfigDecoded(connection);
+    const { searchParams } = new URL(req.url);
+    const clusterParam = (searchParams.get('cluster') || '').toLowerCase();
+    const cluster = clusterParam === 'mainnet' ? 'mainnet' : 'devnet';
+
+    const connection = getSolanaConnection(cluster);
+    const decoded = await fetchGlobalConfigDecoded(connection, cluster);
 
     if (!decoded) {
       return NextResponse.json(
         {
           exists: false,
-          message: 'GlobalConfig account not found on devnet',
+          message: 'GlobalConfig account not found',
         },
         { status: 404 },
       );
@@ -122,7 +127,9 @@ export async function GET() {
         exists: true,
         pda: decoded.pda,
         admin: cfg.admin ?? null,
+        treasury: cfg.admin ?? null,
         tiers,
+        cluster,
       },
       { status: 200 },
     );
@@ -139,7 +146,7 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        error: 'Failed to fetch GlobalConfig from devnet',
+        error: 'Failed to fetch GlobalConfig',
         details: message,
       },
       { status: 500 },
