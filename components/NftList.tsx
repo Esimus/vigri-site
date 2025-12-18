@@ -9,6 +9,13 @@ import Image from 'next/image';
 import { presaleRemainingMs, formatRemaining } from '@/lib/config';
 import SalesBar from '@/components/ui/SalesBar';
 import { resolveAmlZone } from '@/constants/amlAnnexA';
+import {
+  type CountryZone,
+  type KycStatus,
+  normalizeKycStatus,
+  isCountryZone,
+  getKycBadgeStateForNftList,
+} from '@/lib/kyc/getKycUiState';
 
 type Item = {
   id: string;
@@ -68,14 +75,8 @@ function isSummaryResp(x: unknown): x is SummaryResp {
   return o.items.every(isSummaryItem);
 }
 
-type CountryZone = 'green' | 'grey' | 'red' | null;
-
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
-}
-
-function isZone(v: unknown): v is CountryZone {
-  return v === 'green' || v === 'grey' || v === 'red' || v === null;
 }
 
 function asCountryCode(v: unknown): string | null {
@@ -106,9 +107,10 @@ export default function NftList() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  // AML zone from /api/me (fallback: compute from profile countries)
+  // AML / KYC snapshot from /api/me (fallback: compute zone from profile countries)
   const [zone, setZone] = useState<CountryZone>(null);
   const [isEe, setIsEe] = useState(false);
+  const [kycStatus, setKycStatus] = useState<KycStatus>('none');
 
   // small i18n helper with fallback
   const tr = (key: string, fallback: string) => {
@@ -123,49 +125,49 @@ export default function NftList() {
       try {
         const res = await fetch('/api/me', { cache: 'no-store' });
         const raw: unknown = await res.json().catch(() => ({}));
-        if (!isObject(raw) || raw.ok !== true) return;
+        if (!isObject(raw) || (raw as { ok?: unknown }).ok !== true) return;
+
+        const root = raw as Record<string, unknown>;
+
+        // KYC status for badge visibility (hide lock if already approved)
+        setKycStatus(normalizeKycStatus(root['kycStatus']));
 
         // 1) Prefer server-calculated zone (only if non-null)
-const zRaw = isObject(raw) ? (raw as Record<string, unknown>)['kycCountryZone'] : undefined;
-if (isZone(zRaw) && zRaw !== null) {
-  setZone(zRaw);
+        const zRaw = root['kycCountryZone'];
+        if (isCountryZone(zRaw) && zRaw !== null) {
+          setZone(zRaw);
 
-  const pRaw2 = isObject(raw) ? (raw as Record<string, unknown>)['profile'] : undefined;
-  if (isObject(pRaw2)) {
-    const p2 = pRaw2 as Record<string, unknown>;
-    const r2 = asCountryCode(p2['countryResidence'])?.toUpperCase() ?? null;
-    const c2 = asCountryCode(p2['countryCitizenship'])?.toUpperCase() ?? null;
-    const tx2 = asCountryCode(p2['countryTax'])?.toUpperCase() ?? null;
-    setIsEe(r2 === 'EE' && c2 === 'EE' && tx2 === 'EE');
-  }
+          const pRaw = root['profile'];
+          if (isObject(pRaw)) {
+            const p = pRaw as Record<string, unknown>;
+            const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
+            const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
+            const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
+            setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
+          }
 
-  return;
-}
+          return;
+        }
 
-// 2) Fallback: compute from profile (worst of 3)
-const pRaw = isObject(raw) ? (raw as Record<string, unknown>)['profile'] : undefined;
-if (!isObject(pRaw)) return;
+        // 2) Fallback: compute zone from profile
+        const pRaw = root['profile'];
+        if (!isObject(pRaw)) return;
 
-const p = pRaw as Record<string, unknown>;
-const r0 = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
-const c0 = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
-const tx0 = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
-setIsEe([r0, c0, tx0].includes('EE'));
+        const p = pRaw as Record<string, unknown>;
+        const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
+        const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
+        const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
 
-const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
-const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
-const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
-setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
+        setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
 
-// IMPORTANT: do NOT pass '' into AML resolver; use null
-const zones = [r, c, tx].map((x) => resolveAmlZone(typeof x === 'string' ? x : null));
-const z2: CountryZone =
-  zones.includes('red') ? 'red' :
-  zones.includes('grey') ? 'grey' :
-  zones.includes('green') ? 'green' : null;
+        // IMPORTANT: do NOT pass '' into AML resolver; use null
+        const zones = [r, c, tx].map((code) => resolveAmlZone(typeof code === 'string' ? code : null));
+        const z2: CountryZone =
+          zones.includes('red') ? 'red' :
+          zones.includes('grey') ? 'grey' :
+          zones.includes('green') ? 'green' : null;
 
-setZone(z2);
-
+        setZone(z2);
       } catch {
         // ignore
       }
@@ -260,10 +262,14 @@ setZone(z2);
             const src = `/images/nft/${pngNameFor(i.id)}`;
             const showCountdown = presale.isPresale && i.id !== 'nft-ws-20';
 
-            // AML overrides for UI badges (server should enforce too)
-            const blockedByAml = zone === 'red';
-            let effectiveKycRequired = Boolean(i.kycRequired) || zone === 'grey';
-            if (i.id === 'nft-silver' && zone === 'green' && isEe) effectiveKycRequired = false;
+            // Unified AML / KYC badge state (shared rules)
+            const { blockedByAml, showKycBadge } = getKycBadgeStateForNftList({
+              nftId: i.id,
+              zone,
+              isEe,
+              kycStatus,
+              kycRequired: i.kycRequired,
+            });
 
             // Availability: prefer on-chain values; fallback to summary/catalog
             const onchainTotal = i.onchain?.supplyTotal;
@@ -391,7 +397,9 @@ setZone(z2);
                       <div>
                         {t('nft.price')}: {hasSol ? <b>{solPrice} SOL</b> : <span className="opacity-70">—</span>}
                         {hasSol && hasEur && (
-                          <span className="ml-2 text-[11px] opacity-70">≈ {cf.format(i.eurPrice)} (presale reference)</span>
+                          <span className="ml-2 text-[11px] opacity-70">
+                            ≈ {cf.format(i.eurPrice)} (presale reference)
+                          </span>
                         )}
                       </div>
                       {hasSol && <span className="chip">{t('nft.after')}</span>}
@@ -415,7 +423,7 @@ setZone(z2);
                     </span>
                   )}
 
-                  {effectiveKycRequired && (
+                  {showKycBadge && (
                     <span className="chip" title={t('nft.kyc')} aria-label="KYC">
                       🔒 {t('nft.kyc')}
                     </span>

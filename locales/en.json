@@ -658,6 +658,13 @@
   "nft.explain.ws.d7": "WS-20 holders receive access to certain internal sections and closed activities of the Lumiros ecosystem: private announcements, test modules, expert discussions, preview materials, and direct communication with the team.\n\nParticipation is by invitation or confirmed by the presence of a WS-20 NFT in your wallet. Access rights are bound to the wallet linked to the WS-20 and are not transferable. In case of re-issuance after access loss, the right is moved to the new NFT following identity verification.\n\nThe scope of activities, participation formats, and geographic/legal restrictions may change at Lumiros’s discretion. Capacity is limited; RSVP and/or KYC/ID verification may be required for certain events.",
   "nft.explain.ws.d9": "As part of the “VIGRI Mystery Draw” promo, a limited number of Rare and Ultra collectible cards are raffled. Participation is free and available to all registered users who have passed KYC verification on the official site vigri.ee.\n\nWinners are selected at random and receive a rare-category NFT with a physical card duplicate. Prizes have no cash value and do not grant rights to income, a project share, or VIGRI tokens. The results are published publicly on the site and recorded on-chain.\n\nHolders of Silver/Gold/Platinum/WS NFTs participate in the distribution automatically, on general terms, with equal chances. The aim is to support and grow the Lumiros community, encourage early participants, and preserve the spirit of rarity in the VIGRI collection.",
 
+  "nft.kyc.countryBlocked": "Not available in your country",
+  "nft.kyc.profileRequired": "Complete your profile to continue",
+  "nft.kyc.requiredLowGrey": "KYC is required in your country for this tier",
+  "nft.kyc.requiredHigh": "KYC is required for this tier",
+  "nft.kyc.passed": "KYC passed — tier available",
+  "nft.kyc.silver.eeNoKyc": "For your profile, KYC is not required — profile is enough",
+
   "nft.physical.label": "NFT format",
   "nft.physical.with": "With physical card",
   "nft.physical.without": "Digital version only",
@@ -686,6 +693,8 @@
   "nft.mint.txSent": "Transaction sent:",
   "nft.mint.failedPrefix": "Mint failed:",
   "nft.mint.rejected": "Purchase was rejected in the wallet.",
+  "nft.mint.amlBlocked": "Purchase is not available for your current profile and country.",
+  "nft.mint.profileRequired": "Purchase is not available: please complete your profile first.",
 
   "nft.summary.tree_0": "Reveals Q2 2026",
   "nft.summary.tree_1": "Total supply: 2000",

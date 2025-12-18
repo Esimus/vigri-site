@@ -658,6 +658,13 @@
   "nft.explain.ws.d7": "WS-20 omanikele avanevad Lumirose ökosüsteemi valitud sisemised ja suletud tegevused: privaatsed teated, testmoodulid, ekspertdiskussioonid, eelvaatemaaterjalid ja otsesuhtlus meeskonnaga.\n\nOsalemine toimub kutse alusel või kinnitatakse WS-20 NFT olemasoluga sinu rahakotis. Juurdepääsuõigus on seotud rahakotiga, millega WS-20 on seotud, ning seda ei saa üle anda. Uuesti väljastamise korral (pärast ligipääsu kaotust) kantakse õigus uuele NFT-le pärast isikusamasuse kontrolli.\n\nTegevuste sisu, osalemisvormid ning geograafilised/õiguslikud piirangud võivad muutuda Lumirose otsusel. Kohtade arv on piiratud; üksikute sündmuste puhul võidakse nõuda RSVP-d ja/või KYC/ID-tuvastust.",
   "nft.explain.ws.d9": "Kampaania „VIGRI Mystery Draw“ raames loositatakse välja piiratud arv Rare ja Ultra kollektsioonikaarte. Osalemine on tasuta ning kättesaadav kõigile registreeritud kasutajatele, kes on läbinud KYC-kontrolli ametlikul saidil vigri.ee.\n\nVõitjad selgitatakse juhuslikult ning nad saavad haruldusklassi NFT koos füüsilise kaardiga. Auhindadel puudub rahaline ekvivalent; need ei anna õigust tulule, osalusele projektis ega VIGRI tokenitele. Tulemused avaldatakse avalikult kodulehel ja kinnitatakse plokiahelas.\n\nSilver/Gold/Platinum/WS NFT omanikele toimub jagamine automaatselt, üldtingimustel ja võrdsete võimalustega. Kampaania eesmärk on toetada ja kasvatada Lumirose kogukonda, tunnustada varajasi osalejaid ning hoida harulduse vaimu VIGRI kollektsioonis.",
 
+  "nft.kyc.countryBlocked": "Pole sinu riigis saadaval",
+  "nft.kyc.profileRequired": "Jätkamiseks täida profiil",
+  "nft.kyc.requiredLowGrey": "Selles riigis on selle taseme ostuks vajalik KYC",
+  "nft.kyc.requiredHigh": "Selle taseme ostuks on vajalik KYC",
+  "nft.kyc.passed": "KYC on läbitud — tase on saadaval",
+  "nft.kyc.silver.eeNoKyc": "Sinu profiili puhul KYC pole vajalik — piisab profiilist",
+
   "nft.physical.label": "NFT vorm",
   "nft.physical.with": "Füüsilise kaardiga",
   "nft.physical.without": "Ainult digitaalne versioon",
@@ -686,6 +693,8 @@
   "nft.mint.txSent": "Tehing saadetud:",
   "nft.mint.failedPrefix": "Mint ebaõnnestus:",
   "nft.mint.rejected": "Ost lükati rahakotis tagasi.",
+  "nft.mint.amlBlocked": "Ost ei ole saadaval teie praeguse profiili ja riigi jaoks.",
+  "nft.mint.profileRequired": "Ost ei ole saadaval: palun täitke kõigepealt profiil.",
 
   "nft.summary.tree_0": "Avaneb II kv 2026",
   "nft.summary.tree_1": "Koguarv: 2000",

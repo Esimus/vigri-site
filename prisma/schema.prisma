@@ -61,15 +61,26 @@ model User {
 }
 
 model NftMintEvent {
+  createdAt   DateTime @default(now())
   id          String   @id @default(cuid())
-  userId      String?
   wallet      String
   tierId      Int
+  collectorId String?     // AG-MMXXVI-0000-00
+  buyerLastName  String?
+  buyerFirstName String?
+  userId      String?
   quantity    Int      @default(1)
+  paidSol     Float    @default(0)
+  designChoice Int?       // 1=Tree, 2=Steel (only tierId=0)
+  withPhysical Boolean?   // only tierId=2 (Silver)
+  
+  // NFT numbering/identifiers 
+  tierCode    String?     // TR/FE/CU/AG/AU/PT/WS
+  serial      Int?        // 1..N
+  designKey   Int?        // my scheme
+
   txSignature String
   network     String
-  createdAt   DateTime @default(now())
-  paidSol     Float    @default(0)
 }
 
 // Key = identity credential (password or OAuth). For password, store hash here.

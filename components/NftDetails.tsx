@@ -10,9 +10,11 @@ import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
 import InlineLoader from '@/components/ui/InlineLoader';
 import SalesBar from '@/components/ui/SalesBar';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
-import { resolveAmlZone } from '@/constants/amlAnnexA';
+import { getKycBadgeStateForNftList } from '@/lib/kyc/getKycUiState';
 import { Transaction, TransactionInstruction, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
 import { Buffer } from 'buffer';
+import { getKycUiState } from '@/lib/kycUi';
+import type { KycUiPill } from '@/lib/kycUi';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -108,46 +110,6 @@ function isDiscountResp(v: unknown): v is DiscountResp {
 }
 
 type KycStatus = 'none' | 'pending' | 'approved' | 'rejected';
-type AmlZone = 'green' | 'grey' | 'red' | 'unknown';
-
-function normalizeKyc(v: unknown): KycStatus {
-  if (v === true) return 'approved';
-  if (v === false) return 'none';
-  if (typeof v === 'string') {
-    const s = v.toLowerCase();
-    if (s === 'approved' || s === 'pending' || s === 'none' || s === 'rejected') return s as KycStatus;
-  }
-  return 'none';
-}
-
-function normalizeZone(v: unknown): AmlZone {
-  if (typeof v !== 'string') return 'unknown';
-  const s = v.toLowerCase();
-  if (s === 'grey' || s === 'gray') return 'grey';
-  if (s === 'red' || s === 'black' || s === 'blocked') return 'red';
-  if (s === 'green' || s === 'allowed' || s === 'white') return 'green';
-  return 'unknown';
-}
-
-function pickAmlZoneFromMe(json: unknown): { zone: AmlZone; limitSol: number | null } {
-  if (!isObject(json)) return { zone: 'unknown', limitSol: null };
-
-  // поддерживаем разные формы, чтобы не зависеть от конкретной реализации /api/me
-  const aml = (json as { aml?: unknown }).aml;
-  const zone =
-    normalizeZone(
-      (isObject(aml) ? (aml as { zone?: unknown }).zone : undefined) ??
-      (json as { amlZone?: unknown }).amlZone ??
-      (json as { zone?: unknown }).zone
-    );
-
-  const limitSol =
-    isObject(aml) && typeof (aml as { maxSol?: unknown }).maxSol === 'number'
-      ? (aml as { maxSol: number }).maxSol
-      : null;
-
-  return { zone, limitSol };
-}
 
 // --- Presale on-chain constants (devnet) ---
 const PRESALE_PROGRAM_ID = new PublicKey('GmrUAwBvC3ijaM2L7kjddQFMWHevxRnArngf7jFx1yEk');
@@ -228,6 +190,7 @@ function BuyPanelMobile(props: {
   amlReason?: string | null;
   solPrice: number | null;
   mintMsg: string | null;
+  kycPills: KycUiPill[];
   isBuying: boolean;
 }) {
   
@@ -240,6 +203,7 @@ function BuyPanelMobile(props: {
     purchaseBlocked,
     amlReason,
     mintMsg,
+    kycPills,
     isBuying,
   } = props;
 
@@ -380,6 +344,25 @@ function BuyPanelMobile(props: {
               {mintMsg}
             </div>
           ) : null}
+          {kycPills.filter(p => p.level === 'error' || p.level === 'warning').length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {kycPills
+                .filter(p => p.level === 'error' || p.level === 'warning')
+                .map((p) => (
+                  <span
+                    key={p.type}
+                    className={
+                      'chip ' +
+                      (p.level === 'error'
+                        ? 'border border-red-500/30 bg-red-500/10'
+                        : 'border border-amber-500/30 bg-amber-500/10')
+                    }
+                  >
+                    {t(p.i18nKey)}
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -563,13 +546,24 @@ export default function NftDetails({ id }: { id: string }) {
 
   const [kycStatus, setKycStatus] = useState<KycStatus>('none');
   const [countryZone, setCountryZone] = useState<CountryZone>(null);
-  const [isEe, setIsEe] = useState(false);
-  const [amlZone, setAmlZone] = useState<AmlZone>('unknown');
-  const [amlLimitSol, setAmlLimitSol] = useState<number | null>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const isConnected = connected && !!address;
   const walletHref = '/dashboard/nft';
+
+  const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
+  const [countryBlocked, setCountryBlocked] = useState<boolean>(false);
+  const [canBuyLowTier, setCanBuyLowTier] = useState<boolean>(false);
+  const [canBuyHighTier, setCanBuyHighTier] = useState<boolean>(false);
+
+  const [meProfile, setMeProfile] = useState<{
+    countryResidence?: string | null;
+    countryCitizenship?: string | null;
+    countryTax?: string | null;
+    isikukood?: string | null;
+  } | null>(null);
+
+  const [meLoaded, setMeLoaded] = useState<boolean>(false);
 
   // Summary for this id (from /api/nft/summary)
   type SummaryItem = { id: string; total: number; sold: number; left: number; pct: number };
@@ -653,48 +647,46 @@ export default function NftDetails({ id }: { id: string }) {
 
         if (cancelled || !r.ok || !isObject(j) || (j as { ok?: unknown }).ok !== true) return;
 
-        const k = normalizeKyc((j as { kyc?: unknown }).kyc);
-        const { zone, limitSol } = pickAmlZoneFromMe(j);
+        const statusRaw =
+          (j as Record<string, unknown>)['kycStatus'] ??
+          (j as Record<string, unknown>)['kyc'];
 
-        setKycStatus(k);
-        setAmlZone(zone);
-        setAmlLimitSol(limitSol);
+        setKycStatus(
+          typeof statusRaw === 'string'
+            ? (statusRaw.toLowerCase() as KycStatus)
+            : statusRaw === true
+              ? 'approved'
+              : statusRaw === false
+                ? 'none'
+                : 'none'
+        );
 
-        // 1) Prefer server-calculated zone (only if non-null)
+        setProfileCompleted(Boolean((j as Record<string, unknown>)['profileCompleted']));
+        setCountryBlocked(Boolean((j as Record<string, unknown>)['countryBlocked']));
+        setCanBuyLowTier(Boolean((j as Record<string, unknown>)['canBuyLowTier']));
+        setCanBuyHighTier(Boolean((j as Record<string, unknown>)['canBuyHighTier']));
+
         const zRaw = (j as Record<string, unknown>)['kycCountryZone'];
-        if (isZone(zRaw) && zRaw !== null) {
-          setCountryZone(zRaw);
+        setCountryZone(isZone(zRaw) ? (zRaw as CountryZone) : null);
 
-          const pRaw2 = (j as Record<string, unknown>)['profile'];
-          if (isObject(pRaw2)) {
-            const p2 = pRaw2 as Record<string, unknown>;
-            const r2 = asCountryCode(p2['countryResidence'])?.toUpperCase() ?? null;
-            const c2 = asCountryCode(p2['countryCitizenship'])?.toUpperCase() ?? null;
-            const tx2 = asCountryCode(p2['countryTax'])?.toUpperCase() ?? null;
-            setIsEe(r2 === 'EE' && c2 === 'EE' && tx2 === 'EE');
-          }
-
-          return;
-        }
-
-        // 2) Fallback: compute from profile (worst of 3)
         const pRaw = (j as Record<string, unknown>)['profile'];
         if (isObject(pRaw)) {
           const p = pRaw as Record<string, unknown>;
-          const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
-          const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
-          const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
 
-          setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
+          const r2 = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
+          const c2 = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
+          const tx2 = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
 
-          const zones = [r, c, tx].map((x) => resolveAmlZone(typeof x === 'string' ? x : null));
-          const z2: CountryZone =
-            zones.includes('red') ? 'red' :
-            zones.includes('grey') ? 'grey' :
-            zones.includes('green') ? 'green' : null;
-
-          setCountryZone(z2);
+          setMeProfile({
+            countryResidence: r2,
+            countryCitizenship: c2,
+            countryTax: tx2,
+            isikukood: typeof p['isikukood'] === 'string' ? String(p['isikukood']) : null,
+          });
+        } else {
+          setMeProfile(null);
         }
+        setMeLoaded(true);
       } catch {
         // ignore
       }
@@ -736,24 +728,84 @@ export default function NftDetails({ id }: { id: string }) {
     typeof item?.eurPrice === 'number' ? item.eurPrice : undefined;
   const hasEurItem = typeof eurFromItem === 'number' && eurFromItem > 0;
 
-  const blockedByAmlForChips = countryZone === 'red';
-
-  let effectiveKycRequired = Boolean(item?.kycRequired) || countryZone === 'grey';
-  if (item?.id === 'nft-silver' && countryZone === 'green' && isEe) {
-    effectiveKycRequired = false;
+  function tierIdFromItemTier(t: Item['tier'] | undefined): number {
+    switch (t) {
+      case 'tree': return 0;
+      case 'bronze': return 1;
+      case 'silver': return 2;
+      case 'gold': return 3;
+      case 'platinum': return 4;
+      case 'ws': return 5;
+      default: return 0;
+    }
   }
 
-  const purchaseBlocked =
-  amlZone === 'red' || (effectiveKycRequired && kycStatus !== 'approved');
+  const tierId =
+    typeof item?.onchain?.tierId === 'number'
+      ? item.onchain.tierId
+      : tierIdFromItemTier(item?.tier);
 
-  const purchaseReason =
-    amlZone === 'red'
-      ? t('aml.blocked.red')
-      : effectiveKycRequired && kycStatus !== 'approved'
-        ? (countryZone === 'grey'
-            ? t('aml.blocked.grey_kyc')
-            : t('aml.blocked.kyc_required'))
-        : null;
+  const pills = getKycUiState({
+    tierId,
+    profileCompleted,
+    countryBlocked,
+    kycStatus,
+    kycCountryZone: countryZone,
+    canBuyLowTier,
+    canBuyHighTier,
+    profile: meProfile,
+  });
+
+  // Решение по кнопке — ТОЛЬКО по /api/me
+  const isLow = tierId === 0 || tierId === 1;
+
+  const isEeTriple =
+    (meProfile?.countryResidence ?? '').toUpperCase() === 'EE' &&
+    (meProfile?.countryCitizenship ?? '').toUpperCase() === 'EE' &&
+    (meProfile?.countryTax ?? '').toUpperCase() === 'EE';
+
+  const hasIsikukood = typeof meProfile?.isikukood === 'string' && meProfile.isikukood.trim().length > 0;
+
+  const silverEeNoKyc =
+    tierId === 2 &&
+    countryZone === 'green' &&
+    isEeTriple &&
+    hasIsikukood;
+
+  // Silver EE/EE/EE + isikukood => считаем как low-tier допуск
+  const needsHigh = !isLow && !(tierId === 2 && silverEeNoKyc);
+
+  const allowedByTierFlag = needsHigh ? canBuyHighTier : canBuyLowTier;
+
+  const isGreyCountry = countryZone === 'grey';
+
+  const purchaseBlocked =
+    !meLoaded ||
+    Boolean(countryBlocked) ||
+    countryZone === 'red' ||
+    !profileCompleted ||
+    // In grey zone everything is blocked until KYC is approved
+    (isGreyCountry && kycStatus !== 'approved') ||
+    // In other zones we rely on DB flags for this tier group
+    (!isGreyCountry && !allowedByTierFlag);
+
+  const isEeForBadges = isEeTriple && hasIsikukood;
+
+  const { blockedByAml, kycNeeded } = item
+    ? getKycBadgeStateForNftList({
+        nftId: item.id,
+        zone: countryZone,
+        isEe: isEeForBadges,
+        kycStatus,
+        kycRequired: item.kycRequired,
+      })
+    : { blockedByAml: false, kycNeeded: false };
+
+  const blockedByAmlForChips = blockedByAml;
+  const effectiveKycRequired = kycNeeded;
+
+  const firstPill = pills.find(p => p.level === 'error' || p.level === 'warning');
+  const purchaseReason = firstPill ? t(firstPill.i18nKey) : null;
 
   const mintBlocked = purchaseBlocked;
   const mintBlockedText = purchaseReason ?? '';
@@ -842,6 +894,77 @@ export default function NftDetails({ id }: { id: string }) {
       const admin = adminPkStr ? new PublicKey(adminPkStr) : null;
       if (!admin) {
         setMintMsg(t('nft.mint.adminMissing'));
+        return;
+      }
+
+      // AML / KYC guard: block mint if profile / AML rules do not allow it
+      try {
+        const amlRes = await fetch('/api/me', { cache: 'no-store' });
+
+        if (!amlRes.ok) {
+          setMintMsg(t('nft.mint.failedPrefix') + ' AML check failed');
+          return;
+        }
+
+        const aml = await amlRes.json() as {
+          canBuyLowTier?: boolean;
+          canBuyHighTier?: boolean;
+          profileCompleted?: boolean;
+          profile?: {
+            countryCitizenship?: string | null;
+            countryResidence?: string | null;
+            countryTax?: string | null;
+            isikukood?: string | null;
+          };
+        };
+
+        // 1) Without a completed profile we do not allow any mint
+        if (!aml.profileCompleted) {
+          setMintMsg(t('nft.mint.profileRequired'));
+          return;
+        }
+
+        const canLow = Boolean(aml.canBuyLowTier);
+        const canHigh = Boolean(aml.canBuyHighTier);
+
+        // 2) Detect Estonia special case (EE / EE / EE)
+        const prof = aml.profile ?? {};
+        const cCit = (prof.countryCitizenship ?? '').toUpperCase();
+        const cRes = (prof.countryResidence ?? '').toUpperCase();
+        const cTax = (prof.countryTax ?? '').toUpperCase();
+        const isEe =
+          cCit === 'EE' &&
+          cRes === 'EE' &&
+          cTax === 'EE';
+        const hasIsik = (prof.isikukood ?? '').trim().length > 0;
+        const eeNoKyc = isEe && hasIsik;
+
+        // 3) Decide which tier group the current NFT belongs to
+        // 0 = Tree/Steel, 1 = Bronze, 2 = Silver, 3 = Gold, 4 = Platinum, 5 = WS-20
+        let tierNeedsHigh: boolean;
+
+        if (tierId === 0 || tierId === 1) {
+          // Tree / Bronze — always low tier
+          tierNeedsHigh = false;
+        } else if (tierId === 2) {
+          // Silver:
+          // - for Estonia (EE/EE/EE) treat as low tier (no KYC required),
+          // - for everyone else treat as high tier (KYC required).
+          tierNeedsHigh = !eeNoKyc;
+        } else {
+          // Gold, Platinum, WS-20 — always high tier
+          tierNeedsHigh = true;
+        }
+
+        const allowed = tierNeedsHigh ? canHigh : canLow;
+
+        if (!allowed) {
+          setMintMsg(t('nft.mint.amlBlocked'));
+          return;
+        }
+      } catch (err) {
+        console.error('AML check error', err);
+        setMintMsg(t('nft.mint.failedPrefix') + ' AML check error');
         return;
       }
 
@@ -952,7 +1075,18 @@ export default function NftDetails({ id }: { id: string }) {
         return;
       }
 
-      // optional: log to backend
+      let designChoiceLog: number | null = null;
+      if (tierId === 0) {
+        if (design === 'tree' || design === 'wood' || design === 'tree-wood') {
+          designChoiceLog = 1;
+        } else if (design === 'steel' || design === 'tree-steel') {
+          designChoiceLog = 2;
+        }
+      }
+
+      const withPhysicalLog =
+        tierId === 2 ? (withPhysical === true ? true : false) : null;
+
       try {
         await fetch('/api/nft/mint-log', {
           method: 'POST',
@@ -964,6 +1098,8 @@ export default function NftDetails({ id }: { id: string }) {
             txSignature: sig,
             network: 'devnet',
             paidSol: item?.onchain?.priceSol ?? null,
+            designChoice: designChoiceLog,
+            withPhysical: withPhysicalLog,
           }),
         });
       } catch (logErr) {
@@ -1263,17 +1399,6 @@ export default function NftDetails({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* AML */}
-      {purchaseBlocked && purchaseReason && (
-        <div className="card p-3 md:p-4 border border-amber-500/30 bg-amber-500/10">
-          <div className="text-sm font-medium">{t('aml.restriction.title')}</div>
-          <div className="text-xs opacity-80 mt-1">
-            {purchaseReason}
-            {amlZone === 'grey' && amlLimitSol !== null ? ` (${t('aml.limit')}: ${amlLimitSol} SOL)` : ''}
-          </div>
-        </div>
-      )}
-
       {/* Top nav carousel */}
       <PillCarousel
         back={{ id: 'all', label: t('nft.details.back'), href: '/dashboard/nft' }}
@@ -1320,6 +1445,7 @@ export default function NftDetails({ id }: { id: string }) {
           amlReason={purchaseReason}
           mintMsg={mintMsg}
           isBuying={isBuying}
+          kycPills={pills}
         />
       </div>
 
@@ -1502,6 +1628,26 @@ export default function NftDetails({ id }: { id: string }) {
                   {mintMsg ? (
                     <div className="text-xs opacity-80 mt-2">{mintMsg}</div>
                   ) : null}
+
+                  {pills.filter(p => p.level === 'error' || p.level === 'warning').length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {pills
+                        .filter(p => p.level === 'error' || p.level === 'warning')
+                        .map((p) => (
+                          <span
+                            key={p.type}
+                            className={
+                              'chip ' +
+                              (p.level === 'error'
+                                ? 'border border-red-500/30 bg-red-500/10'
+                                : 'border border-amber-500/30 bg-amber-500/10')
+                            }
+                          >
+                            {t(p.i18nKey)}
+                          </span>
+                        ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
