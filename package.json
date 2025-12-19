@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
+    "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.17.0",
     "@solana/web3.js": "^1.98.4",
@@ -32,6 +33,7 @@
     "eslint-config-next": "15.5.3",
     "prisma": "^6.17.0",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
