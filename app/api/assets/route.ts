@@ -1,10 +1,8 @@
 // app/api/assets/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getCookie } from '@/lib/cookies';
 import { Connection, PublicKey, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js';
-
-const prisma = new PrismaClient();
 
 const COOKIE = 'vigri_assets';
 
