@@ -436,7 +436,7 @@ export default function NftList() {
                   )}
 
                   <span className="chip" title={i.vesting || 'No vesting'}>
-                    {t('nft.vesting')}: {i.vesting ? t('nft.yes') : t('nft.no')}
+                    {t('nft.vesting')}: {i.vesting ? t('yes') : t('no')}
                   </span>
                 </div>
 

@@ -229,7 +229,15 @@ export default function AuthModal() {
       ? tf('auth.no_account', "Don't have an account? Create one")
       : tf('auth.back_to_login', 'Back to sign in');
 
-  async function resendVerify() {
+  const switchHint = isSignup
+  ? tf('auth.switch_hint_signup', 'Already have an account?')
+  : tf('auth.switch_hint_login', "Don't have an account?");
+
+  const switchAction = isSignup
+    ? tf('auth.switch_action_login', 'Sign in')
+    : tf('auth.switch_action_signup', 'Create account');
+
+      async function resendVerify() {
     setResending(true);
     try {
       await fetch('/api/auth/request-verify', {
@@ -580,20 +588,33 @@ export default function AuthModal() {
                       outline-none"
         >
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800/60 bg-[color:var(--card)]">
-            <div id={titleId} className="text-lg font-semibold">
-              {title}
+            <div className="flex items-center gap-2">
+              <div id={titleId} className="text-lg font-semibold">
+                {title}
+              </div>
+
+              {isSignup ? (
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold
+                            bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200
+                            dark:bg-white/10 dark:text-zinc-200 dark:ring-white/15"
+                >
+                  {tf('auth.badge_signup', 'Create account')}
+                </span>
+              ) : null}
             </div>
+
             <button
               onClick={close}
               className="rounded-lg p-2.5 text-zinc-500 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60
-                         focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30"
+                        focus:outline-none focus:ring-2 focus:ring-[var(--brand-600)] focus:ring-opacity-30"
               aria-label="Close"
               type="button"
             >
               ✕
             </button>
           </div>
-
+          
           {isForgot ? (
             <form onSubmit={onSubmitForgot} className="px-5 py-5 space-y-4">
               {forgotSent ? (
@@ -784,23 +805,14 @@ export default function AuthModal() {
                 {loading ? tf('auth.loading', 'Please wait…') : submitLabel}
               </button>
               <div className="text-xs text-center text-zinc-600 dark:text-zinc-400">
-                {mode === 'signup' ? (
-                  <button
-                    type="button"
-                    onClick={() => setMode('login')}
-                    className="hover:underline"
-                  >
-                    {altLinkLabel}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setMode('signup')}
-                    className="hover:underline"
-                  >
-                    {altLinkLabel}
-                  </button>
-                )}
+                <span>{switchHint} </span>
+                <button
+                  type="button"
+                  onClick={() => setMode(isSignup ? 'login' : 'signup')}
+                  className="font-semibold text-[color:var(--brand-700)] hover:underline"
+                >
+                  {switchAction}
+                </button>
               </div>
             </form>
           )}

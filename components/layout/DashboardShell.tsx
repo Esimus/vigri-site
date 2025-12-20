@@ -169,19 +169,21 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-zinc-200">
         <div className="mx-auto max-w-6xl px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             {/* Brand */}
             <Link href="/" className="flex items-center gap-3">
-              <div className="h-11 w-11 overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white">
-                <VigriLogo className="shrink-0 size-11" />             {/* 44px */}
+              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white">
+                <VigriLogo className="shrink-0 size-11" /> {/* 44px */}
               </div>
-              <div>
+              <div className="leading-tight">
                 <div className="font-semibold tracking-tight">VIGRI</div>
-                <div className="text-xs text-zinc-500">Solana Utility Token</div>
+                <div className="text-[11px] md:text-xs text-zinc-500">
+                  Solana Utility Token
+                </div>
               </div>
             </Link>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Profile menu (avatar + hamburger) */}
               <ProfileMenu />
 
@@ -190,12 +192,34 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
               {/* Actions */}
               <LanguageSwitcher lang={lang} onChange={setLang} />
-              <Link href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline">
-                {t('btn_telegram')}
+
+              {/* Telegram: icon-only on mobile, text button on sm+ */}
+              <Link
+                href={CONFIG.TELEGRAM_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-outline px-2.5 sm:px-4"
+                aria-label={t('btn_telegram')}
+                title={t('btn_telegram')}
+              >
+                <span className="inline-flex sm:hidden text-[#229ED9]" aria-hidden="true">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M22.05 2.02a1.5 1.5 0 0 0-1.62-.24L2.6 9.27a1.5 1.5 0 0 0 .15 2.83l4.74 1.58 1.72 5.66a1.5 1.5 0 0 0 2.48.67l2.76-2.64 4.93 3.63a1.5 1.5 0 0 0 2.36-.9l2.27-15.97a1.5 1.5 0 0 0-.96-1.11ZM9.2 13.25l10.36-7.05-8.3 8.4-.3 3.14-1.52-4.98-3.1-1.03 12.86-5.03-10 6.55Z" />
+                  </svg>
+                </span>
+                <span className="hidden sm:inline">{t('btn_telegram')}</span>
               </Link>
+
+              {/* Trade: hide entirely on mobile */}
               <button
                 type="button"
-                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
+                className="hidden sm:inline-flex btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
                 disabled
               >
                 {t('btn_trade')}

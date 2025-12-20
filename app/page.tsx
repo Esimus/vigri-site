@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { CONFIG, explorerQS, isMainnet, clusterLabel, PRESALE_END_ISO } from '../lib/config';
+import { CONFIG, explorerQS, isMainnet, clusterLabel } from '../lib/config';
 import Link from 'next/link';
 import Image from 'next/image';
 import BeyondDigital from '@/components/BeyondDigital';
@@ -15,6 +15,7 @@ import { NotificationsBell } from '@/components/notifications';
 import VerifyBanner from '@/components/VerifyBanner';
 import VigriLogo from "@/components/VigriLogo";
 import { ProgressDot } from '@/components/ui/ProgressDot';
+import PresaleWidget from '@/components/home/PresaleWidget';
 
 export default function Home() {
   const { lang, setLang, t } = useI18n();
@@ -131,23 +132,51 @@ export default function Home() {
                 <ProfileMenu />
                 <NotificationsBell />
                 <LanguageSwitcher lang={lang} onChange={setLang} />
-                <a href="/dashboard" className="btn btn-primary">
-                  {t('common.go_dashboard') || 'Go to Dashboard'}
+
+                <a
+                  href="/dashboard"
+                  className="
+                    btn btn-primary
+                    flex items-center justify-center gap-1.5
+                    h-8 w-8 p-0 rounded-2xl
+                    sm:w-auto sm:px-3
+                    whitespace-nowrap
+                  "
+                  aria-label={t('common.go_dashboard') || 'Go to Dashboard'}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="3" width="8" height="8" rx="2" />
+                    <rect x="13" y="3" width="8" height="5" rx="2" />
+                    <rect x="13" y="10" width="8" height="11" rx="2" />
+                    <rect x="3" y="13" width="8" height="8" rx="2" />
+                  </svg>
+
+                  <span className="hidden sm:inline text-xs font-medium">
+                    {t('common.go_dashboard') || 'Go to Dashboard'}
+                  </span>
                 </a>
               </div>
             ) : (
-              // guest: keep previous order
               <>
                 <LanguageSwitcher lang={lang} onChange={setLang} />
                 <button className="btn btn-outline" onClick={() => openAuth('login')}>
                   {t('common.sign_in') || 'Sign in'}
                 </button>
-                <button className="btn btn-primary" onClick={() => openAuth('signup')}>
-                  {t('common.sign_up') || 'Create account'}
-                </button>
               </>
             )}
           </div>
+
         </div>
       </header>
 
@@ -530,199 +559,6 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <div className="text-xs text-zinc-500">{label}</div>
       <div className="mt-1 font-semibold">{value}</div>
-    </div>
-  );
-}
-
-function PresaleWidget({
-  t,
-  me,
-  openAuth,
-}: {
-  t: (k: string) => string;
-  me: { email: string } | null;
-  openAuth: (mode: 'login' | 'signup') => void;
-}) {
-
-  // End moment comes from lib/config (UTC ISO with Z)
-  const end = new Date(PRESALE_END_ISO);
-  const endStr = end.toUTCString().slice(5, 16);
-
-  // Live ticker (same step as homepage)
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const secondsLeft =
-    now ? Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000)) : null;
-
-  const days = secondsLeft != null ? Math.floor(secondsLeft / 86400) : null;
-  const hours = secondsLeft != null ? Math.floor((secondsLeft % 86400) / 3600) : null;
-  const minutes = secondsLeft != null ? Math.floor((secondsLeft % 3600) / 60) : null;
-  const seconds = secondsLeft != null ? secondsLeft % 60 : null;
-
-  const pad = (n: number | null) => (n == null ? '--' : String(n).padStart(2, '0'));
-
-  // ---- Dynamic presale totals (computed from /api/nft) ----
-  const [targetSol, setTargetSol] = useState<number>(0);
-  const [currentSol, setCurrentSol] = useState<number>(0);
-  const [promoOpen, setPromoOpen] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await fetch('/api/nft', { cache: 'no-store' });
-        const j = await r.json();
-        if (r.ok && j?.ok && Array.isArray(j.items)) {
-          let target = 0;
-          let current = 0;
-
-          for (const it of j.items) {
-            const onchain = it.onchain;
-            if (!onchain) continue;
-
-            const price = typeof onchain.priceSol === 'number' ? onchain.priceSol : 0;
-            const supplyTotal =
-              typeof onchain.supplyTotal === 'number' ? onchain.supplyTotal : 0;
-            const supplyMinted =
-              typeof onchain.supplyMinted === 'number' ? onchain.supplyMinted : 0;
-
-            // Skip invite-only / zero-price tiers (например, WS-20)
-            const forSale = price > 0 && supplyTotal > 0;
-            if (!forSale) continue;
-
-            const sold = Math.min(supplyMinted, supplyTotal);
-
-            target += price * supplyTotal;
-            current += price * sold;
-          }
-
-          setTargetSol(target);
-          setCurrentSol(current);
-        } else {
-          setTargetSol(0);
-          setCurrentSol(0);
-        }
-      } catch {
-        setTargetSol(0);
-        setCurrentSol(0);
-      }
-    })();
-  }, []);
-
-  const fmtSol = new Intl.NumberFormat('en', {
-    maximumFractionDigits: 0,
-  });
-
-  const pct =
-    targetSol > 0
-      ? Math.max(0, Math.min(100, Math.round((currentSol / targetSol) * 100)))
-      : 0;
-
-  return (
-    <div className="h-full w-full rounded-2xl bg-transparent">
-      <div className="flex items-center justify-between">
-        <div className="text-base md:text-lg font-semibold uppercase tracking-wide">
-          {t('presale_title')}
-        </div>
-        <div className="text-xs md:text-sm text-zinc-500">
-          {t('live_until')} {endStr}
-        </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        <span className="chip">{t('presale_main_chip')}</span>
-        <span className="chip">
-          {t('target')}: {fmtSol.format(targetSol)} SOL
-        </span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-        {[
-          { v: pad(days), l: t('label_days') },
-          { v: pad(hours), l: t('label_hours') },
-          { v: pad(minutes), l: t('label_min') },
-          { v: pad(seconds), l: t('label_sec') },
-        ].map(({ v, l }) => (
-          <div
-            key={l}
-            className="rounded-xl border border-white/60 bg-white/70 backdrop-blur-sm shadow-sm py-3"
-          >
-            <div className="text-2xl md:text-3xl font-bold tabular-nums">{v}</div>
-            <div className="text-[11px] uppercase tracking-wide text-zinc-500">{l}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-5">
-        <div className="flex items-baseline justify-between text-sm">
-          <div className="font-medium">
-            {fmtSol.format(currentSol)} SOL {t('raised')}
-          </div>
-          <div className="text-zinc-500">
-            {pct}% {t('of')} {fmtSol.format(targetSol)} SOL
-          </div>
-        </div>
-        <div className="mt-2 progress-track">
-          <div className="progress-fill brand-gradient" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-center gap-3 text-xs font-semibold">
-        <button
-          type="button"
-          onClick={() => setPromoOpen((v) => !v)}
-          className="inline-flex items-center justify-center w-14 h-8 p-0 rounded-md border border-brand-200 bg-white text-orange-500 text-[18px] font-bold shadow hover:bg-brand-50"
-          aria-label={t('presale_promo_details_title')}
-        >
-          <span className="leading-none mr-[1px]">i</span>
-          <span className="text-[14px] leading-none">▾</span>
-        </button>
-        <span className="text-blue-400">
-          {t('presale_promo_note')}
-        </span>
-      </div>
-
-      {promoOpen && (
-        <div className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-[11px] text-zinc-700">
-          <div className="font-semibold mb-1">{t('presale_promo_details_title')}</div>
-          <ul className="list-disc pl-4 space-y-0.5">
-            <li>{t('presale_promo_details_1')}</li>
-            <li>{t('presale_promo_details_2')}</li>
-            <li>{t('presale_promo_details_3')}</li>
-            <li>{t('presale_promo_details_4')}</li>
-            <li>{t('presale_promo_details_5')}</li>
-          </ul>
-          <div className="mt-2">
-            {t('presale_promo_details_footer')}
-          </div>
-        </div>
-      )}
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {me ? (
-          <Link href="/dashboard/nft" className="btn btn-primary">
-            {t('join_presale')}
-          </Link>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => openAuth('signup')}
-          >
-            {t('join_presale')}
-          </button>
-        )}
-
-        <Link href="/litepaper" className="btn btn-outline">
-          {t('read_litepaper')}
-        </Link>
-      </div>
-
-      <div className="mt-3 text-[11px] text-zinc-500">{t('numbers_note')}</div>
     </div>
   );
 }

@@ -226,13 +226,15 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       {/* Wallet status block */}
       <div className="card flex items-center justify-between gap-3 px-3 py-2 md:px-4 md:py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-1 min-w-0 items-center gap-3">
           {/* Icon bubble */}
-          <div className="h-9 w-9 md:h-10 md:w-10 rounded-full grid place-items-center text-lg md:text-xl shadow-lg"
-               style={{
-                 background:
-                   'radial-gradient(circle at 30% 20%, rgba(110, 231, 183, 0.9), transparent 55%), radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.9), transparent 55%)'
-               }}>
+          <div
+            className="h-9 w-9 md:h-10 md:w-10 rounded-full grid place-items-center text-lg md:text-xl shadow-lg"
+            style={{
+              background:
+                'radial-gradient(circle at 30% 20%, rgba(110, 231, 183, 0.9), transparent 55%), radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.9), transparent 55%)',
+            }}
+          >
             <span aria-hidden>◎</span>
           </div>
 
@@ -246,18 +248,20 @@ export default function DashboardOverview() {
                 {shortAddress}
               </div>
             ) : (
-              <div className="text-xs md:text-sm opacity-70">
+              <div className="text-xs md:text-sm opacity-70 hidden md:block">
                 {t('overview.wallet_disconnected')}
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span
             className={
               'h-2.5 w-2.5 rounded-full ' +
-              (shortAddress ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)]' : 'bg-zinc-500/60')
+              (shortAddress
+                ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)]'
+                : 'bg-zinc-500/60')
             }
             aria-hidden
           />
@@ -269,11 +273,50 @@ export default function DashboardOverview() {
 
           <Link
             href={walletHref}
-            className="btn btn-outline !rounded-full !px-3 !py-1 text-[11px] md:text-xs whitespace-nowrap"
+            className="btn btn-outline !rounded-full !px-2.5 !py-1 text-[11px] md:text-xs whitespace-nowrap flex items-center justify-center gap-1"
+            aria-label={
+              shortAddress
+                ? t('overview.wallet_manage')
+                : t('overview.wallet_connect')
+            }
           >
-            {shortAddress
-              ? t('overview.wallet_manage')
-              : t('overview.wallet_connect')}
+            {/* Mobile: icon only */}
+            <span
+              className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-zinc-300 bg-white md:hidden"
+              aria-hidden
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="3"
+                  y="6"
+                  width="18"
+                  height="12"
+                  rx="2.5"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                />
+                <path
+                  d="M17 12h2.5"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
+                <circle cx="15" cy="12" r="1.2" fill="currentColor" />
+              </svg>
+            </span>
+
+            {/* Desktop: text label */}
+            <span className="hidden md:inline">
+              {shortAddress
+                ? t('overview.wallet_manage')
+                : t('overview.wallet_connect')}
+            </span>
           </Link>
         </div>
       </div>

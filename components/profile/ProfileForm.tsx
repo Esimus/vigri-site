@@ -1376,7 +1376,7 @@ export function ProfileForm() {
                           onChange={() => setPepDeclared(false)}
                           disabled={kycBusy || meKycStatus !== 'none'}
                         />
-                        <span className="text-sm">{tr('common.no', 'No')}</span>
+                        <span className="text-sm">{tr('no', 'No')}</span>
                       </label>
 
                       <label className="inline-flex items-center gap-2">
@@ -1388,7 +1388,7 @@ export function ProfileForm() {
                           onChange={() => setPepDeclared(true)}
                           disabled={kycBusy || meKycStatus !== 'none'}
                         />
-                        <span className="text-sm">{tr('common.yes', 'Yes')}</span>
+                        <span className="text-sm">{tr('yes', 'Yes')}</span>
                       </label>
                     </div>
 
