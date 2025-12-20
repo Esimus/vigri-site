@@ -94,6 +94,7 @@ export default function MyNftsStrip() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [events, setEvents] = useState<MintEvent[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [recentExpanded, setRecentExpanded] = useState(false);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -175,7 +176,8 @@ export default function MyNftsStrip() {
   }, [address, t]);
 
   const hasAny = groups.length > 0;
-    const recentEvents = useMemo(() => {
+
+  const recentEvents = useMemo(() => {
     if (!events.length) return [];
     const sorted = [...events].sort(
       (a, b) =>
@@ -183,6 +185,14 @@ export default function MyNftsStrip() {
     );
     return sorted.slice(0, 10);
   }, [events]);
+
+  const MAX_RECENT_COLLAPSED = 3;
+  const hasRecentOverflow = recentEvents.length > MAX_RECENT_COLLAPSED;
+  const visibleRecent =
+    hasRecentOverflow && !recentExpanded
+      ? recentEvents.slice(0, MAX_RECENT_COLLAPSED)
+      : recentEvents;
+
   const step = useMemo(() => TILE_W + GAP, []);
 
   const scrollByOne = (dir: 1 | -1) => {
@@ -337,7 +347,7 @@ export default function MyNftsStrip() {
     <section className="relative w-full" style={sectionStyle}>
       <div className="flex items-center justify-center mb-2" style={{ paddingInline: EDGE_PAD }}>
         <div className="h-px bg-zinc-200 flex-1 mx-2 rounded-full" />
-        <div 
+        <div
           className="px-3 py-1 rounded-full border text-[11px] uppercase tracking-wide shadow-sm"
           style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--fg)' }}
         >
@@ -365,7 +375,7 @@ export default function MyNftsStrip() {
           <div aria-hidden style={{ width: GAP }} />
         </div>
 
-        {/* Background-matched masks (use page bg rgb(247,247,251)) */}
+        {/* Background-matched masks */}
         <div
           aria-hidden
           className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2"
@@ -409,16 +419,16 @@ export default function MyNftsStrip() {
         </button>
       </div>
 
-            {recentEvents.length > 0 && (
+      {recentEvents.length > 0 && (
         <div
-          className="mt-3 text-[11px] leading-snug"
+          className="mt-3 mb-3 text-[11px] leading-snug"
           style={{ marginInline: EDGE_PAD }}
         >
           <div className="mb-1 font-semibold opacity-70">
-            {t('nft.my_recent_mints') ?? 'My devnet mints (diagnostic)'}
+            {t('nft.my_recent_mints') ?? 'My recent purchases'}
           </div>
           <ul className="space-y-0.5 opacity-75">
-            {recentEvents.map((ev) => {
+            {visibleRecent.map((ev) => {
               const nftId = nftIdFromTier(ev.tierId);
               const meta = nftId ? NFT_CATALOG[nftId] : undefined;
               const tierName =
@@ -442,7 +452,65 @@ export default function MyNftsStrip() {
           </ul>
         </div>
       )}
-      <div className="mt-2 h-px bg-zinc-200 rounded-full" style={{ marginInline: EDGE_PAD }} />
+
+      {hasRecentOverflow ? (
+        <div
+          className="relative mt-2"
+          style={{ marginInline: EDGE_PAD }}
+        >
+          {/* Base line (always visible) */}
+          <div className="h-px w-full bg-zinc-200 rounded-full" />
+
+          {/* Handle on top of the line */}
+          <button
+            type="button"
+            onClick={() => setRecentExpanded((v) => !v)}
+            className="group absolute inset-x-0 -top-[8px] flex justify-center"
+            aria-expanded={recentExpanded}
+            aria-label={
+              recentExpanded
+                ? t('nft.recent_toggle_hide') ?? 'Hide full purchase history'
+                : t('nft.recent_toggle_show') ?? 'Show all purchases'
+            }
+          >
+            <span
+              className="mt-[-3px] inline-flex items-center justify-center rounded-full border px-1.5 py-0.5 text-[9px] leading-none shadow-sm"
+              style={{
+                background: 'var(--card)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              <span
+                className={
+                  'inline-flex items-center justify-center transition-transform ' +
+                  (!recentExpanded ? 'rotate-180' : '')
+                }
+                aria-hidden
+              >
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M6 14l6-6 6 6"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </span>
+          </button>
+        </div>
+      ) : (
+        <div
+          className="mt-2 h-px bg-zinc-200 rounded-full"
+          style={{ marginInline: EDGE_PAD }}
+        />
+      )}
     </section>
   );
 }

@@ -183,7 +183,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     image: '3_mb_silver.webp',
 
     kycRequired: true,
-    vesting: 'nft.yes',
+    vesting: 'yes',
     revealNote: 'Reveals at event (Q2 2026)',
 
     activationType: 'none',
@@ -229,7 +229,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     image: '4_mb_gold.webp',
 
     kycRequired: true,
-    vesting: 'nft.yes', 
+    vesting: 'yes', 
     revealNote: 'Reveals at event (Q2 2026)',
 
     activationType: 'none',
@@ -275,7 +275,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     image: '5_mb_platinum.webp',
 
     kycRequired: true,
-    vesting: 'nft.yes',
+    vesting: 'yes',
     revealNote: 'Reveals at event (Q2 2026)',
 
     activationType: 'none',

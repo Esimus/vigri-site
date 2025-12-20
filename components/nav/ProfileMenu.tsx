@@ -96,7 +96,7 @@ export default function ProfileMenu() {
   // panel position
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
-  // таймер для авто-закрытия по уходу мыши с панели
+  // timer for auto-close on hover-out
   const hoverTimeout = useRef<number | null>(null);
   const cancelHoverClose = () => {
     if (hoverTimeout.current !== null) {
@@ -112,6 +112,11 @@ export default function ProfileMenu() {
   };
 
   const labelHome = tChain(t, ['common.home', 'nav.home'], 'Home');
+  const labelDashboard = tChain(
+    t,
+    ['common.go_dashboard', 'dashboard.nav.overview'],
+    'Dashboard'
+  );
   const labelCurrency = tChain(
     t,
     ['common.currency', 'settings.currency', 'profile.currency'],
@@ -130,7 +135,7 @@ export default function ProfileMenu() {
   useEffect(() => {
     setPortalRoot(document.body);
 
-    // читаем пользователя для инициалов
+    // read user from /api/me to build initials
     (async () => {
       try {
         const r = await fetch('/api/me', { cache: 'no-store' });
@@ -143,7 +148,7 @@ export default function ProfileMenu() {
       }
     })();
 
-    // фиксируем валюту как EUR (и синхронизируем cookie + событие)
+    // lock currency to EUR (sync cookie + event)
     writeCookie('vigri_ccy', 'EUR', 365);
     try {
       window.dispatchEvent(
@@ -173,14 +178,21 @@ export default function ProfileMenu() {
     };
   }, [theme]);
 
-  // open/close with position recalculation
+  // open/close with position recalculation and viewport clamping
   const toggle = () => {
     if (!open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
       const PANEL_W = 256;
       const GAP = 8;
+      const viewportW = window.innerWidth || PANEL_W + 16;
+
       const top = r.bottom + GAP;
-      const left = Math.min(window.innerWidth - PANEL_W - 8, r.right - PANEL_W);
+      let left = r.right - PANEL_W;
+
+      const maxLeft = viewportW - PANEL_W - 8; // keep 8px margin on the right
+      left = Math.min(left, maxLeft);
+      left = Math.max(8, left); // keep 8px margin on the left
+
       setPos({ top, left });
     }
     setOpen((v) => !v);
@@ -223,27 +235,27 @@ export default function ProfileMenu() {
           onClick={(e) => e.stopPropagation()}
           onMouseEnter={cancelHoverClose}
           onMouseLeave={scheduleHoverClose}
-          className="fixed w-[16rem] rounded-xl border border-zinc-200 bg-white shadow-md"
+          className="fixed w-[16rem] max-w-[calc(100vw-1rem)] rounded-2xl border border-zinc-200 bg-white shadow-md text-xs md:text-sm"
           style={{ top: pos.top, left: pos.left }}
         >
-          <div className="py-1">
+          <div className="py-1.5">
             {/* Currency: fixed EUR */}
-            <div className="px-3 py-2 text-xs flex items-center justify-between">
-              <span className="opacity-70">{labelCurrency}</span>
-              <span className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs text-zinc-700">
+            <div className="px-3 py-1.5 flex items-center justify-between gap-2">
+              <span className="opacity-70 truncate">{labelCurrency}</span>
+              <span className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] text-zinc-700">
                 EUR
               </span>
             </div>
 
             {/* Preferences: Theme */}
-            <div className="px-3 py-2 text-xs flex items-center justify-between">
-              <span className="opacity-70">{labelTheme}</span>
+            <div className="px-3 py-1.5 flex items-center justify-between gap-2">
+              <span className="opacity-70 truncate">{labelTheme}</span>
               <div className="inline-flex overflow-hidden rounded-md border border-zinc-200">
                 <button
                   type="button"
                   onClick={() => changeTheme('auto')}
                   className={
-                    'px-2 py-1 text-xs ' +
+                    'px-2 py-0.5 text-[11px] ' +
                     (theme === 'auto'
                       ? 'bg-blue-50 text-blue-700'
                       : 'hover:bg-zinc-100 text-zinc-700')
@@ -255,7 +267,7 @@ export default function ProfileMenu() {
                   type="button"
                   onClick={() => changeTheme('light')}
                   className={
-                    'px-2 py-1 text-xs ' +
+                    'px-2 py-0.5 text-[11px] ' +
                     (theme === 'light'
                       ? 'bg-blue-50 text-blue-700'
                       : 'hover:bg-zinc-100 text-zinc-700')
@@ -267,7 +279,7 @@ export default function ProfileMenu() {
                   type="button"
                   onClick={() => changeTheme('dark')}
                   className={
-                    'px-2 py-1 text-xs ' +
+                    'px-2 py-0.5 text-[11px] ' +
                     (theme === 'dark'
                       ? 'bg-blue-50 text-blue-700'
                       : 'hover:bg-zinc-100 text-zinc-700')
@@ -283,18 +295,28 @@ export default function ProfileMenu() {
             {/* Home */}
             <Link
               href="/"
-              className="block px-3 py-2 text-sm hover:bg-zinc-100"
+              className="block px-3 py-1.5 text-xs md:text-sm hover:bg-zinc-100"
               role="menuitem"
               onClick={() => setOpen(false)}
             >
               {labelHome}
             </Link>
 
+            {/* Dashboard */}
+            <Link
+              href="/dashboard"
+              className="block px-3 py-1.5 text-xs md:text-sm hover:bg-zinc-100"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              {labelDashboard}
+            </Link>
+
             {/* Logout */}
             <form action="/api/auth/logout" method="POST">
               <button
                 type="submit"
-                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100"
+                className="w-full text-left px-3 py-1.5 text-xs md:text-sm hover:bg-zinc-100"
                 role="menuitem"
               >
                 {labelLogout}
@@ -311,16 +333,16 @@ export default function ProfileMenu() {
         ref={btnRef}
         type="button"
         onClick={toggle}
-        className="btn btn-outline rounded-full px-2.5 py-1.5 gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+        className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/5 px-2 py-1 h-8 md:h-9 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Open profile menu"
       >
-        <span className="grid h-6 w-6 place-items-center rounded-full bg-blue-100 text-[11px] font-semibold text-blue-700">
+        <span className="grid h-5 w-5 md:h-6 md:w-6 place-items-center rounded-full bg-blue-100 text-[10px] md:text-[11px] font-semibold text-blue-700">
           {initials}
         </span>
         <span aria-hidden className="inline-flex text-current">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
             <rect x="3" y="5" width="14" height="2" rx="1" />
             <rect x="3" y="9" width="14" height="2" rx="1" />
             <rect x="3" y="13" width="14" height="2" rx="1" />

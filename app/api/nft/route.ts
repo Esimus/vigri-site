@@ -417,9 +417,6 @@ function drawUpgrade(tier: Nft['tier']): 'none' | 'rare' | 'ultra' {
 
 /** ---- GET ---- */
 export async function GET() {
-  const sessionId = await getCookie(SESSION_COOKIE);
-  if (!sessionId) return NextResponse.json({ ok: false }, { status: 401 });
-
   const invited = (await getCookie(COOKIE_WS_INVITED)) === '1';
   const s = await readState();
 
