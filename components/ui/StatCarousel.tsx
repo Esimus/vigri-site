@@ -51,7 +51,7 @@ export default function StatCarousel({ items }: { items: Item[] }) {
           aria-label="Previous"
           onClick={() => scrollByOne(-1)}
           className="
-            absolute inset-y-0 left-0 w-7 z-10 grid place-items-center rounded-l-xl border 
+            absolute inset-y-0 left-0 w-7 z-10 grid place-items-center rounded-l-xl border
             hover:brightness-110 active:brightness-95 transition
           "
           style={{
@@ -71,7 +71,7 @@ export default function StatCarousel({ items }: { items: Item[] }) {
           aria-label="Next"
           onClick={() => scrollByOne(1)}
           className="
-            absolute inset-y-0 right-0 w-7 z-10 grid place-items-center rounded-r-xl border 
+            absolute inset-y-0 right-0 w-7 z-10 grid place-items-center rounded-r-xl border
             hover:brightness-110 active:brightness-95 transition
           "
           style={{
@@ -105,8 +105,8 @@ export default function StatCarousel({ items }: { items: Item[] }) {
                 data-slide
                 className="
                   snap-start shrink-0
-                  basis-[42%] sm:basis-[38%]
-                  max-w-[520px]
+                  basis-[60%] sm:basis-[41%]
+                  max-w-[420px]
                 "
                 tabIndex={0}
                 aria-label={
@@ -114,16 +114,16 @@ export default function StatCarousel({ items }: { items: Item[] }) {
                 }
               >
                 {/* Equal-height card */}
-                <div className="card p-3 min-w-0 h-full min-h-[110px] flex flex-col justify-between">
-                  <div className="text-[11px] opacity-70">{it.title}</div>
-                  <div className="text-xl font-semibold mt-1 truncate">
+                <div className="card p-3 min-w-0 h-full min-h-[110px] flex flex-col items-center text-center">
+                  <div className="w-full text-[11px] opacity-70">{it.title}</div>
+
+                  <div className="w-full mt-1 text-base font-semibold leading-snug whitespace-normal break-words">
                     {it.value}
                   </div>
-                  {it.hint && (
-                    <div className="text-[11px] opacity-60 mt-1">
-                      {it.hint}
-                    </div>
-                  )}
+
+                  <div className="w-full mt-auto pt-1 text-[11px] opacity-60 min-h-[16px]">
+                    {it.hint ?? <span aria-hidden>&nbsp;</span>}
+                  </div>
                 </div>
               </div>
             );

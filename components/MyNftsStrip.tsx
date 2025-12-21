@@ -17,8 +17,8 @@ type CSSWithExtras = React.CSSProperties & {
 const TILE_W = 92;
 const TILE_H = 120;
 const GAP = 12;
-const PADDLE_W = 40;
-const EDGE_PAD = PADDLE_W + 16;
+const PADDLE_W = 28;
+const EDGE_PAD = PADDLE_W + 12;
 const MAX_EXPANDED_SHOW = 10;
 
 function pngNameFor(id: string): string {
@@ -75,11 +75,8 @@ function formatDate(iso: string): string {
   return d.toLocaleString();
 }
 
-function shortTx(sig: string): string {
+function shortTx(sig: string, prefix = 14, suffix = 10): string {
   if (!sig) return '';
-
-  const prefix = 14;
-  const suffix = 10;
 
   if (sig.length <= prefix + suffix + 3) {
     return sig;
@@ -183,7 +180,7 @@ export default function MyNftsStrip() {
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-    return sorted.slice(0, 10);
+    return sorted.slice(0, 7);
   }, [events]);
 
   const MAX_RECENT_COLLAPSED = 3;
@@ -402,27 +399,48 @@ export default function MyNftsStrip() {
           type="button"
           aria-label="Previous"
           onClick={() => scrollByOne(-1)}
-          className="absolute left-2 top-1 bottom-1 z-30 grid place-items-center rounded-xl border"
-          style={{ width: PADDLE_W, background: 'var(--card)', borderColor: 'var(--border)' }}
+          className="
+            absolute inset-y-0 left-0 w-7 z-50 grid place-items-center rounded-l-xl border
+            hover:brightness-110 active:brightness-95 transition
+          "
+          style={{
+            background: 'var(--card)',
+            borderColor: 'var(--border)',
+            color: 'var(--fg)',
+          }}
         >
-          <span className="text-xl leading-none select-none">‹</span>
+          <span aria-hidden className="text-xl leading-none select-none">
+            ‹
+          </span>
         </button>
 
         <button
           type="button"
           aria-label="Next"
           onClick={() => scrollByOne(1)}
-          className="absolute right-2 top-1 bottom-1 z-30 grid place-items-center rounded-xl border"
-          style={{ width: PADDLE_W, background: 'var(--card)', borderColor: 'var(--border)' }}
+          className="
+            absolute inset-y-0 right-0 w-7 z-50 grid place-items-center rounded-r-xl border
+            hover:brightness-110 active:brightness-95 transition
+          "
+          style={{
+            background: 'var(--card)',
+            borderColor: 'var(--border)',
+            color: 'var(--fg)',
+          }}
         >
-          <span className="text-xl leading-none select-none">›</span>
+          <span aria-hidden className="text-xl leading-none select-none">
+            ›
+          </span>
         </button>
       </div>
 
       {recentEvents.length > 0 && (
         <div
           className="mt-3 mb-3 text-[11px] leading-snug"
-          style={{ marginInline: EDGE_PAD }}
+          style={{
+            marginLeft: EDGE_PAD,
+            marginRight: Math.max(0, EDGE_PAD - Math.round(PADDLE_W / 2)),
+          }}
         >
           <div className="mb-1 font-semibold opacity-70">
             {t('nft.my_recent_mints') ?? 'My recent purchases'}
@@ -436,7 +454,7 @@ export default function MyNftsStrip() {
                 (nftId ?? `Tier #${ev.tierId}`);
 
               return (
-                <li key={ev.id}>
+                <li key={ev.id} className="truncate md:whitespace-normal md:overflow-visible md:text-clip">
                   {tierName} · {formatDate(ev.createdAt)} ·{' '}
                   <a
                     href={`https://solscan.io/tx/${ev.txSignature}?cluster=devnet`}
@@ -444,12 +462,20 @@ export default function MyNftsStrip() {
                     rel="noreferrer"
                     className="underline hover:no-underline"
                   >
-                    {shortTx(ev.txSignature)}
+                    <span className="md:hidden">{shortTx(ev.txSignature, 8, 4)}</span>
+                    <span className="hidden md:inline">{shortTx(ev.txSignature, 14, 10)}</span>
                   </a>
                 </li>
               );
             })}
           </ul>
+          {recentExpanded && (
+            <div className="mt-1 opacity-75">
+              <Link href="/dashboard/assets" className="underline hover:no-underline">
+                {t('assets.history') ?? 'All operations'}
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

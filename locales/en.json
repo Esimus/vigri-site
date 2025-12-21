@@ -106,7 +106,7 @@
   "btn_buy_on_dex": "Coming soon to DEX",
   "btn_community": "Community",
   "btn_tokenomics": "Tokenomics",
-  
+
   "back_home": "Back to home",
 
   "dashboard.header.title": "VIGRI — Dashboard",
@@ -157,6 +157,11 @@
   "contact.registry_link": "View record in e-Business Register",
   "contact.tagline": "Legal information & contact",
 
+  "contact.email.business.label": "Business / legal",
+  "contact.email.business.hint": "For commercial, partnership, accounting and legal matters.",
+  "contact.email.support.label": "Support",
+  "contact.email.support.hint": "For platform support and user questions. Subject: GDPR request (for data deletion/correction).",
+
   "emails.verify.subject": "Verify your email for VIGRI",
   "emails.verify.text": "To verify your email, open this link: {link}\nIf you didn't request this, ignore this email.",
   "emails.verify.html": "<p>To verify your email, click the link below:</p><p><a href=\"{link}\">{link}</a></p><p>If you didn’t request this, you can ignore this email.</p>",
@@ -171,7 +176,7 @@
 
   "hero_title": "$VIGRI — a token for sports, dance, fans — and everyone who cares",
   "hero_subtitle": "$VIGRI is a utility token on Solana for payments, discounts, and access to services and experiences from sports clubs and dance studios. Part of the Lumiros ecosystem.",
-  
+
   "presale_title": "Presale",
   "live_until": "Live until",
   "presale_main_chip": "VIGRI NFT presale · pay with SOL",
@@ -249,7 +254,6 @@
   "kyc.pepDetails": "Please describe who and the role (country, position, dates).",
   "kyc.consent": "I confirm the data is true and I consent to verification.",
   "kyc.passportTitle": "Passport & document",
-  "kyc.passportHint": "Required for Gold/Platinum (non-EE).",
   "kyc.passportNumber": "Passport number",
   "kyc.passportCountry": "Issuing country",
   "kyc.passportCountryPlaceholder": "EE / DE / FR ...",
@@ -272,6 +276,9 @@
   "kyc.approvedHint": "KYC approved.",
   "kyc.rejectedHint": "KYC rejected.",
   "kyc.zoneUnknown": "Unknown zone.",
+  "kyc.gdprHint": "Need to delete/rectify data? Email support@vigri.ee (subject: GDPR request).",
+  "kyc.consentLabel": "Data confirmation & consent",
+  "kyc.pepLabelShort": "PEP (Politically exposed person)",
 
   "legal_terms_meta_title": "Terms of Use | VIGRI",
   "legal_terms_meta_description": "Terms of use of the VIGRI website and services related to the $VIGRI token and NFTs within the Lumiros ecosystem.",
@@ -445,7 +452,7 @@
 
   "litepaper.block_what_title": "What is VIGRI?",
   "litepaper.block_what_text": "VIGRI is a community-oriented ecosystem for supporting sports and dance. Clubs receive a transparent funding channel and new formats of interaction, while fans get closer access, special experiences and an honest way to support the teams and projects that matter to them.",
-  
+
   "litepaper.block_why_title": "Why an NFT presale?",
   "litepaper.block_why_text": "VIGRI NFT cards are the entry point into the ecosystem. They fix early participation, give the right to a 100% Claim into VIGRI tokens at TGE and, for selected tiers, add discount vouchers, physical cards and cooperative code mechanics (DUO / TRIO / QUATTRO / WS-key).",
 
@@ -606,7 +613,7 @@
 
   "nft.explainers.title": "About the series",
   "nft.explain.buy.title": "Buying an NFT = a digital pass and the right to VIGRI",
-  
+
   "nft.explain.tree_buy.text": "An NFT is a unique digital card on the Solana network that lives in your wallet (e.g., Phantom).\nWhen you buy Tree/Steel, you secure the card and the right to receive VIGRI at the starting price (for this category — 100% of the NFT amount at TGE).\nThe card is yours: you can hold it, gift it, or sell it on marketplaces; it will appear under “My NFT” in your dashboard, and all linked rights will be available there.\n\nPayment goes through your connected wallet: choose design and quantity, confirm the transaction; the network fee is charged in SOL.\nThis is a way to support the project and obtain utility rights — not a promise of profit.",
   "nft.explain.tree.d0": "Until the official reveal, the card is shown as a single “mystery box” placeholder. The NFT already belongs to you, is visible in your dashboard, and is stored in your wallet.\n\nAt the reveal event, the final image of the selected archetype (Tree/Steel), the serial number, and part of the metadata are disclosed.\n\nPlanned reveal window — Q2 2026. We will announce the exact date in advance — in the dashboard and in the project’s Telegram channel.\n\nAfter the reveal, the metadata are fixed (immutable): the image and properties do not change. Trading on marketplaces is possible both before and after the reveal; the price is formed by the market and is not a promise of profit.",
   "nft.explain.tree.d1": "A total of 2,000 Tree/Steel NFTs are issued — one shared supply across both designs. This is a fixed quantity with no additional prints. Each card has a unique serial number and remains part of the collection forever.\n\nAt purchase you choose the archetype — “Tree” or “Steel”. All cards share the same series, equal terms, and a common numbering. No new issues are planned for this series.\n\nThe limited supply underscores the value of participation: Tree/Steel holders are the first wave of support and form the foundation of the VIGRI collection.",
@@ -635,7 +642,7 @@
   "nft.explain.silver.d7": "Silver holders receive priority access to Lumiros ecosystem sections and services: early releases, closed betas, whitelists, and invitations to pilot features ahead of the base level.\n\nAccess is activated automatically after TGE and is confirmed by holding a Silver NFT in your wallet. Some activities may require connecting a wallet or additional sign-in in the account.\n\nThe list of privileges will expand as the platform develops. The right to priority access remains while the NFT is in your possession.",
   "nft.explain.silver.d8": "When purchasing Silver you may choose an option with the production of a physical version of the NFT card. The choice is made at the time of purchase; you will need to confirm that shipping is paid by the recipient.\n\nThe decision about a physical card is fixed at the time of purchase and cannot be changed after the transaction is completed. If the option without production is chosen, adding a physical card later will not be available.\n\nOnce production is complete, a notification will appear in your account with a prompt to provide the delivery address. Dispatch occurs after data confirmation and payment of shipping costs.\n\nThe physical card is a collectible copy of the digital NFT intended for personal keeping or gifting. It does not replace the digital version and does not affect utility functions, rights, or token accruals.",
   "nft.explain.silver.d9": "DUO-codes are a game and collectible mechanic embedded in the physical cards of the Silver series.\n\nEach physical card contains a fragment of a unique code. Matching two cards forms a full combination that can be activated individually or in cooperation with the owner of the second card.\n\nUpon finding a match, the holder may:\n• activate the code individually (by acquiring the second card), or\n• team up with the paired holder and activate together.\n\nThis creates a “match hunt”: searching for needed cards, negotiation, exchange, buyout, teaming up. Everyone decides whether to share with others or to collect the full pair alone.\n\nLegal status\nDUO-codes are not an investment instrument and do not promise income. They are a Lumiros game and collectible mechanic that fosters interest and interaction among participants without financial guarantees.",
-  
+
   "nft.explain.gold_buy.text": "An NFT is a unique digital card on the Solana network, stored in your wallet (for example, Phantom). By purchasing Gold, you secure the card and the right to receive 6,250,000 VIGRI.\n\nThe card belongs to you: you may hold it, gift it, or sell it on marketplaces; it will appear in “My NFTs” in your account, and related rights will be available there as well. Payment is made via the connected wallet: choose the quantity and confirm the transaction; network fees are charged in SOL.\n\nGold requires KYC in accordance with the platform’s rules and amount thresholds. This is a way to support the project and receive utility rights — not a promise of income.",
   "nft.explain.gold.d0": "Before the official reveal, the card is shown as a single “mystery box” placeholder. The NFT already belongs to you, is visible in your account, and is stored in your wallet.\n\nDuring the reveal event, the final Gold design, serial number, and part of the metadata are disclosed.\n\nThe planned reveal window is Q2 2026. We will announce the exact date in advance in your account and in the project’s Telegram channel.\n\nAfter reveal, metadata is fixed (immutable): image and attributes do not change. Trading on marketplaces is possible both before and after reveal; price is formed by the market and is not a promise of returns.",
   "nft.explain.gold.d1": "The Gold series is issued in a limited run — only 100 NFTs.\n\nThe supply is fixed and will not increase over time. Each card has a unique serial number and remains in the collection registry permanently.\n\nThe terms are the same for all holders — a transparent, fair basis for the project’s further development.",
@@ -646,7 +653,7 @@
   "nft.explain.gold.d6": "TRIO codes are an embedded Lumiros collectible mechanic based on code fragments in physical Gold cards. Each card contains multiple fragments that can be combined with other cards to form a full combination.\n\nA found match is recorded in the Lumiros system as a special participation result.\n\nUpon finding the required fragments, a holder may:\n• activate the code independently by collecting all three cards, or\n• team up with other holders to complete the combination.\n\nTRIO codes foster attention to detail and discovery within the collection. This creates a “match hunt”: searching for the right cards, negotiating, exchanging, buying, and combining. Each participant decides whether to collaborate or assemble the trio solo.\n\nLegal status\nTRIO codes are not an investment instrument and do not promise income. They are a Lumiros collectible and social mechanic based on interaction and discovery, without financial guarantees or property rights.",
   "nft.explain.gold.d7": "Gold holders receive extended priority access to Lumiros services and releases: closed pilots, early tool versions, participation in focus tests, and pre-integrations.\n\nAccess is confirmed by holding a Gold NFT in your wallet and is activated automatically after TGE. Some activities may require connecting a wallet and account authorization.\n\nGold-level benefits may include: earlier feature access than others, increased participation limits, invitations to private events, and priority feedback treatment (feature requests, bug reports).\n\nThe list of opportunities will expand as the platform grows. The right to extended access remains as long as the NFT is in your possession.",
   "nft.explain.gold.d9": "As part of the “VIGRI Mystery Draw” promo, a limited number of Rare and Ultra collectible cards are raffled.\nParticipation is free and available to all registered users who have passed KYC verification on the official website vigri.ee.\n\nWinners are determined randomly and receive a rare-category NFT with a physical card duplicate.\nPrizes have no cash value and do not grant rights to income, project equity, or VIGRI tokens.\nResults are published publicly on the website and recorded on-chain.\n\nHolders of Silver/Gold/Platinum/WS NFTs participate in the distribution automatically, on common terms, with equal chances.\nThe purpose of the campaign is to support and develop the Lumiros community, reward early participants, and preserve the spirit of rarity in the VIGRI collection.",
-  
+
   "nft.explain.platinum_buy.text": "An NFT is a unique digital card on the Solana network, stored in your wallet (for example, Phantom). By purchasing Platinum, you secure the card and the right to receive 12,500,000 VIGRI.\n\nThe card belongs to you: you may hold it, gift it, or sell it on marketplaces; it will appear in “My NFTs” in your account, and related rights will be available there as well. Payment is made via the connected wallet: choose quantity and confirm the transaction; network fees are charged in SOL.\n\nPlatinum requires KYC in accordance with the platform’s rules and amount thresholds. This is a way to support the project and receive utility rights — not a promise of income.",
   "nft.explain.platinum.d0": "Before the official reveal, the card is shown as a single “mystery box” placeholder. The NFT already belongs to you, is visible in your account, and is stored in your wallet.\n\nDuring the reveal event, the final Platinum design, serial number, and part of the metadata are disclosed.\n\nThe planned reveal window is Q2 2026. We will announce the exact date in advance in your account and in the project’s Telegram channel.\n\nAfter reveal, metadata is fixed (immutable): image and attributes do not change. Trading on marketplaces is possible both before and after reveal; price is formed by the market and is not a promise of returns.",
   "nft.explain.platinum.d1": "The Platinum series is issued in a limited run — only 20 NFTs.\n\nThe supply is fixed and will not increase over time. Each card has a unique serial number and remains in the collection registry permanently.\n\nThe terms are the same for all holders — a transparent, fair basis for the project’s further development.",
@@ -834,7 +841,7 @@
   "profile.form.editTitle": "Edit profile",
   "profile.form.editHint": "Fill in your details and save. After saving, the profile will be shown as a card.",
   "profile.form.hint.countryCitizenship": "Select country of citizenship",
-  
+
   "lang.en": "English",
   "lang.ru": "Russian",
   "lang.et": "Estonian",
@@ -917,6 +924,7 @@
   "rewards.hide_list": "Hide list",
   "rewards.echo_history": "Echo history",
   "rewards.no_records": "No records yet.",
+  "rewards_source": "Source:",
 
   "wallet.connect": "Connect wallet",
   "wallet.connecting": "Connecting wallet…",

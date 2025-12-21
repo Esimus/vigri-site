@@ -157,6 +157,11 @@
   "contact.registry_link": "Vaata ettevõtet e-Äriregistris",
   "contact.tagline": "Õigusinfo ja kontakt",
 
+  "contact.email.business.label": "Äri / juriidilised küsimused",
+  "contact.email.business.hint": "Äri-, partnerlus-, raamatupidamis- ja juriidiliste küsimuste jaoks.",
+  "contact.email.support.label": "Tugi",
+  "contact.email.support.hint": "Platvormi toe ja kasutajaküsimuste jaoks. Teema: GDPR request (andmete kustutamine/parandamine).",
+
   "emails.verify.subject": "Kinnita oma e-posti aadress VIGRI jaoks",
   "emails.verify.text": "Oma e-posti aadressi kinnitamiseks ava see link: {link}\nKui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.",
   "emails.verify.html": "<p>Oma e-posti aadressi kinnitamiseks klõpsa alloleval lingil:</p><p><a href=\"{link}\">{link}</a></p><p>Kui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.</p>",
@@ -249,7 +254,6 @@
   "kyc.pepDetails": "Palun kirjeldage, kes ja mis rollis (riik, ametikoht, kuupäevad).",
   "kyc.consent": "Kinnitan, et andmed on tõesed, ja annan nõusoleku kontrollimiseks.",
   "kyc.passportTitle": "Pass ja dokument",
-  "kyc.passportHint": "Nõutav Gold/Platinum jaoks (mitte EE).",
   "kyc.passportNumber": "Passi number",
   "kyc.passportCountry": "Väljastanud riik",
   "kyc.passportCountryPlaceholder": "EE / DE / FR ...",
@@ -272,6 +276,9 @@
   "kyc.approvedHint": "KYC on heaks kiidetud.",
   "kyc.rejectedHint": "KYC on tagasi lükatud.",
   "kyc.zoneUnknown": "Tsoon teadmata.",
+  "kyc.gdprHint": "Soovid andmeid kustutada/parandada? Kirjuta support@vigri.ee (teema: GDPR request).",
+  "kyc.consentLabel": "Andmete kinnitamine ja nõusolek kontrolliks",
+  "kyc.pepLabelShort": "PEP (poliitiliselt mõjutatav isik)",
 
   "legal_terms_meta_title": "Kasutustingimused | VIGRI",
   "legal_terms_meta_description": "VIGRI veebisaidi ja Lumirose ökosüsteemis $VIGRI tokeni ja NFT-dega seotud teenuste kasutustingimused.",
@@ -445,7 +452,7 @@
 
   "litepaper.block_what_title": "Mis on VIGRI?",
   "litepaper.block_what_text": "VIGRI on kogukonnale suunatud ökosüsteem spordi ja tantsu toetamiseks. Klubid saavad läbipaistva rahastamiskanali ja uued suhtlusvormid, fännid aga lähema ligipääsu, erilise kogemuse ja ausa viisi oma lemmikmeeskondade ja projektide toetamiseks.",
-  
+
   "litepaper.block_why_title": "Milleks NFT-eelmüük?",
   "litepaper.block_why_text": "VIGRI NFT-kaardid on sissepääs ökosüsteemi. Need kinnistavad varajast osalust, annavad õiguse 100% Claim’ile VIGRI tokenitesse TGE hetkel ning lisavad teatud tasemetel sooduskupongid, füüsilised kaardid ja koostöökoode (DUO / TRIO / QUATTRO / WS-key).",
 
@@ -502,7 +509,7 @@
   "reset_request.sent_hint": "Kontrolli postkasti (ja rämpsposti). Link aegub 1 tunni jooksul.",
   "reset_request.submit": "Saada lähtestuslink",
   "reset_request.info": "Saadame parooli lähtestamise lingi, kui see e-post on registreeritud.",
-  
+
   "roadmap_title": "Teejuht (2025 – 2026)",
   "roadmap_disclaimer": "Ajagraafik on ligikaudne ja võib muutuda sõltuvalt audititest, partneritest ja turutingimustest.",
   "roadmap_airdrop_note": "“Early Supporters Airdrop” on väike jaotus meie varasema kogukonna pikaajalistele toetajatele (täpsem teave on toodud dokumentatsioonis).",
@@ -606,7 +613,7 @@
 
   "nft.explainers.title": "Lähemalt seeriast",
   "nft.explain.buy.title": "NFT ost = digitaalne pääse ja õigus VIGRI-le",
-  
+
   "nft.explain.tree_buy.text": "NFT on ainulaadne digitaalne kaart Solana võrgus, mis asub sinu rahakotis (nt Phantom).\nOstes Tree/Steel kaardi, kinnitad endale kaardi ja õiguse saada VIGRI algushinnaga (selle kategooria puhul — 100% NFT summast TGE ajal).\nKaart kuulub sulle: seda võib hoida, kinkida või müüa turgudel; armatuurlauas ilmub see jaotisesse „Minu NFT”, ning seotud õigused on seal kättesaadavad.\n\nMakse toimub ühendatud rahakotiga: valid disaini ja koguse, kinnitad tehingu; võrgu tasu arvestatakse SOL-is.\nSee on viis projekti toetada ja saada kasutusõigused — mitte lubadus tulust.",
   "nft.explain.tree.d0": "Kuni ametliku avalikustamiseni kuvatakse kaart „mystery box” kohatäitjana. NFT kuulub sulle juba, on nähtav armatuurlauas ja asub sinu rahakotis.\n\nAvalikustamise (reveal) üritusel tehakse nähtavaks valitud arhetüübi (Tree/Steel) lõplik pilt, seerianumber ja osa metaandmeid.\n\nPlaneeritud avalikustamise aeg — 2026. a II kvartal. Täpse aja kuulutame aegsasti välja — armatuurlauas ja projekti Telegrami kanalis.\n\nPärast avalikustamist on metaandmed fikseeritud (immutable): pilt ja omadused ei muutu. Kauplemine turgudel on võimalik nii enne kui ka pärast avalikustamist; hinna kujundab turg ja see ei ole tulu lubadus.",
   "nft.explain.tree.d1": "Kokku vermitakse 2 000 Tree/Steel NFT-d — ühine tiraaž mõlema disaini peale. See on fikseeritud kogus ilma järeltrükita. Igal kaardil on oma ainulaadne seerianumber ja see jääb igavesti kollektsiooni osaks.\n\nOstul valid arhetüübi — „Puu” või „Teras”. Kõigil kaartidel on sama seeria, võrdsed tingimused ja ühine nummerdus. Selle seeria uusi väljalaskeid ei ole plaanis.\n\nPiiratud tiraaž rõhutab osaluse väärtust: Tree/Steel omanike laine on esimene ja loob VIGRI kollektsiooni põhja.",
@@ -635,7 +642,7 @@
   "nft.explain.silver.d7": "Silveri omanikud saavad prioriteetse ligipääsu Lumirose ökosüsteemi jaotistele ja teenustele: varajased väljalasked, suletud beetad, whitelist’id ja kutsed pilootfunktsioonidele enne baas­taset.\n\nLigipääs aktiveerub automaatselt pärast TGE-d ja kinnitub Silver-NFT hoidmisega sinu rahakotis. Mõne tegevuse jaoks võib vaja minna rahakoti ühendamist või täiendavat sisselogimist kontos.\n\nEeliste loetelu laieneb platvormi arenedes. Prioriteetne ligipääs kehtib, kuni NFT on sinu valduses.",
   "nft.explain.silver.d8": "Silveri ostul saab valida variandi füüsilise NFT-kaardi tootmisega. Valik tehakse ostu hetkel; kinnitada tuleb, et tarne tasub saaja.\n\nOtsus füüsilise kaardi kohta fikseeritakse ostu hetkel ega ole pärast tehingu lõpuleviimist muudetav. Kui valitakse tootmiseta variant, ei ole hilisem lisamine võimalik.\n\nPärast tootmise lõppu ilmub kontosse teavitus ja vorm tarneaadressi sisestamiseks. Saatmine toimub pärast andmete kinnitamist ja tarnekulu tasumist.\n\nFüüsiline kaart on digitaalse NFT kollektsioneeritav koopia isiklikuks hoidmiseks või kinkimiseks. See ei asenda digitaalset versiooni ega mõjuta utilitaarseid funktsioone, õigusi ega tokenite kandmisi.",
   "nft.explain.silver.d9": "DUO-koodid on mänguline ja kollektsioneeritav mehhanism, mis on integreeritud Silveri füüsilistesse kaartidesse.\n\nIga füüsiline kaart sisaldab unikaalse koodi fragmenti. Kahe kaardi sobivus moodustab täiskombinatsiooni, mida saab aktiveerida üksikult või koostöös teise kaardi omanikuga.\n\nLeides paari, võib omanik:\n• aktiveerida koodi üksikult (omandades teise kaardi), või\n• ühineda paari omanikuga ja läbida aktiveerimise koos.\n\nNii tekib „sobivuste jaht“: vajalike kaartide otsing, läbirääkimised, vahetus, väljaost, ühendumine. Igaüks otsustab ise — jagada teistega või koguda paar täielikult üksi.\n\nÕiguslik staatus\nDUO-koodid ei ole investeerimisinstrument ega garanteeri tulu. See on Lumirose mängu- ja kollektsioneerimismehhanism, mis loob huvi ja koostöö osalejate vahel ilma finantstagatisteta.",
-  
+
   "nft.explain.gold_buy.text": "NFT on ainulaadne digitaalne kaart Solana võrgus, mis asub sinu rahakotis (nt Phantom). Ostes Goldi, kinnitad kaardi enda nimele ja saad õiguse võtta 6 250 000 VIGRI.\n\nKaart kuulub sinule: seda võib hoida, kinkida või müüa turgudel; see kuvatakse sinu kontos jaotises „Minu NFT-d” ning seotud õigused on samuti seal saadaval. Maksmine toimub ühendatud rahakoti kaudu: valid koguse ja kinnitad tehingu; võrgu tasud arvestatakse SOL-is.\n\nGoldi puhul on nõutav KYC vastavalt platvormi reeglitele ja summalävenditele. See on viis projekti toetada ja saada utilitaarseid õigusi — mitte tulu lubadus.",
   "nft.explain.gold.d0": "Enne ametlikku avalikustamist kuvatakse kaart ühtse „mystery box” kohatäitjana. NFT kuulub juba sinule, on kontos nähtav ja asub sinu rahakotis.\n\nAvalikustamise (reveal) sündmuse ajal avatakse Gold-disaini lõppkujutis, seerianumber ja osa metaandmeid.\n\nPlaneeritud avalikustamise aeg on 2026. aasta II kvartal. Täpne kuupäev teatatakse eelnevalt kontos ja projekti Telegrami-kanalis.\n\nPärast avalikustamist metaandmed fikseeritakse (immutable): pilt ja omadused ei muutu. Kauplemine turgudel on lubatud nii enne kui ka pärast avalikustamist; hinna kujundab turg ja see ei ole tulu lubadus.",
   "nft.explain.gold.d1": "Gold-seeria on piiratud tiraažiga — kokku vaid 100 NFT-d.\n\nMaht on fikseeritud ega suurene aja jooksul. Igal kaardil on unikaalne seerianumber ning see jääb püsivalt kollektsiooni registrisse.\n\nTingimused on kõigile omanikele ühesugused — läbipaistev ja õiglane alus projekti edasiseks arenguks.",
@@ -646,7 +653,7 @@
   "nft.explain.gold.d6": "TRIO-koodid on Lumirose sisseehitatud kollektsioonimehaanika, mis põhineb koodifragmentidel Gold-seeria füüsilistel kaartidel. Igal kaardil on mitu fragmenti, mida saab teiste kaartidega kombineerida täielikuks kombinatsiooniks.\n\nLeitud kokkulangevus fikseeritakse Lumirose süsteemis erilise osalustulemusena.\n\nVajalike fragmentide leidmisel võib omanik:\n• aktiveerida koodi iseseisvalt, kogudes kõik kolm kaarti, või\n• ühineda teiste omanikega kombinatsiooni lõpetamiseks.\n\nTRIO-koodid edendavad detailitähelepanu ja avastamisrõõmu. Nii sünnib „kokkulangevuste jaht”: õigete kaartide otsimine, läbirääkimised, vahetused, väljaostud ja ühendamised. Igaüks otsustab ise, kas teha koostööd või koguda trijo üksi.\n\nÕiguslik staatus\nTRIO-koodid ei ole investeerimisinstrument ega luba tulu. See on Lumirose kollektsiooni- ja sotsiaalmehaanika, mis põhineb suhtlusel ja avastamisel, ilma finantsgarantiide ja varalist õigust loova mõjuta.",
   "nft.explain.gold.d7": "Gold-i omanikel on laienenud prioriteetne juurdepääs Lumirose teenustele ja väljalasetele: suletud piloodid, varajased tööriistaversioonid, osalemine fookustestides ja eelintegratsioonides.\n\nJuurdepääs kinnitatakse Gold-NFT omamisega sinu rahakotis ning see aktiveerub automaatselt pärast TGE-d. Teatud tegevuste puhul võib olla vajalik rahakoti ühendamine ja konto autoriseerimine.\n\nGold-taseme eelised võivad hõlmata: funktsioonid varem kui teistel, suuremad osaluslimiidid, kutseid privaatsetele üritustele ja prioriteetset tagasisidet (feature-soovid, veaaruanded).\n\nVõimaluste loetelu laieneb platvormi arenedes. Õigus laiapõhjaliseks juurdepääsuks püsib seni, kuni NFT on sinu valduses.",
   "nft.explain.gold.d9": "Kampaania „VIGRI Mystery Draw” raames loositakse välja piiratud kogus Rare ja Ultra kollektsioonikaarte.\nOsalemine on tasuta ning kättesaadav kõigile registreeritud kasutajatele, kes on läbinud KYC-kontrolli ametlikul veebilehel vigri.ee.\n\nVõitjad selgitatakse juhuslikult ning nad saavad haruldase kategooria NFT koos füüsilise kaardiduubeliga.\nAuhindadel puudub rahaline väärtus; need ei anna õigust tulule, projektis osalusele ega VIGRI tokenitele.\nTulemused avaldatakse avalikult veebilehel ja salvestatakse plokiahelasse.\n\nSilver/Gold/Platinum/WS-NFT omanike osalemine toimub automaatselt, võrdsetel alustel ja võrdsete võimalustega.\nKampaania eesmärk on toetada ja arendada Lumirose kogukonda, tunnustada varajasi osalejaid ning hoida VIGRI kollektsiooni harulduse vaimu.",
-  
+
   "nft.explain.platinum_buy.text": "NFT on ainulaadne digitaalne kaart Solana võrgus, mis asub teie rahakotis (nt Phantom). Ostes Platinumit, kinnitate kaardi enda nimele ja saate õiguse võtta 12 500 000 VIGRI.\n\nKaart kuulub teile: seda võib hoida, kinkida või müüa turgudel; see kuvatakse teie kontos jaotises „Minu NFT-d” ning seotud õigused on samuti seal saadaval. Maksmine toimub ühendatud rahakoti kaudu: valite koguse ja kinnitate tehingu; võrgu tasud arvestatakse SOL-is.\n\nPlatinumi puhul on nõutav KYC vastavalt platvormi reeglitele ja summalävenditele. See on viis projekti toetada ja saada utilitaarseid õigusi — mitte tulu lubadus.",
   "nft.explain.platinum.d0": "Enne ametlikku avalikustamist kuvatakse kaart ühtse „mystery box” kohatäitjana. NFT kuulub juba teile, on kontos nähtav ja asub teie rahakotis.\n\nAvalikustamise (reveal) sündmuse ajal avatakse Platinumi lõppkujundus, seerianumber ja osa metaandmeid.\n\nPlaneeritud avalikustamise aeg on 2026. aasta II kvartal. Täpne kuupäev teatatakse eelnevalt kontos ja projekti Telegrami-kanalis.\n\nPärast avalikustamist metaandmed fikseeritakse (immutable): pilt ja omadused ei muutu. Kauplemine turgudel on lubatud nii enne kui ka pärast avalikustamist; hinna kujundab turg ja see ei ole tulu lubadus.",
   "nft.explain.platinum.d1": "Platinum-seeria on piiratud tiraažiga — kokku vaid 20 NFT-d.\n\nMaht on fikseeritud ega suurene aja jooksul. Igal kaardil on unikaalne seerianumber ning see jääb püsivalt kollektsiooni registrisse.\n\nTingimused on kõigile omanikele ühesugused — läbipaistev ja õiglane alus projekti edasiseks arenguks.",
@@ -917,6 +924,7 @@
   "rewards.hide_list": "Peida nimekiri",
   "rewards.echo_history": "Echo ajalugu",
   "rewards.no_records": "Kirjeid veel pole.",
+  "rewards_source": "Allikas:",
 
   "wallet.connect": "Ühenda rahakott",
   "wallet.connecting": "Ühendame rahakotti…",

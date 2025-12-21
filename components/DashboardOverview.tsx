@@ -65,14 +65,14 @@ function calcClaimFromNft(portfolio?: NftPortfolioItem[]): number {
 
 function StatCard({ title, value, hint, }: { title: string; value: ReactNode; hint?: string; }) {
   return (
-    <div className="card p-3 md:p-4 min-w-0 h-full min-h-[110px] flex flex-col justify-between">
-      <div className="text-[11px] md:text-xs opacity-70">{title}</div>
-      <div className="text-xl md:text-2xl font-semibold mt-1 truncate text-green-900 dark:text-zinc-400">
+    <div className="card p-3 md:p-4 min-w-0 h-full min-h-[110px] flex flex-col items-center">
+      <div className="w-full text-center text-[11px] md:text-xs opacity-70">{title}</div>
+      <div className="w-full text-center mt-1 text-base md:text-lg font-semibold leading-snug text-green-900 dark:text-zinc-400 whitespace-normal break-words">
         {value}
       </div>
-      {hint && (
-        <div className="text-[11px] md:text-xs opacity-60 mt-1">{hint}</div>
-      )}
+      <div className="w-full text-center mt-auto pt-1 text-[11px] md:text-xs opacity-60 min-h-[16px]">
+        {hint ?? <span aria-hidden>&nbsp;</span>}
+      </div>
     </div>
   );
 }
@@ -100,6 +100,11 @@ const activityLabel = (type: string, t: (k: string) => string) => {
 };
 const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
 
+const amountText = (h: AssetsResp['history'][number]) => {
+  const sign = h.amount > 0 ? '+' : '';
+  return `${h.symbol} ${sign}${h.amount}`;
+};
+
 export default function DashboardOverview() {
   const { t } = useI18n();
   const { address } = usePhantomWallet();
@@ -109,6 +114,8 @@ export default function DashboardOverview() {
   const [nftPortfolio, setNftPortfolio] = useState<NftPortfolioItem[]>([]);
   const [portfolioLoaded, setPortfolioLoaded] = useState(false);
   const [nftValueSol, setNftValueSol] = useState<number | null>(null);
+  const HISTORY_PAGE_SIZE = 6;
+  const [historyPage, setHistoryPage] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -188,6 +195,10 @@ export default function DashboardOverview() {
   };
 }, [address]);
 
+  useEffect(() => {
+    setHistoryPage(0);
+  }, [history]);
+
   const totalClaim = useMemo(() => {
     if (!portfolioLoaded) return null;
     return Math.floor(calcClaimFromNft(nftPortfolio));
@@ -202,6 +213,17 @@ export default function DashboardOverview() {
     if (!lefts.length) return null;
     return Math.min(...lefts);
   }, [rights]);
+
+  const historyPageCount = useMemo(() => {
+    if (!history?.length) return 0;
+    return Math.ceil(history.length / HISTORY_PAGE_SIZE);
+  }, [history, HISTORY_PAGE_SIZE]);
+
+  const historyPageItems = useMemo(() => {
+    if (!history?.length) return [];
+    const start = historyPage * HISTORY_PAGE_SIZE;
+    return history.slice(start, start + HISTORY_PAGE_SIZE);
+  }, [history, historyPage, HISTORY_PAGE_SIZE]);
 
   // Map KYC status to label directly
   type KycKey = 'approved' | 'pending' | 'none';
@@ -329,34 +351,50 @@ export default function DashboardOverview() {
             {
               title: t('overview.claim_avail'),
               value:
-                totalClaim === null
-                  ? <InlineLoader label={t('overview.loading_claim')} />
-                  : `${totalClaim.toLocaleString()} VIGRI`,
+                totalClaim === null ? (
+                  <InlineLoader label={t('overview.loading_claim')} />
+                ) : (
+                  <div className="leading-tight">
+                    <span className="block text-green-900 dark:text-zinc-400">{totalClaim.toLocaleString()}</span>
+                    <span className="mt-1 text-lg md:text-xl font-semibold leading-tight text-green-900 dark:text-zinc-400 whitespace-normal break-words">
+                      VIGRI
+                    </span>
+                  </div>
+                ),
               hint: t('overview.hint_claim'),
             },
             {
               title: t('overview.nft_portfolio_title'),
               value:
-                nftValueSol === null
-                  ? <InlineLoader label={t('overview.loading_nft')} />
-                  : `${nftValueSol.toLocaleString('en-US', {
-                      maximumFractionDigits: 4,
-                    })} SOL`,
-              hint: t('overview.nft_portfolio_hint'),
-            },
-            {
+                nftValueSol === null ? (
+                  <InlineLoader label={t('overview.loading_nft')} />
+                ) : (
+                  <span className="text-green-900 dark:text-zinc-400 font-semibold">
+                    {`${nftValueSol.toLocaleString('en-US', { maximumFractionDigits: 4 })} SOL`}
+                  </span>
+                ),
+                hint: t('overview.nft_portfolio_hint'),
+              },
+              {
               title: t('kyc.status'),
-              value: kycLabel,
+              value: (
+                <span className="text-sm font-semibold text-green-900 dark:text-zinc-400">
+                  {kycLabel}
+                </span>
+              ),
               hint: kycKey !== 'approved' ? t('overview.kyc_hint') : undefined,
             },
             {
               title: t('overview.discount_expiry'),
-              value:
-                daysLeftMin === null
-                  ? t('overview.infinity')
-                  : daysLeftMin <= 0
-                  ? t('overview.expired')
-                  : `${daysLeftMin} ${t('nft.rights.days')}`,
+              value:(
+                <span className="text-green-900 dark:text-zinc-400 font-semibold">
+                  {daysLeftMin === null
+                    ? t('overview.infinity')
+                    : daysLeftMin <= 0
+                    ? t('overview.expired')
+                    : `${daysLeftMin} ${t('nft.rights.days')}`}
+                </span>
+              ),
               hint: t('overview.hint_expiry'),
             },
           ]}
@@ -368,9 +406,16 @@ export default function DashboardOverview() {
         <StatCard
           title={t('overview.claim_avail')}
           value={
-            totalClaim === null
-              ? <InlineLoader label={t('overview.loading_claim')} />
-              : `${totalClaim.toLocaleString()} VIGRI`
+            totalClaim === null ? (
+              <InlineLoader label={t('overview.loading_claim')} />
+            ) : (
+              <div className="leading-tight">
+                <span className="block">{totalClaim.toLocaleString()}</span>
+                <span className="mt-1 text-lg md:text-xl font-semibold leading-tight text-green-900 dark:text-zinc-400 whitespace-normal break-words">
+                  VIGRI
+                </span>
+              </div>
+            )
           }
           hint={t('overview.hint_claim')}
         />
@@ -407,38 +452,88 @@ export default function DashboardOverview() {
       <MyNftsStrip />
 
       {/* Recent activity */}
-      {/* Recent activity */}
-      <div className="card p-4">
+      <div className="card p-4 pb-3">
         <div className="text-sm font-medium mb-3">{t('overview.recent')}</div>
 
         {history === null ? (
           // We don't know yet whether there are operations or not - we're just loading
           <InlineLoader label={t('overview.loading_history')} />
         ) : history.length ? (
+        <>
           <ul className="text-sm space-y-1">
-            {history.slice(0, 5).map((h) => (
-              <li key={h.id} className="flex items-center justify-between">
-                <span>{new Date(h.ts).toLocaleString()}</span>
-                <span className="opacity-70">
-                  <span aria-hidden className="mr-1">{activityIcon(h.type)}</span>
-                  {activityLabel(h.type, t)}
-                </span>
-                <span className="font-mono">
-                  {h.symbol} {h.amount > 0 ? '+' : ''}
-                  {h.amount}
-                </span>
+            {historyPageItems.map((h) => (
+              <li key={h.id}>
+                {/* Mobile: single-line with ellipsis */}
+                <div className="md:hidden flex items-center gap-2 text-sm">
+                  <div className="truncate w-full">
+                    <span className="mr-2 whitespace-nowrap">
+                      {new Date(h.ts).toLocaleDateString()}
+                    </span>
+
+                    <span className="opacity-70 mr-2">
+                      <span aria-hidden className="mr-1">{activityIcon(h.type)}</span>
+                      {activityLabel(h.type, t)}
+                    </span>
+
+                    <span className="font-mono whitespace-nowrap">
+                      {amountText(h)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop: keep current layout */}
+                <div className="hidden md:flex items-center justify-between">
+                  <span>{new Date(h.ts).toLocaleString()}</span>
+                  <span className="opacity-70">
+                    <span aria-hidden className="mr-1">{activityIcon(h.type)}</span>
+                    {activityLabel(h.type, t)}
+                  </span>
+                  <span className="font-mono">
+                    {h.symbol} {h.amount > 0 ? '+' : ''}
+                    {h.amount}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>
-        ) : (
-          <div className="text-sm opacity-70">{t('overview.no_activity')}</div>
-        )}
 
-        <div className="mt-3">
-          <Link href="/dashboard/assets" className="underline text-sm">
-            {t('overview.go_assets')}
-          </Link>
-        </div>
+          {historyPageCount > 1 && (
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                className="btn btn-outline !px-3 !py-1 text-sm"
+                onClick={() => setHistoryPage((p) => Math.max(0, p - 1))}
+                disabled={historyPage <= 0}
+                aria-label="Previous page"
+              >
+                ‹
+              </button>
+
+              <span className="text-sm opacity-70 tabular-nums">
+                {historyPage + 1} / {historyPageCount}
+              </span>
+
+              <button
+                type="button"
+                className="btn btn-outline !px-3 !py-1 text-sm"
+                onClick={() => setHistoryPage((p) => Math.min(historyPageCount - 1, p + 1))}
+                disabled={historyPage >= historyPageCount - 1}
+                aria-label="Next page"
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-sm opacity-70">{t('overview.no_activity')}</div>
+      )}
+
+      <div className="mt-0">
+        <Link href="/dashboard/assets" className="underline text-sm">
+          {t('overview.go_assets')}
+        </Link>
+      </div>
       </div>
     </div>
   );

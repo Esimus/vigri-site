@@ -504,7 +504,7 @@ export function ProfileForm() {
   }, [mode, focusId]);
 
   const profileLoadedRef = useRef(false);
-  
+
   useEffect(() => {
   if (profileLoadedRef.current) return;
   profileLoadedRef.current = true;
@@ -649,7 +649,7 @@ export function ProfileForm() {
         !data.addressCity ||
         !data.countryResidence ||
         !data.countryCitizenship ||
-        !data.countryTax || 
+        !data.countryTax ||
         (data.countryResidence === 'EE' && !data.isikukood)
       ) {
 
@@ -702,7 +702,7 @@ export function ProfileForm() {
     }, [data.countryResidence, data.countryCitizenship, data.countryTax]);
 
     const effectiveZone = liveZone ?? meZone;
-    
+
     const canSubmitKyc =
       signedIn &&
       effectiveZone !== 'red' &&
@@ -1358,72 +1358,77 @@ export function ProfileForm() {
 
           {signedIn && effectiveZone !== 'red' && meProfileCompleted && (
             <div className="space-y-3">
-              <div className="card p-4 text-sm space-y-2">
+              {meKycStatus === 'none' || meKycStatus === 'rejected' ? (
+                <div className="card p-4 text-sm space-y-2">
+                  <div className="card p-4 text-sm space-y-3">
+                    <div className="font-medium">{tr('kyc.formTitle', 'KYC details')}</div>
 
-                <div className="card p-4 text-sm space-y-3">
-                  <div className="font-medium">{tr('kyc.formTitle', 'KYC details')}</div>
+                    <div className="space-y-2">
+                      <div className="text-xs opacity-70">
+                        {tr(
+                          'kyc.pepLabel',
+                          'Are you (or close relatives) connected to government / politics / state-owned companies?',
+                        )}
+                      </div>
 
-                  <div className="space-y-2">
-                    <div className="text-xs opacity-70">{tr('kyc.pepLabel', 'Are you (or close relatives) connected to government / politics / state-owned companies?')}</div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="pepDeclared"
+                            className="accent-blue-600"
+                            checked={pepDeclared === false}
+                            onChange={() => setPepDeclared(false)}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                          <span className="text-sm">{tr('no', 'No')}</span>
+                        </label>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="inline-flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="pepDeclared"
-                          className="accent-blue-600"
-                          checked={pepDeclared === false}
-                          onChange={() => setPepDeclared(false)}
-                          disabled={kycBusy || meKycStatus !== 'none'}
-                        />
-                        <span className="text-sm">{tr('no', 'No')}</span>
-                      </label>
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="pepDeclared"
+                            className="accent-blue-600"
+                            checked={pepDeclared === true}
+                            onChange={() => setPepDeclared(true)}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                          <span className="text-sm">{tr('yes', 'Yes')}</span>
+                        </label>
+                      </div>
 
-                      <label className="inline-flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="pepDeclared"
-                          className="accent-blue-600"
-                          checked={pepDeclared === true}
-                          onChange={() => setPepDeclared(true)}
-                          disabled={kycBusy || meKycStatus !== 'none'}
-                        />
-                        <span className="text-sm">{tr('yes', 'Yes')}</span>
-                      </label>
+                      {pepDeclared === true && (
+                        <label className="label">
+                          <span className="text-xs opacity-70">
+                            {tr('kyc.pepDetails', 'Please describe who and the role (country, position, dates).')}
+                          </span>
+                          <textarea
+                            className="textarea w-full min-h-[96px]"
+                            value={pepDetails}
+                            onChange={(e) => setPepDetails(e.target.value)}
+                            disabled={kycBusy || meKycStatus !== 'none'}
+                          />
+                        </label>
+                      )}
                     </div>
 
-                    {pepDeclared === true && (
-                      <label className="label">
-                        <span className="text-xs opacity-70">{tr('kyc.pepDetails', 'Please describe who and the role (country, position, dates).')}</span>
-                        <textarea
-                          className="textarea w-full min-h-[96px]"
-                          value={pepDetails}
-                          onChange={(e) => setPepDetails(e.target.value)}
-                          disabled={kycBusy || meKycStatus !== 'none'}
-                        />
-                      </label>
-                    )}
-                  </div>
+                    <label className="inline-flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        className="accent-blue-600"
+                        checked={kycConsent}
+                        onChange={(e) => setKycConsent(e.target.checked)}
+                        disabled={kycBusy || meKycStatus !== 'none'}
+                      />
+                      <span className="text-sm">{tr('kyc.consent', 'I confirm the data is true and I consent to verification.')}</span>
+                    </label>
 
-                  <label className="inline-flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      className="accent-blue-600"
-                      checked={kycConsent}
-                      onChange={(e) => setKycConsent(e.target.checked)}
-                      disabled={kycBusy || meKycStatus !== 'none'}
-                    />
-                    <span className="text-sm">
-                      {tr('kyc.consent', 'I confirm the data is true and I consent to verification.')}
-                    </span>
-                  </label>
-                  
-                  {data.countryResidence !== 'EE' && (
+                    {/* Passport & document (for everyone) */}
                     <div className="mt-2 rounded-2xl border border-[color:var(--border)] bg-[var(--card)] p-3 space-y-3">
                       <div className="text-sm font-medium">
                         {tr('kyc.passportTitle', 'Passport & document')}
                         <span className="ml-2 text-xs opacity-70">
-                          {tr('kyc.passportHint', 'Required for Gold/Platinum (non-EE).')}
+                          {tr('kyc.passportHint', 'Required for verification.')}
                         </span>
                       </div>
 
@@ -1496,40 +1501,103 @@ export function ProfileForm() {
                         />
                       </div>
                     </div>
+                  </div>
+
+                  <div className="font-medium">{tr('kyc.stepsTitle', 'Process')}</div>
+                  <ol className="list-decimal pl-5 space-y-1 opacity-80">
+                    <li>{tr('kyc.step1', 'Submit KYC request')}</li>
+                    <li>{tr('kyc.step2', 'Upload documents and pass checks')}</li>
+                    <li>{tr('kyc.step3', 'Manual review → approval')}</li>
+                  </ol>
+
+                  {meKycStatus === 'none' && (
+                    <button type="button" className="btn btn-primary" onClick={submitKyc} disabled={!canSubmitKyc || kycBusy}>
+                      {kycBusy ? tr('kyc.submitting', 'Submitting...') : tr('kyc.submit', 'Submit KYC (set to pending)')}
+                    </button>
+                  )}
+
+                  {meKycStatus === 'rejected' && (
+                    <div className="rounded-2xl border border-rose-300/70 bg-rose-50/80 text-rose-900 dark:border-rose-500/35 dark:bg-rose-950/20 dark:text-rose-100 p-4 text-sm">
+                      {tr('kyc.rejectedHint', 'KYC rejected.')}
+                    </div>
                   )}
                 </div>
+              ) : (
+                // Read-only view for pending/approved
+                <div className="card p-4 text-sm space-y-3">
+                  <div className="font-medium">{tr('kyc.formTitle', 'KYC details')}</div>
 
-                <div className="font-medium">{tr('kyc.stepsTitle', 'Process')}</div>
-                <ol className="list-decimal pl-5 space-y-1 opacity-80">
-                  <li>{tr('kyc.step1', 'Submit KYC request')}</li>
-                  <li>{tr('kyc.step2', 'Upload documents and pass checks')}</li>
-                  <li>{tr('kyc.step3', 'Manual review → approval')}</li>
-                </ol>
-              </div>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                      <div className="opacity-70">{tr('kyc.pepLabelShort', 'PEP (Politically exposed person)')}</div>
+                      <div className="min-w-0">
+                        {pepDeclared === null ? '—' : pepDeclared ? tr('yes', 'Yes') : tr('no', 'No')}
+                      </div>
 
-              {meKycStatus === 'none' && (
-                <button type="button" className="btn btn-primary" onClick={submitKyc} disabled={!canSubmitKyc || kycBusy}>
-                  {kycBusy ? tr('kyc.submitting', 'Submitting...') : tr('kyc.submit', 'Submit KYC (set to pending)')}
-                </button>
-              )}
+                      {pepDeclared === true && (
+                        <>
+                          <div className="opacity-70">{tr('kyc.pepDetails', 'Details')}</div>
+                          <div className="min-w-0 break-words">{pepDetails || '—'}</div>
+                        </>
+                      )}
 
-              {meKycStatus === 'pending' && (
-                <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/20 dark:text-amber-100 p-4 text-sm">
-                  {tr('kyc.pendingHint', 'Your request is pending review.')}
+                      <div className="opacity-70">{tr('kyc.consentLabel', 'Data confirmation & consent')}</div>
+                      <div>{kycConsent ? tr('yes', 'Yes') : tr('no', 'No')}</div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--card)] p-3 space-y-3">
+                    <div className="text-sm font-medium">{tr('kyc.passportTitle', 'Passport & document')}</div>
+
+                    <div className="grid grid-cols-1 md:[grid-template-columns:repeat(auto-fit,minmax(220px,1fr))] gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[11px] uppercase tracking-wide opacity-60">{tr('kyc.passportNumber', 'Passport number')}</div>
+                        <div className="mt-1 font-mono text-sm break-words">{passportNumber || '—'}</div>
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="text-[11px] uppercase tracking-wide opacity-60">{tr('kyc.passportCountry', 'Issuing country')}</div>
+                        <div className="mt-1 font-mono text-sm break-words">{passportCountry || '—'}</div>
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="text-[11px] uppercase tracking-wide opacity-60">{tr('kyc.passportIssuedAt', 'Issued date')}</div>
+                        <div className="mt-1 font-mono text-sm break-words">{passportIssuedAt || '—'}</div>
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="text-[11px] uppercase tracking-wide opacity-60">{tr('kyc.passportExpiresAt', 'Expiry date')}</div>
+                        <div className="mt-1 font-mono text-sm break-words">{passportExpiresAt || '—'}</div>
+                      </div>
+
+                      <div className="min-w-0 md:col-span-full">
+                        <div className="text-[11px] uppercase tracking-wide opacity-60">{tr('kyc.passportIssuer', 'Issued by')}</div>
+                        <div className="mt-1 text-sm break-words">{passportIssuer || '—'}</div>
+                      </div>
+                    </div>
+
+                    <div className="text-xs">
+                      <span className="opacity-70">{tr('kyc.documentShort', 'Document')}:</span>{' '}
+                      <span className="ml-1">{documentImage ? tr('kyc.documentUploaded', 'Document uploaded') : '—'}</span>
+                    </div>
+                  </div>
+
+                  {meKycStatus === 'pending' && (
+                    <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/20 dark:text-amber-100 p-4 text-sm">
+                      {tr('kyc.pendingHint', 'Your request is pending review.')}
+                    </div>
+                  )}
+
+                  {meKycStatus === 'approved' && (
+                    <div className="rounded-2xl border border-emerald-300/70 bg-emerald-50/80 text-emerald-900 dark:border-emerald-500/35 dark:bg-emerald-950/20 dark:text-emerald-100 p-4 text-sm">
+                      ✅ {tr('kyc.approvedHint', 'KYC approved.')}
+                      <div className="mt-2 text-xs opacity-80">{tr('kyc.gdprHint', 'Need to delete/rectify data? Email support@vigri.ee (subject: GDPR request).')}</div>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {meKycStatus === 'approved' && (
-                <div className="rounded-2xl border border-emerald-300/70 bg-emerald-50/80 text-emerald-900 dark:border-emerald-500/35 dark:bg-emerald-950/20 dark:text-emerald-100 p-4 text-sm">
-                  ✅ {tr('kyc.approvedHint', 'KYC approved.')}
-                </div>
-              )}
-
-              {meKycStatus === 'rejected' && (
-                <div className="rounded-2xl border border-rose-300/70 bg-rose-50/80 text-rose-900 dark:border-rose-500/35 dark:bg-rose-950/20 dark:text-rose-100 p-4 text-sm">
-                  {tr('kyc.rejectedHint', 'KYC rejected.')}
-                </div>
-              )}
+              {kycErr && <div className="text-sm text-red-600">{kycErr}</div>}
             </div>
           )}
 

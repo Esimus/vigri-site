@@ -475,26 +475,53 @@ export default function RewardsPage() {
               const isMinus = row.amount < 0;
               const when = new Date(row.createdAt);
               return (
-                <li key={row.id} className="py-3 flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium', kindColor(row.kind))}>
-                        {row.kind}
-                      </span>
-                      <span className="text-xs opacity-70">{row.action}</span>
-                    </div>
-                    <div className="text-xs opacity-60 mt-1">{when.toLocaleString()}</div>
-                    {(row.bucket || row.refUserId || row.sourceId) && (
-                      <div className="text-[11px] opacity-60 mt-1 space-x-2">
-                        {row.bucket && <span>bucket: {row.bucket}</span>}
-                        {row.refUserId && <span>refUser: {row.refUserId}</span>}
-                        {row.sourceId && <span>source: {row.sourceId}</span>}
+                <li key={row.id} className="py-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium',
+                            kindColor(row.kind),
+                          )}
+                        >
+                          {row.kind}
+                        </span>
+                        <span className="text-xs opacity-70">{row.action}</span>
                       </div>
-                    )}
+
+                      <div className="text-xs opacity-60 mt-1">{when.toLocaleString()}</div>
+
+                      {(row.bucket || row.refUserId) && (
+                        <div className="text-[11px] opacity-60 mt-1 space-x-2">
+                          {row.bucket && <span>bucket: {row.bucket}</span>}
+                          {row.refUserId && <span>refUser: {row.refUserId}</span>}
+                        </div>
+                      )}
+                    </div>
+
+                    <div
+                      className={cn(
+                        'shrink-0 text-right text-sm font-semibold',
+                        isMinus ? 'text-rose-700' : 'text-emerald-700',
+                      )}
+                    >
+                      {isMinus ? '-' : '+'}
+                      {formatEcho(Math.abs(row.amount))}{' '}
+                      <span className="font-normal opacity-70">echo</span>
+                    </div>
                   </div>
-                  <div className={cn('shrink-0 text-right text-sm font-semibold', isMinus ? 'text-rose-700' : 'text-emerald-700')}>
-                    {isMinus ? '-' : '+'}{formatEcho(Math.abs(row.amount))} <span className="font-normal opacity-70">echo</span>
-                  </div>
+
+                  {row.sourceId && (
+                    <div className="text-[11px] opacity-60 mt-1 min-w-0">
+                      <div className="whitespace-nowrap">
+                        {t('rewards_source')}
+                      </div>
+                      <div className="truncate">
+                        {String(row.sourceId)}
+                      </div>
+                    </div>
+                  )}
                 </li>
               );
             })}

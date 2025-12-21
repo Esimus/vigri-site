@@ -81,6 +81,8 @@ function summarizeNftPortfolio(items?: NftPortfolioItem[]) {
 export default function AssetsPage() {
   const { t } = useI18n();
   const [data, setData] = useState<GetResp | null>(null);
+  const HISTORY_PAGE_SIZE = 6;
+  const [historyPage, setHistoryPage] = useState(0);
   const totals = summarizeNftPortfolio(data?.nftPortfolio);
   const { address } = usePhantomWallet();
   const shortAddress =
@@ -182,6 +184,21 @@ export default function AssetsPage() {
     void load(address);
   }, [address]);
 
+  // Data history
+  const historyPageCount = useMemo(() => {
+    if (!data?.history?.length) return 0;
+    return Math.ceil(data.history.length / HISTORY_PAGE_SIZE);
+  }, [data?.history?.length]);
+
+  const historyPageItems = useMemo(() => {
+    if (!data?.history?.length) return [];
+    const start = historyPage * HISTORY_PAGE_SIZE;
+    return data.history.slice(start, start + HISTORY_PAGE_SIZE);
+  }, [data?.history, historyPage]);
+
+  useEffect(() => {
+    setHistoryPage(0);
+  }, [data?.history?.length]);
 
   // Just show info message for now, no API calls
   const buy = () => {
@@ -567,6 +584,7 @@ export default function AssetsPage() {
         <div className="text-sm font-medium mb-2">
           {t('assets.history')}
         </div>
+
         {data === null ? (
           address ? (
             <InlineLoader label={t('overview.loading_history')} />
@@ -576,57 +594,89 @@ export default function AssetsPage() {
             </div>
           )
         ) : data?.history?.length ? (
-          <ul className="text-sm">
-            {data.history.slice(0, 10).map((h) => (
-              <li
-                key={h.id}
-                className="flex items-start justify-between gap-3 border-t first:border-t-0 border-zinc-200 py-3"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      aria-hidden
-                      className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium"
-                    >
-                      {activityIcon(h.type)}{' '}
-                      <span className="ml-1">
-                        {activityLabel(h.type)}
-                      </span>
-                    </span>
-
-                    <span className="truncate text-xs text-zinc-500">
-                      {h.symbol}{' '}
-                      {h.amount > 0 ? `+${h.amount}` : h.amount}
-                    </span>
-                  </div>
-
-                  <div className="text-xs text-zinc-500">
-                    {new Date(h.ts).toLocaleString()}
-                  </div>
-
-                  {h.txSignature && (
-                    <div className="mt-0.5 text-xs">
-                      <a
-                        href={`https://solscan.io/tx/${h.txSignature}?cluster=devnet`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline opacity-70 hover:opacity-100"
+          <>
+            <ul className="text-sm">
+              {historyPageItems.map((h) => (
+                <li
+                  key={h.id}
+                  className="flex items-start justify-between gap-3 border-t first:border-t-0 border-zinc-200 py-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    {/* Line 1 */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        aria-hidden
+                        className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium shrink-0"
                       >
-                        Tx on Solscan
-                      </a>
-                    </div>
-                  )}
-                </div>
+                        {activityIcon(h.type)}{' '}
+                        <span className="ml-1">
+                          {activityLabel(h.type)}
+                        </span>
+                      </span>
 
-                <div className="whitespace-nowrap text-sm font-mono text-emerald-500">
-                  {h.unitPriceSol.toLocaleString('en-US', {
-                    maximumFractionDigits: 4,
-                  })}{' '}
-                  SOL
-                </div>
-              </li>
-            ))}
-          </ul>
+                      <span className="truncate text-xs text-zinc-500">
+                        {h.symbol}{' '}
+                        {h.amount > 0 ? `+${h.amount}` : h.amount}
+                      </span>
+                    </div>
+
+                    {/* Line 2 */}
+                    <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500 min-w-0">
+                      <span className="truncate">
+                        {new Date(h.ts).toLocaleString()}
+                      </span>
+
+                      {h.txSignature && (
+                        <a
+                          href={`https://solscan.io/tx/${h.txSignature}?cluster=devnet`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="truncate underline opacity-70 hover:opacity-100"
+                        >
+                          Tx on Solscan
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="whitespace-nowrap text-sm font-mono text-emerald-500">
+                    {h.unitPriceSol.toLocaleString('en-US', {
+                      maximumFractionDigits: 4,
+                    })}{' '}
+                    SOL
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {historyPageCount > 1 && (
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline !px-3 !py-1 text-sm"
+                  onClick={() => setHistoryPage((p) => Math.max(0, p - 1))}
+                  disabled={historyPage <= 0}
+                  aria-label="Previous page"
+                >
+                  ‹
+                </button>
+
+                <span className="text-sm opacity-70 tabular-nums">
+                  {historyPage + 1} / {historyPageCount}
+                </span>
+
+                <button
+                  type="button"
+                  className="btn btn-outline !px-3 !py-1 text-sm"
+                  onClick={() => setHistoryPage((p) => Math.min(historyPageCount - 1, p + 1))}
+                  disabled={historyPage >= historyPageCount - 1}
+                  aria-label="Next page"
+                >
+                  ›
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-sm opacity-70">
             {t('overview.no_activity')}

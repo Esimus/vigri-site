@@ -84,7 +84,7 @@ export function CountrySelect({
   );
 
   return (
-    <label className="label block w-full">
+    <div className="label block w-full">
       {label && <span>{labelText}</span>}
 
       {/* wrapper is inline-block with a desktop max-width cap */}
@@ -148,6 +148,6 @@ export function CountrySelect({
       </div>
 
       {help && <span className="form-help">{help}</span>}
-    </label>
+    </div>
   );
 }
