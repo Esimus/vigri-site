@@ -146,7 +146,7 @@ function profileToDbData(p: Profile): Omit<UserProfile, 'userId' | 'createdAt' |
     addressCity: p.addressCity ?? null,
     addressPostal: p.addressPostal ?? null,
     language: p.language ?? null,
-    photo: p.photo ?? null,   
+    photo: p.photo ?? null,
   };
 }
 

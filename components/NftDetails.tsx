@@ -193,7 +193,7 @@ function BuyPanelMobile(props: {
   kycPills: KycUiPill[];
   isBuying: boolean;
 }) {
-  
+
   const {
     item, designs, design, setDesign,
     activationType, act, setAct,

@@ -168,12 +168,12 @@ export async function POST(req: Request) {
       userId,
       kind: 'purchase',
       action: 'nft.proportional',
-      amountUe: 0,                  
+      amountUe: 0,
       sourceId: claimId,
       refUserId: null,
       meta: { tier, qty } as Prisma.InputJsonValue,
       dedupeKey: `summary:${claimId}:q${qty}`,
-      },       
+      },
     });
 
     const chain = await getRefChain(userId);

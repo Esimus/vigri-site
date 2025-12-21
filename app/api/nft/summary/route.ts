@@ -62,7 +62,7 @@ export async function GET() {
 
   const logs = await prisma.echoLog.findMany({
   where: { kind: 'purchase', action: 'nft.proportional' },
-  select: { meta: true }, 
+  select: { meta: true },
   take: 100_000, // safety cap
 });
 

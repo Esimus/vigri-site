@@ -147,7 +147,7 @@ async function loadKycContext(sessionId: string): Promise<{
     .catch(() => null)) as DbUserWithProfile | null;
 
   if (!user) return { kycStatus: 'none', zone: null, isEe: false };
-  
+
   const isEe =
     (user.profile?.countryCitizenship ?? '').toUpperCase() === 'EE' &&
     (user.profile?.countryResidence ?? '').toUpperCase() === 'EE' &&

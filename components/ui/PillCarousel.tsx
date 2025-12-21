@@ -14,7 +14,7 @@ export type PillItem = {
 /**
  * Reusable horizontal pills carousel (desktop & mobile):
  * - native swipe
- * - wheel: 
+ * - wheel:
  * - Paddles are always visible (disabled if there is nowhere to scroll)
  * - hides scrollbar
  * - uses site chips: .chip .chip--sm + .chip-nav(.chip-nav--active)

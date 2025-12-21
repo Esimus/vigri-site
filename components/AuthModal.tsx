@@ -614,7 +614,7 @@ export default function AuthModal() {
               ✕
             </button>
           </div>
-          
+
           {isForgot ? (
             <form onSubmit={onSubmitForgot} className="px-5 py-5 space-y-4">
               {forgotSent ? (

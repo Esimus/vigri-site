@@ -10,7 +10,7 @@ const EnvSchema = z.object({
   NEXT_PUBLIC_X_URL: z.string().url().default("https://x.com/"),
   NEXT_PUBLIC_GITHUB_URL: z.string().url().default("https://github.com/Esimus/vigri"),
   NEXT_PUBLIC_DEX_URL: z.string().default("#"),
-  
+
 });
 
 const cfg = EnvSchema.safeParse({
