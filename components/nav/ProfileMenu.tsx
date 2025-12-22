@@ -1,6 +1,8 @@
 // app/components/nav/ProfileMenu.tsx
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
@@ -39,7 +41,7 @@ const tChain = (t: (k: string) => string, keys: string[], fb: string) => {
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
   const m = document.cookie.match(
-    new RegExp('(?:^|; )' + name.replace(/([$?*|{}\\^])/g, '\\$1') + '=([^;]*)')
+    new RegExp('(?:^|; )' + name.replace(/([$?*|{}\\^])/g, '\\$1') + '=([^;]*)'),
   );
   if (!m || typeof m[1] !== 'string') return null;
   try {
@@ -51,9 +53,46 @@ function readCookie(name: string): string | null {
 function writeCookie(name: string, value: string, days = 365) {
   if (typeof document === 'undefined') return;
   const maxAge = days * 24 * 60 * 60;
-  document.cookie = `${name}=${encodeURIComponent(
-    value
-  )}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+}
+
+// Avatar helpers
+type MeResponse = {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    avatarUrl?: string | null;
+    avatar?: string | null;
+    image?: string | null;
+    photoUrl?: string | null;
+  };
+  profile?: {
+    avatarUrl?: string | null;
+    avatar?: string | null;
+    photoUrl?: string | null;
+    photo?: string | null;
+  };
+};
+
+function pickAvatarUrl(j: MeResponse | null): string | null {
+  const candidates = [
+    j?.profile?.avatarUrl,
+    j?.profile?.avatar,
+    j?.profile?.photoUrl,
+    j?.profile?.photo,
+    j?.user?.avatarUrl,
+    j?.user?.avatar,
+    j?.user?.image,
+    j?.user?.photoUrl,
+  ];
+
+  for (const v of candidates) {
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (s) return s;
+    }
+  }
+  return null;
 }
 
 // Theme helpers
@@ -71,9 +110,7 @@ function applyTheme(pref: ThemePref) {
   root.classList.toggle('dark', isDark);
   try {
     const maxAge = 365 * 24 * 60 * 60;
-    document.cookie = `vigri_theme_resolved=${
-      isDark ? 'dark' : 'light'
-    }; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+    document.cookie = `vigri_theme_resolved=${isDark ? 'dark' : 'light'}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
   } catch {}
 }
 
@@ -84,8 +121,9 @@ export default function ProfileMenu() {
   const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
 
-  // avatar initials
+  // avatar (photo) + initials fallback
   const [initials, setInitials] = useState('U');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // theme preference
   const [theme, setTheme] = useState<ThemePref>(() => {
@@ -112,21 +150,9 @@ export default function ProfileMenu() {
   };
 
   const labelHome = tChain(t, ['common.home', 'nav.home'], 'Home');
-  const labelDashboard = tChain(
-    t,
-    ['common.go_dashboard', 'dashboard.nav.overview'],
-    'Dashboard'
-  );
-  const labelCurrency = tChain(
-    t,
-    ['common.currency', 'settings.currency', 'profile.currency'],
-    'Currency'
-  );
-  const labelTheme = tChain(
-    t,
-    ['common.theme', 'settings.theme', 'profile.theme'],
-    'Theme'
-  );
+  const labelDashboard = tChain(t, ['common.go_dashboard', 'dashboard.nav.overview'], 'Dashboard');
+  const labelCurrency = tChain(t, ['common.currency', 'settings.currency', 'profile.currency'], 'Currency');
+  const labelTheme = tChain(t, ['common.theme', 'settings.theme', 'profile.theme'], 'Theme');
   const labelAuto = tChain(t, ['common.auto', 'settings.theme_auto'], 'Auto');
   const labelLight = tChain(t, ['common.light', 'settings.theme_light'], 'Light');
   const labelDark = tChain(t, ['common.dark', 'settings.theme_dark'], 'Dark');
@@ -135,25 +161,27 @@ export default function ProfileMenu() {
   useEffect(() => {
     setPortalRoot(document.body);
 
-    // read user from /api/me to build initials
+    // read user from /api/me to build initials + avatar url
     (async () => {
       try {
         const r = await fetch('/api/me', { cache: 'no-store' });
-        const j = await r.json().catch(() => null);
+        const j: MeResponse | null = await r.json().catch(() => null);
+
         const name: string | undefined = j?.user?.name ?? undefined;
         const email: string | undefined = j?.user?.email ?? undefined;
+
         setInitials(makeInitials(name, email));
+        setAvatarUrl(pickAvatarUrl(j));
       } catch {
         setInitials('U');
+        setAvatarUrl(null);
       }
     })();
 
     // lock currency to EUR (sync cookie + event)
     writeCookie('vigri_ccy', 'EUR', 365);
     try {
-      window.dispatchEvent(
-        new CustomEvent('vigri:currency', { detail: { currency: 'EUR' } })
-      );
+      window.dispatchEvent(new CustomEvent('vigri:currency', { detail: { currency: 'EUR' } }));
     } catch {
       // ignore
     }
@@ -216,19 +244,13 @@ export default function ProfileMenu() {
     writeCookie('vigri_theme', next, 365);
     applyTheme(next);
     try {
-      window.dispatchEvent(
-        new CustomEvent('vigri:theme', { detail: { theme: next } })
-      );
+      window.dispatchEvent(new CustomEvent('vigri:theme', { detail: { theme: next } }));
     } catch {}
   };
 
   const panel =
     open && (
-      <div
-        className="fixed inset-0 z-[60]"
-        onClick={() => setOpen(false)}
-        aria-hidden
-      >
+      <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)} aria-hidden>
         <div
           role="menu"
           aria-label="Profile menu"
@@ -256,9 +278,7 @@ export default function ProfileMenu() {
                   onClick={() => changeTheme('auto')}
                   className={
                     'px-2 py-0.5 text-[11px] ' +
-                    (theme === 'auto'
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'hover:bg-zinc-100 text-zinc-700')
+                    (theme === 'auto' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
                   }
                 >
                   {labelAuto}
@@ -268,9 +288,7 @@ export default function ProfileMenu() {
                   onClick={() => changeTheme('light')}
                   className={
                     'px-2 py-0.5 text-[11px] ' +
-                    (theme === 'light'
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'hover:bg-zinc-100 text-zinc-700')
+                    (theme === 'light' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
                   }
                 >
                   {labelLight}
@@ -280,9 +298,7 @@ export default function ProfileMenu() {
                   onClick={() => changeTheme('dark')}
                   className={
                     'px-2 py-0.5 text-[11px] ' +
-                    (theme === 'dark'
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'hover:bg-zinc-100 text-zinc-700')
+                    (theme === 'dark' ? 'bg-blue-50 text-blue-700' : 'hover:bg-zinc-100 text-zinc-700')
                   }
                 >
                   {labelDark}
@@ -338,9 +354,20 @@ export default function ProfileMenu() {
         aria-expanded={open}
         aria-label="Open profile menu"
       >
-        <span className="grid h-5 w-5 md:h-6 md:w-6 place-items-center rounded-full bg-blue-100 text-[10px] md:text-[11px] font-semibold text-blue-700">
-          {initials}
-        </span>
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt="Profile"
+            className="h-5 w-5 md:h-6 md:w-6 rounded-full object-cover border border-white/30"
+            onError={() => setAvatarUrl(null)}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <span className="grid h-5 w-5 md:h-6 md:w-6 place-items-center rounded-full bg-blue-100 text-[10px] md:text-[11px] font-semibold text-blue-700">
+            {initials}
+          </span>
+        )}
+
         <span aria-hidden className="inline-flex text-current">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
             <rect x="3" y="5" width="14" height="2" rx="1" />

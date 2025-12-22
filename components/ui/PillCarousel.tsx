@@ -80,7 +80,7 @@ export default function PillCarousel({ items, back }: { items: PillItem[]; back?
           onWheelCapture={handleWheel}
           onWheel={handleWheel}
           className="
-            flex items-center gap-1.5 pr-7
+            flex items-center gap-1.5 px-8
             overflow-x-auto touch-pan-x select-none
             [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
           "
@@ -110,24 +110,43 @@ export default function PillCarousel({ items, back }: { items: PillItem[]; back?
       </div>
 
       {/* paddles */}
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-[var(--card)] to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-[var(--card)] to-transparent" />
       {canLeft && (
         <button
-            type="button"
-            aria-label="Scroll left"
-            onClick={() => scrollByStep(-1)}
-            className="absolute left-1 top-1/2 -translate-y-1/2 z-10 rounded-full border bg-white/90 px-2 py-1 text-xs shadow hover:bg-brand-50"
+          type="button"
+          aria-label="Scroll left"
+          onClick={() => scrollByStep(-1)}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 card !rounded-lg !p-0 h-6 w-4 grid place-items-center text-zinc-800 hover:bg-brand-50"
         >
-            ‹
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M15 6l-6 6 6 6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
+
         )}
         {canRight && (
         <button
-            type="button"
-            aria-label="Scroll right"
-            onClick={() => scrollByStep(1)}
-            className="absolute right-1 top-1/2 -translate-y-1/2 z-10 rounded-full border bg-white/90 px-2 py-1 text-xs shadow hover:bg-brand-50"
+          type="button"
+          aria-label="Scroll right"
+          onClick={() => scrollByStep(1)}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 card !rounded-lg !p-0 h-6 w-4 grid place-items-center text-zinc-800 hover:bg-brand-50"
         >
-            ›
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M9 6l6 6-6 6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
         )}
     </div>
