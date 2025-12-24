@@ -563,6 +563,7 @@
   "nft.badge.best_value": "Parim valik",
   "nft.badge.most_rare": "Kõige haruldasem",
   "nft.badge.presale": "Eelmüük",
+  "nft.badge.presale_since": "alates stardist",
   "nft.badge.invite": "Ainult kutsega",
   "nft.total": "Kokku",
   "nft.after": "Hind ↑ kui ≥5% müüdud",
@@ -806,6 +807,7 @@
   "profile.form.phone": "Telefon",
   "profile.form.address": "Aadress",
   "profile.form.isikukood": "Isikukood (EE)",
+  "profile.form.isikukood.invalid": "Vale Eesti isikukood. Palun kontrolli numbreid ja sünnikuupäeva.",
 
   "profile.form.save": "Salvesta profiil",
   "profile.form.saving": "Salvestan…",

@@ -124,6 +124,64 @@ function normalizeDate(v?: string): string {
   return v.slice(0, 10);
 }
 
+function isValidIsikukood(raw: string | null | undefined, birthDateRaw: string | null | undefined): boolean {
+  if (!raw) return false;
+
+  const code = raw.replace(/\D+/g, '');
+  if (code.length !== 11) return false;
+
+  const digits = code.split('').map((ch) => ch.charCodeAt(0) - 48);
+  // Extra safety for TS + runtime
+  if (digits.length !== 11) return false;
+  if (digits.some((d) => d < 0 || d > 9)) return false;
+
+  const first = digits[0]!;
+  if (first < 1 || first > 8) return false;
+
+  let centuryBase: number;
+  if (first === 1 || first === 2) centuryBase = 1800;
+  else if (first === 3 || first === 4) centuryBase = 1900;
+  else if (first === 5 || first === 6) centuryBase = 2000;
+  else centuryBase = 2100; // 7–8
+
+  const yy = digits[1]! * 10 + digits[2]!;
+  const mm = digits[3]! * 10 + digits[4]!;
+  const dd = digits[5]! * 10 + digits[6]!;
+
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return false;
+
+  const year = centuryBase + yy;
+  const dateFromCode = new Date(year, mm - 1, dd);
+  if (
+    dateFromCode.getFullYear() !== year ||
+    dateFromCode.getMonth() !== mm - 1 ||
+    dateFromCode.getDate() !== dd
+  ) {
+    return false;
+  }
+
+  const birthDate = normalizeDate(birthDateRaw || '');
+  const fromCodeStr = `${year.toString().padStart(4, '0')}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+  if (!birthDate || birthDate !== fromCodeStr) {
+    return false;
+  }
+
+  const w1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1] as const;
+  const w2 = [3, 4, 5, 6, 7, 8, 9, 1, 2, 3] as const;
+
+  const sum1 = w1.reduce((acc, w, idx) => acc + w * digits[idx]!, 0);
+  let check = sum1 % 11;
+
+  if (check === 10) {
+    const sum2 = w2.reduce((acc, w, idx) => acc + w * digits[idx]!, 0);
+    check = sum2 % 11;
+    if (check === 10) check = 0;
+  }
+
+  const last = digits[10]!;
+  return last === check;
+}
+
 function splitPhone(full?: string): { code: string; local: string } {
   const s = (full || '').trim();
   if (!s) return { code: '', local: '' };
@@ -649,11 +707,20 @@ export function ProfileForm() {
         !data.addressCity ||
         !data.countryResidence ||
         !data.countryCitizenship ||
-        !data.countryTax ||
-        (data.countryResidence === 'EE' && !data.isikukood)
+        !data.countryTax
       ) {
-
         setError(tr('profile.form.saveError', 'Failed to save profile.') + ' (required fields missing)');
+        setSaving(false);
+        return;
+      }
+
+      if (data.countryResidence === 'EE' && !isValidIsikukood(data.isikukood, data.birthDate)) {
+        setError(
+          tr(
+            'profile.form.isikukood.invalid',
+            'Invalid Estonian personal code. Please check digits and birth date.',
+          ),
+        );
         setSaving(false);
         return;
       }
@@ -661,7 +728,11 @@ export function ProfileForm() {
       const local = phoneLocalMasked.trim();
       const composedPhone = (phoneCode ? phoneCode.trim() + (local ? ' ' : '') : '') + local;
 
-      const payload: Profile = { ...data, birthDate: normalizeDate(data.birthDate), phone: composedPhone };
+      const payload: Profile = {
+        ...data,
+        birthDate: normalizeDate(data.birthDate),
+        phone: composedPhone,
+      };
 
       const raw = (await api.profile.save(payload)) as unknown;
 
@@ -1167,10 +1238,14 @@ export function ProfileForm() {
                       id="pf-isikukood"
                       className="input w-full font-mono"
                       value={data.isikukood ?? ''}
-                      onChange={(e) => setField('isikukood', e.target.value)}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D+/g, '').slice(0, 11);
+                        setField('isikukood', digits);
+                      }}
                       disabled={saving}
                       inputMode="numeric"
                       placeholder="XXXXXXXXXXX"
+                      maxLength={11}
                     />
                   </label>
                 )}

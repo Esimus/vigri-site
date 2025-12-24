@@ -563,6 +563,7 @@
   "nft.badge.best_value": "Лучший выбор",
   "nft.badge.most_rare": "Самый редкий",
   "nft.badge.presale": "Пресейл",
+  "nft.badge.presale_since": "от старта",
   "nft.badge.invite": "Только по инвайту",
   "nft.total": "Всего",
   "nft.after": "Цена ↑ при ≥5% продаж",
@@ -806,6 +807,7 @@
   "profile.form.phone": "Телефон",
   "profile.form.address": "Адрес",
   "profile.form.isikukood": "Личный код (EE)",
+  "profile.form.isikukood.invalid": "Некорректный эстонский личный код. Проверьте цифры и дату рождения.",
 
   "profile.form.save": "Сохранить профиль",
   "profile.form.saving": "Сохранение…",

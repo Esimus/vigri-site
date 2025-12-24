@@ -39,7 +39,7 @@ export const CONFIG = {
   DEX_URL: cfg.data.NEXT_PUBLIC_DEX_URL,
 } as const;
 
-// утилиты
+// utilities
 export const isMainnet = CONFIG.CLUSTER === "mainnet";
 export const explorerQS = isMainnet ? "" : `?cluster=${CONFIG.CLUSTER}`;
 export const clusterLabel = isMainnet ? "Mainnet" : CONFIG.CLUSTER === "devnet" ? "Devnet" : "Testnet";
@@ -47,17 +47,18 @@ export const clusterLabel = isMainnet ? "Mainnet" : CONFIG.CLUSTER === "devnet" 
 
 // ---- Presale shared settings (single source of truth) ----
 
-// UTC ISO end moment used across the app (homepage + NFT cards)
-export const PRESALE_END_ISO = '2025-12-31T18:00:00Z';
+// UTC ISO start moment for presale (used on NFT cards, etc.)
+// 29.12.2025 12:00 Tallinn (UTC+2) = 2025-12-29T10:00:00Z
+export const PRESALE_START_ISO = '2025-12-24T10:00:00Z';
 
-// Remaining milliseconds to presale end (never negative)
-export function presaleRemainingMs(now = Date.now()): number {
-  const end = Date.parse(PRESALE_END_ISO);
-  return Math.max(0, end - now);
+// Elapsed milliseconds since presale start (0 before the start)
+export function presaleElapsedMs(now = Date.now()): number {
+  const start = Date.parse(PRESALE_START_ISO);
+  return Math.max(0, now - start);
 }
 
-// Helper to split remaining time into d/h/m/s (floor-based; matches homepage logic)
-export function formatRemaining(ms: number) {
+// Helper to split elapsed time into d/h/m/s
+export function formatElapsed(ms: number) {
   const totalSec = Math.floor(ms / 1000);
   const d = Math.floor(totalSec / 86400);
   const h = Math.floor((totalSec % 86400) / 3600);

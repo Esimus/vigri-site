@@ -563,6 +563,7 @@
   "nft.badge.best_value": "Best value",
   "nft.badge.most_rare": "Most rare",
   "nft.badge.presale": "Presale",
+  "nft.badge.presale_since": "since launch",
   "nft.badge.invite": "Invite-only",
   "nft.total": "Total",
   "nft.after": "Price ↑ when ≥5% sold",
@@ -806,6 +807,7 @@
   "profile.form.phone": "Phone",
   "profile.form.address": "Address",
   "profile.form.isikukood": "Personal ID code (EE)",
+  "profile.form.isikukood.invalid": "Invalid Estonian personal code. Please check digits and birth date.",
 
   "profile.form.save": "Save profile",
   "profile.form.saving": "Saving…",

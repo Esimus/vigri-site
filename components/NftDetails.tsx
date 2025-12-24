@@ -738,7 +738,7 @@ export default function NftDetails({ id }: { id: string }) {
       ? item.onchain.tierId
       : tierIdFromItemTier(item?.tier);
 
-  const pills = getKycUiState({
+  const rawPills = getKycUiState({
     tierId,
     profileCompleted,
     countryBlocked,
@@ -749,7 +749,17 @@ export default function NftDetails({ id }: { id: string }) {
     profile: meProfile,
   });
 
-  // Решение по кнопке — ТОЛЬКО по /api/me
+  // If zone is grey but KYC is already approved — hide ONLY KYC-related pills.
+  const pills = useMemo(() => {
+    if (countryZone !== 'grey' || kycStatus !== 'approved') return rawPills;
+    return rawPills.filter((p) => {
+      const type = String((p as { type?: unknown }).type ?? '').toLowerCase();
+      const key = String((p as { i18nKey?: unknown }).i18nKey ?? '').toLowerCase();
+      return !(type.includes('kyc') || key.includes('kyc'));
+    });
+  }, [rawPills, countryZone, kycStatus]);
+
+  // Button solution - ONLY for /api/me
   const isLow = tierId === 0 || tierId === 1;
 
   const isEeTriple =
@@ -784,7 +794,7 @@ export default function NftDetails({ id }: { id: string }) {
 
   const isEeForBadges = isEeTriple && hasIsikukood;
 
-  const { blockedByAml, kycNeeded } = item
+  const { blockedByAml, showKycBadge } = item
     ? getKycBadgeStateForNftList({
         nftId: item.id,
         zone: countryZone,
@@ -792,10 +802,11 @@ export default function NftDetails({ id }: { id: string }) {
         kycStatus,
         kycRequired: item.kycRequired,
       })
-    : { blockedByAml: false, kycNeeded: false };
+    : { blockedByAml: false, showKycBadge: false };
 
   const blockedByAmlForChips = blockedByAml;
-  const effectiveKycRequired = kycNeeded;
+  // Show the "KYC Required" chip only if it is required for the current user.
+  const effectiveKycRequired = showKycBadge;
 
   const firstPill = pills.find(p => p.level === 'error' || p.level === 'warning');
   const purchaseReason = firstPill ? t(firstPill.i18nKey) : null;

@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { useI18n } from '@/hooks/useI18n';
 import Link from 'next/link';
 import Image from 'next/image';
-import { presaleRemainingMs, formatRemaining } from '@/lib/config';
+import { presaleElapsedMs, formatElapsed } from '@/lib/config';
 import SalesBar from '@/components/ui/SalesBar';
 import { resolveAmlZone } from '@/constants/amlAnnexA';
 import {
@@ -85,16 +85,22 @@ function asCountryCode(v: unknown): string | null {
   return s.length === 2 ? s : null;
 }
 
-/** Compact presale countdown: 4 cells (D/H/M/S). */
+/** Compact presale "since launch" counter: 4 cells (D/H/M/S). */
 function usePresaleCountdown() {
-  const [tick, setTick] = useState(() => formatRemaining(presaleRemainingMs()));
+  const [tick, setTick] = useState(() => formatElapsed(presaleElapsedMs()));
+
   useEffect(() => {
-    const id = setInterval(() => setTick(formatRemaining(presaleRemainingMs())), 1000);
+    const id = setInterval(() => {
+      setTick(formatElapsed(presaleElapsedMs()));
+    }, 1000);
     return () => clearInterval(id);
   }, []);
+
   const pad = (n: number) => String(n).padStart(2, '0');
+
   return {
-    isPresale: presaleRemainingMs() > 0,
+    // we always show the counter; it's "time since launch" now
+    isPresale: true,
     d: String(tick.d),
     h: pad(tick.h),
     m: pad(tick.m),
@@ -328,7 +334,10 @@ export default function NftList() {
                       <div className="text-[10px] font-semibold uppercase tracking-wide mb-0.5 drop-shadow">
                         {t('nft.badge.presale')}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="text-[10px] leading-none opacity-80 -mt-[6px]">
+                        {t('nft.badge.presale_since')}
+                      </div>
+                      <div className="flex gap-2 mt-[4px]">
                         {[
                           { v: presale.d, l: t('nft.timer.d') },
                           { v: presale.h, l: t('nft.timer.h') },
