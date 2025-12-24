@@ -11,6 +11,7 @@ export async function GET(req: Request) {
     process.env.APP_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
     url.origin;
+
   try {
     const token = url.searchParams.get('token')?.trim();
     if (!token) {
@@ -41,7 +42,11 @@ export async function GET(req: Request) {
         data: { consumedAt: now },
       }),
       prisma.verifyEmailToken.deleteMany({
-        where: { userId: record.userId, consumedAt: null, tokenHash: { not: tokenHash } },
+        where: {
+          userId: record.userId,
+          consumedAt: null,
+          tokenHash: { not: tokenHash },
+        },
       }),
     ]);
 

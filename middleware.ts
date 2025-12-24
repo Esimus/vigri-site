@@ -2,17 +2,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Captures ?ref=<code> and stores it in a cookie for later use.
-// MVP: <code> = userId of inviter. Later we will switch to referralCode.
+// Captures ?ref=<code> on non-API routes and stores it in a cookie.
 export function middleware(req: NextRequest) {
   const url = new URL(req.url);
-  const ref = url.searchParams.get('ref');
 
-  if (!ref) {
+  // Never touch API / Next internals
+  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/_next')) {
     return NextResponse.next();
   }
 
-  // Optionally clean the URL by removing ?ref=...
+  const ref = url.searchParams.get('ref');
+  if (!ref) return NextResponse.next();
+
   url.searchParams.delete('ref');
 
   const res = NextResponse.redirect(url, { status: 302 });
@@ -21,13 +22,12 @@ export function middleware(req: NextRequest) {
     value: ref,
     path: '/',
     sameSite: 'lax',
-    httpOnly: false,       // readable on client if needed
-    maxAge: 60 * 60 * 24 * 90, // 90 days
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 90,
   });
   return res;
 }
 
-// Apply to all pages
 export const config = {
   matcher: ['/:path*'],
 };

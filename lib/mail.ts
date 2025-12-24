@@ -1,5 +1,5 @@
 // lib/mail.ts
-// Mail sending via Mailjet SMTP. Text content is defined here for now;
+// Mail sending via SMTP (e.g. Mailjet). Text content is defined here for now;
 // i18n integration can be wired later at the call sites.
 
 import nodemailer from "nodemailer";
@@ -37,29 +37,15 @@ const mailTransport = hasProdConfig()
 
 /**
  * Core mail sender.
- * - In non-production: logs to console and does not send.
- * - In production: sends via Mailjet SMTP.
+ * Always tries to send via SMTP when configured.
  */
 export async function sendMail(input: MailInput): Promise<void> {
   const { to, subject, text, html } = input;
   const from = input.from ?? DEFAULT_FROM;
   const replyTo = DEFAULT_REPLY_TO;
-  const env = process.env.NODE_ENV || "development";
 
   if (!to || !subject) {
     throw new Error('sendMail: missing "to" or "subject"');
-  }
-
-  if (env !== "production") {
-    console.info("[mail:dev] not sent", {
-      from,
-      to,
-      subject,
-      text,
-      html,
-      replyTo,
-    });
-    return;
   }
 
   if (!hasProdConfig() || !mailTransport) {

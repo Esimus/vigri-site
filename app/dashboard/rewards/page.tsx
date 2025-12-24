@@ -3,6 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/hooks/useI18n';
+import { ReferralBanner } from '@/components/rewards/ReferralBanner';
+
+const PAGE_SIZE = 7;
 
 type BalanceResp = {
   ok: boolean;
@@ -43,8 +46,6 @@ type LevelsResp = {
   L3: { count: number; users: LevelUser[] };
 };
 
-type BindResp = { ok: boolean; boundTo?: string; error?: string };
-
 function isRefStats(x: unknown): x is RefStats {
   if (typeof x !== 'object' || x === null) return false;
   const o = x as Record<string, unknown>;
@@ -55,15 +56,6 @@ function isLevels(x: unknown): x is LevelsResp {
   if (typeof x !== 'object' || x === null) return false;
   const o = x as Record<string, unknown>;
   return o.ok === true && typeof o.userId === 'string' && typeof o.L1 === 'object' && typeof o.L2 === 'object' && typeof o.L3 === 'object';
-}
-
-function isBindResp(v: unknown): v is BindResp {
-  if (typeof v !== 'object' || v === null) return false;
-  const o = v as Record<string, unknown>;
-  const okIsBool = typeof o.ok === 'boolean';
-  const boundOk = !('boundTo' in o) || typeof o.boundTo === 'string';
-  const errOk = !('error' in o) || typeof o.error === 'string';
-  return okIsBool && boundOk && errOk;
 }
 
 function formatEcho(n: number) {
@@ -103,14 +95,12 @@ export default function RewardsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [balance, setBalance] = useState<BalanceResp | null>(null);
   const [log, setLog] = useState<LogItem[] | null>(null);
+  const [page, setPage] = useState(1);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [baseUrl, setBaseUrl] = useState<string>('');
   const [refCookie, setRefCookie] = useState<string | null>(null);
-
-  const [bindStatus, setBindStatus] = useState<'idle' | 'doing' | 'ok' | 'fail'>('idle');
-  const [bindMsg, setBindMsg] = useState<string>('');
 
   const [refStats, setRefStats] = useState<RefStats | null>(null);
 
@@ -172,33 +162,6 @@ export default function RewardsPage() {
     };
   }, []);
 
-  // auto-bind from referral cookie
-  useEffect(() => {
-    let cancelled = false;
-
-    async function autoBindIfNeeded() {
-      try {
-        const ref = readCookie('vigri_ref');
-        if (!ref) return;
-
-        const s = await fetch('/api/referral/stats', { cache: 'no-store' });
-        const raw: unknown = await s.json().catch(() => ({}));
-        if (!s.ok) return;
-        if (isRefStats(raw) && raw.inviter) return;
-
-        await fetch('/api/referral/bind', { method: 'POST' }).catch(() => {});
-        if (cancelled) return;
-
-        window.location.reload();
-      } catch {
-        // ignore
-      }
-    }
-
-    void autoBindIfNeeded();
-    return () => { cancelled = true; };
-  }, []);
-
   // load data
   useEffect(() => {
     let cancelled = false;
@@ -248,29 +211,18 @@ export default function RewardsPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, [userId, bindStatus]);
+  }, [userId]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [userId]);
 
   const referralUrl = userId ? `${baseUrl}/?ref=${encodeURIComponent(userId)}` : '';
 
-  async function handleBind() {
-    if (!userId) return;
-    setBindStatus('doing');
-    setBindMsg('');
-    try {
-      const r = await fetch(`/api/referral/bind?userId=${encodeURIComponent(userId)}`, { method: 'POST' });
-      const j: unknown = await r.json().catch(() => ({}));
-      if (!r.ok || !isBindResp(j) || !j.ok) {
-        setBindStatus('fail');
-        setBindMsg(isBindResp(j) && j.error ? j.error : 'bind_failed');
-      } else {
-        setBindStatus('ok');
-        setBindMsg(j.boundTo ? `bound to ${j.boundTo}` : 'bound');
-      }
-    } catch {
-      setBindStatus('fail');
-      setBindMsg('bind_failed');
-    }
-  }
+  const totalPages = log ? Math.max(1, Math.ceil(log.length / PAGE_SIZE)) : 1;
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pagedLog = log ? log.slice(start, start + PAGE_SIZE) : [];
 
   return (
     <div className="space-y-5">
@@ -314,20 +266,6 @@ export default function RewardsPage() {
         )}
       </div>
 
-      {/* Inviter */}
-      {refStats?.inviter && (
-        <div className="card p-5">
-          <h2 className="text-sm font-semibold mb-2">{t('rewards.invited_by')}</h2>
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-base font-medium">{displayName(refStats.inviter)}</div>
-              {refStats.inviter.email && <div className="text-[11px] opacity-60">{refStats.inviter.email}</div>}
-              <div className="text-[11px] opacity-40 break-all">{refStats.inviter.id}</div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* My referral link */}
       <div className="card p-5">
         <h2 className="text-sm font-semibold mb-2">{t('rewards.my_ref_link')}</h2>
@@ -351,40 +289,11 @@ export default function RewardsPage() {
         )}
       </div>
 
-      {/* DEV: bind referral from cookie */}
-      {userId && refCookie && (
-        <div className="card p-5">
-          <h2 className="text-sm font-semibold mb-2">{t('rewards.cookie_detected')}</h2>
-          <div className="text-xs opacity-70 mb-2">
-            {t('rewards.cookie_name')} <code>vigri_ref</code> = <span className="font-mono">{refCookie}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              disabled={bindStatus === 'doing'}
-              onClick={handleBind}
-              className={cn(
-                'rounded-lg border px-3 py-1.5 text-sm transition',
-                bindStatus === 'doing' ? 'opacity-60 cursor-not-allowed' : 'hover:bg-black/5 active:scale-[0.99]'
-              )}
-            >
-              {bindStatus === 'doing' ? t('rewards.binding') : t('rewards.bind_now')}
-            </button>
-            {bindStatus !== 'idle' && (
-              <div
-                className={cn(
-                  'text-sm',
-                  bindStatus === 'ok' ? 'text-emerald-700' : bindStatus === 'fail' ? 'text-rose-700' : 'opacity-70'
-                )}
-              >
-                {bindMsg}
-              </div>
-            )}
-          </div>
-          <div className="text-[11px] opacity-60 mt-2">
-            {t('rewards.dev_only_bind')}
-          </div>
-        </div>
-      )}
+      <ReferralBanner
+        userId={userId}
+        refCookie={refCookie}
+        boundInviter={refStats?.inviter ?? null}
+      />
 
       {/* Referral levels */}
       {levels && (
@@ -470,62 +379,86 @@ export default function RewardsPage() {
             <div className="h-5 w-3/4 bg-black/5 rounded animate-pulse" />
           </div>
         ) : log && log.length > 0 ? (
-          <ul className="mt-3 divide-y">
-            {log.map((row) => {
-              const isMinus = row.amount < 0;
-              const when = new Date(row.createdAt);
-              return (
-                <li key={row.id} className="py-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium',
-                            kindColor(row.kind),
-                          )}
-                        >
-                          {row.kind}
-                        </span>
-                        <span className="text-xs opacity-70">{row.action}</span>
-                      </div>
-
-                      <div className="text-xs opacity-60 mt-1">{when.toLocaleString()}</div>
-
-                      {(row.bucket || row.refUserId) && (
-                        <div className="text-[11px] opacity-60 mt-1 space-x-2">
-                          {row.bucket && <span>bucket: {row.bucket}</span>}
-                          {row.refUserId && <span>refUser: {row.refUserId}</span>}
+          <>
+            <ul className="mt-3 divide-y">
+              {pagedLog.map((row) => {
+                const isMinus = row.amount < 0;
+                const when = new Date(row.createdAt);
+                return (
+                  <li key={row.id} className="py-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium',
+                              kindColor(row.kind),
+                            )}
+                          >
+                            {row.kind}
+                          </span>
+                          <span className="text-xs opacity-70">{row.action}</span>
                         </div>
-                      )}
-                    </div>
 
-                    <div
-                      className={cn(
-                        'shrink-0 text-right text-sm font-semibold',
-                        isMinus ? 'text-rose-700' : 'text-emerald-700',
-                      )}
-                    >
-                      {isMinus ? '-' : '+'}
-                      {formatEcho(Math.abs(row.amount))}{' '}
-                      <span className="font-normal opacity-70">echo</span>
-                    </div>
-                  </div>
+                        <div className="text-xs opacity-60 mt-1">{when.toLocaleString()}</div>
 
-                  {row.sourceId && (
-                    <div className="text-[11px] opacity-60 mt-1 min-w-0">
-                      <div className="whitespace-nowrap">
-                        {t('rewards_source')}
+                        {(row.bucket || row.refUserId) && (
+                          <div className="text-[11px] opacity-60 mt-1 space-x-2">
+                            {row.bucket && <span>bucket: {row.bucket}</span>}
+                            {row.refUserId && <span>refUser: {row.refUserId}</span>}
+                          </div>
+                        )}
                       </div>
-                      <div className="truncate">
-                        {String(row.sourceId)}
+
+                      <div
+                        className={cn(
+                          'shrink-0 text-right text-sm font-semibold',
+                          isMinus ? 'text-rose-700' : 'text-emerald-700',
+                        )}
+                      >
+                        {isMinus ? '-' : '+'}
+                        {formatEcho(Math.abs(row.amount))}{' '}
+                        <span className="font-normal opacity-70">echo</span>
                       </div>
                     </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+
+                    {row.sourceId && (
+                      <div className="text-[11px] opacity-60 mt-1 min-w-0">
+                        <div className="whitespace-nowrap">
+                          {t('rewards_source')}
+                        </div>
+                        <div className="truncate">
+                          {String(row.sourceId)}
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-between text-xs">
+                <button
+                  className="btn btn-outline px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  {t('page.prev')}
+                </button>
+                <span className="opacity-70">
+                  {t('page.label')} {currentPage} / {totalPages}
+                </span>
+                <button
+                  className="btn btn-outline px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  {t('page.next')}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-sm opacity-70 mt-3">{t('rewards.no_records')}</div>
         )}

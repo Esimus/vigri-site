@@ -142,10 +142,10 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 p-4">
-      <div className="w-full sm:max-w-md rounded-2xl bg-neutral-900 text-neutral-100 shadow-2xl">
+      <div className="w-full sm:max-w-md rounded-2xl bg-neutral-900 text-neutral-400 shadow-2xl">
         <div className="p-5">
           <div className="mb-3 text-lg font-semibold">{t('common.cookies.title')}</div>
-        <p className="text-sm text-neutral-300">{t('common.cookies.body')}</p>
+        <p className="text-sm text-neutral-500">{t('common.cookies.body')}</p>
 
           <div className="mt-4 space-y-2">
             <Category
@@ -195,7 +195,9 @@ export default function CookieConsent() {
             </button>
             <button
               onClick={acceptAll}
-              className="w-full sm:w-auto rounded-xl bg-white text-neutral-900 px-4 py-2 text-sm font-medium hover:opacity-90"
+              className="w-full sm:w-auto rounded-xl border border-neutral-700 px-4 py-2 text-sm font-medium hover:opacity-90
+                        bg-zinc-200 text-neutral-900
+                        dark:bg-zinc-800 dark:text-neutral-50 dark:border-zinc-400"
             >
               {t('common.cookies.accept_all')}
             </button>

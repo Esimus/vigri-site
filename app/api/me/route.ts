@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE } from '@/lib/session';
 import { resolveAmlZone } from '@/constants/amlAnnexA';
+import { creditEcho } from '@/lib/echo';
+import { loadAwardRules } from '@/lib/awards';
 import type {
   Session,
   User,
@@ -88,7 +90,9 @@ function sanitizeProfile(p: unknown): Profile {
   // allow small dataURL avatar (client ensures size)
   out.photo = clipLong(src.photo, 200_000);
 
-  return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined)) as Profile;
+  return Object.fromEntries(
+    Object.entries(out).filter(([, v]) => v !== undefined),
+  ) as Profile;
 }
 
 function mapProfileFromDb(p: UserProfile | null): Profile {
@@ -115,7 +119,9 @@ function mapProfileFromDb(p: UserProfile | null): Profile {
   });
 }
 
-function profileToDbData(p: Profile): Omit<UserProfile, 'userId' | 'createdAt' | 'updatedAt'> {
+function profileToDbData(
+  p: Profile,
+): Omit<UserProfile, 'userId' | 'createdAt' | 'updatedAt'> {
   let birthDate: Date | null = null;
   if (p.birthDate) {
     const d = new Date(p.birthDate);
@@ -134,7 +140,7 @@ function profileToDbData(p: Profile): Omit<UserProfile, 'userId' | 'createdAt' |
       (p.countryResidence ?? '').toUpperCase() === 'EE' &&
       (p.countryCitizenship ?? '').toUpperCase() === 'EE' &&
       (p.countryTax ?? '').toUpperCase() === 'EE'
-        ? (p.isikukood ?? null)
+        ? p.isikukood ?? null
         : null,
 
     countryResidence: p.countryResidence ?? null,
@@ -197,6 +203,261 @@ function resolveZoneFromProfile(p: {
   return worstZone(worstZone(zRes, zCit), zTax);
 }
 
+async function awardProfileEcho(userId: string) {
+  // self bonus from award_rules.json (profile.bonus), default 10
+  let selfAmount = 10;
+  try {
+    const rules = await loadAwardRules();
+    const raw = (rules as unknown as { profile?: { bonus?: number } }).profile;
+    if (
+      raw &&
+      typeof raw.bonus === 'number' &&
+      Number.isFinite(raw.bonus) &&
+      raw.bonus > 0
+    ) {
+      selfAmount = raw.bonus;
+    }
+  } catch {
+    // fallback to default
+  }
+
+  if (selfAmount <= 0) return;
+
+  const sourceId = `profile_complete:${userId}`;
+
+  // self
+  try {
+    await creditEcho(prisma, {
+      userId,
+      kind: 'bonus',
+      action: 'self.profile_complete',
+      amount: selfAmount,
+      sourceId,
+      dedupeKey: `self.profile_complete:${userId}`,
+      refUserId: userId,
+      meta: { reason: 'profile_complete' },
+    });
+  } catch (e) {
+    console.error('profile self echo error', e);
+  }
+
+  // referral chain: L1 / L2 / L3
+  const me = await prisma.user
+    .findUnique({
+      where: { id: userId },
+      select: { referrerId: true },
+    })
+    .catch(() => null);
+
+  if (!me?.referrerId) return;
+
+  const l1 = me.referrerId;
+
+  const l1User = await prisma.user
+    .findUnique({
+      where: { id: l1 },
+      select: { referrerId: true },
+    })
+    .catch(() => null);
+
+  const l2 = l1User?.referrerId ?? null;
+
+  const l2User = l2
+    ? await prisma.user
+        .findUnique({
+          where: { id: l2 },
+          select: { referrerId: true },
+        })
+        .catch(() => null)
+    : null;
+
+  const l3 = l2User?.referrerId ?? null;
+
+  const meta = { reason: 'profile_complete' };
+
+  if (l1) {
+    try {
+      await creditEcho(prisma, {
+        userId: l1,
+        kind: 'referral',
+        action: 'referral.profile.l1',
+        amount: 3,
+        sourceId,
+        dedupeKey: `profile.l1:${userId}:${l1}`,
+        refUserId: userId,
+        meta,
+      });
+    } catch (e) {
+      console.error('profile L1 echo error', e);
+    }
+  }
+
+  if (l2) {
+    try {
+      await creditEcho(prisma, {
+        userId: l2,
+        kind: 'referral',
+        action: 'referral.profile.l2',
+        amount: 1,
+        sourceId,
+        dedupeKey: `profile.l2:${userId}:${l2}`,
+        refUserId: userId,
+        meta,
+      });
+    } catch (e) {
+      console.error('profile L2 echo error', e);
+    }
+  }
+
+  if (l3) {
+    try {
+      await creditEcho(prisma, {
+        userId: l3,
+        kind: 'referral',
+        action: 'referral.profile.l3',
+        amount: 1,
+        sourceId,
+        dedupeKey: `profile.l3:${userId}:${l3}`,
+        refUserId: userId,
+        meta,
+      });
+    } catch (e) {
+      console.error('profile L3 echo error', e);
+    }
+  }
+}
+
+async function awardKycEcho(userId: string) {
+  const selfDedupeKey = `self.kyc_approved:${userId}`;
+
+  const exists = await prisma.echoLog.findUnique({
+    where: { dedupeKey: selfDedupeKey },
+    select: { id: true },
+  });
+
+  if (exists) return;
+
+  let selfAmount = 20;
+  try {
+    const rules = await loadAwardRules();
+    const raw = (rules as unknown as { kyc?: { bonus?: number } }).kyc;
+    if (
+      raw &&
+      typeof raw.bonus === 'number' &&
+      Number.isFinite(raw.bonus) &&
+      raw.bonus > 0
+    ) {
+      selfAmount = raw.bonus;
+    }
+  } catch {
+    // fallback 20
+  }
+
+  if (selfAmount <= 0) return;
+
+  const sourceId = `kyc_approved:${userId}`;
+  const meta = { reason: 'kyc_approved' };
+
+  // self
+  try {
+    await creditEcho(prisma, {
+      userId,
+      kind: 'bonus',
+      action: 'self.kyc_approved',
+      amount: selfAmount,
+      sourceId,
+      dedupeKey: selfDedupeKey,
+      refUserId: userId,
+      meta,
+    });
+  } catch (e) {
+    console.error('kyc self echo error', e);
+  }
+
+  // referral chain: L1 / L2 / L3
+  const me = await prisma.user
+    .findUnique({
+      where: { id: userId },
+      select: { referrerId: true },
+    })
+    .catch(() => null);
+
+  if (!me?.referrerId) return;
+
+  const l1 = me.referrerId;
+
+  const l1User = await prisma.user
+    .findUnique({
+      where: { id: l1 },
+      select: { referrerId: true },
+    })
+    .catch(() => null);
+
+  const l2 = l1User?.referrerId ?? null;
+
+  const l2User = l2
+    ? await prisma.user
+        .findUnique({
+          where: { id: l2 },
+          select: { referrerId: true },
+        })
+        .catch(() => null)
+    : null;
+
+  const l3 = l2User?.referrerId ?? null;
+
+  if (l1) {
+    try {
+      await creditEcho(prisma, {
+        userId: l1,
+        kind: 'referral',
+        action: 'referral.kyc.l1',
+        amount: 5,
+        sourceId,
+        dedupeKey: `kyc.l1:${userId}:${l1}`,
+        refUserId: userId,
+        meta,
+      });
+    } catch (e) {
+      console.error('kyc L1 echo error', e);
+    }
+  }
+
+  if (l2) {
+    try {
+      await creditEcho(prisma, {
+        userId: l2,
+        kind: 'referral',
+        action: 'referral.kyc.l2',
+        amount: 1,
+        sourceId,
+        dedupeKey: `kyc.l2:${userId}:${l2}`,
+        refUserId: userId,
+        meta,
+      });
+    } catch (e) {
+      console.error('kyc L2 echo error', e);
+    }
+  }
+
+  if (l3) {
+    try {
+      await creditEcho(prisma, {
+        userId: l3,
+        kind: 'referral',
+        action: 'referral.kyc.l3',
+        amount: 1,
+        sourceId,
+        dedupeKey: `kyc.l3:${userId}:${l3}`,
+        refUserId: userId,
+        meta,
+      });
+    } catch (e) {
+      console.error('kyc L3 echo error', e);
+    }
+  }
+}
+
 // GET: everything from the database
 export async function GET(req: Request) {
   try {
@@ -237,6 +498,10 @@ export async function GET(req: Request) {
 
             kycStatus = user.kycStatus;
 
+            if (user.kycStatus === 'approved') {
+              await awardKycEcho(user.id);
+            }
+
             const liveZone = resolveZoneFromProfile({
               countryResidence: profile.countryResidence ?? null,
               countryCitizenship: profile.countryCitizenship ?? null,
@@ -248,7 +513,7 @@ export async function GET(req: Request) {
             const zone =
               user.kycStatus === 'none'
                 ? liveZone
-                : (user.kycCountryZone ?? liveZone);
+                : user.kycCountryZone ?? liveZone;
 
             kycCountryZone = zone;
 
@@ -341,6 +606,7 @@ export async function POST(req: Request) {
 
   if (sessionUserId) {
     const dbData = profileToDbData(profileIncoming);
+    let shouldAwardProfile = false;
 
     await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
@@ -369,14 +635,42 @@ export async function POST(req: Request) {
         countryTax: nextTax,
       });
 
+      const prevCompleted = isProfileCompleted({
+        firstName: prev?.firstName ?? null,
+        lastName: prev?.lastName ?? null,
+        birthDate: prev?.birthDate ?? null,
+        countryResidence: prev?.countryResidence ?? null,
+        countryCitizenship: prev?.countryCitizenship ?? null,
+        countryTax: prev?.countryTax ?? null,
+        addressCity: prev?.addressCity ?? null,
+        language: prev?.language ?? null,
+      });
+
+      const nextCompleted = isProfileCompleted({
+        firstName: dbData.firstName ?? null,
+        lastName: dbData.lastName ?? null,
+        birthDate: dbData.birthDate ?? null,
+        countryResidence: dbData.countryResidence ?? null,
+        countryCitizenship: dbData.countryCitizenship ?? null,
+        countryTax: dbData.countryTax ?? null,
+        addressCity: dbData.addressCity ?? null,
+        language: dbData.language ?? null,
+      });
+
+      if (!prevCompleted && nextCompleted) {
+        shouldAwardProfile = true;
+      }
+
       await tx.user.update({
         where: { id: sessionUserId },
         data: {
-          // всегда держим в синхроне с анкетой
+          // keep KYC zone in sync with profile
           kycCountryZone: nextZone,
 
-          // анти-мошенничество: сменил страну после KYC → KYC заново
-          ...(countriesChanged && user.kycStatus !== 'none' ? { kycStatus: 'none' as KycStatus } : {}),
+          // anti-fraud: changed country after KYC → reset KYC
+          ...(countriesChanged && user.kycStatus !== 'none'
+            ? { kycStatus: 'none' as KycStatus }
+            : {}),
 
           profile: {
             upsert: {
@@ -387,6 +681,11 @@ export async function POST(req: Request) {
         },
       });
     });
+
+    if (shouldAwardProfile) {
+      await awardProfileEcho(sessionUserId);
+    }
   }
+
   return res;
 }

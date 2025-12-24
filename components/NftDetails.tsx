@@ -1099,6 +1099,27 @@ export default function NftDetails({ id }: { id: string }) {
         console.error('mint-log error', logErr);
       }
 
+      // Trigger rewards/referrals for on-chain mint (non-blocking).
+      try {
+        const meRes = await fetch('/api/me', { cache: 'no-store' });
+        const meJson = await meRes.json().catch(() => ({} as { ok?: boolean; user?: { id?: string } }));
+        const meId = meJson?.ok && meJson?.user?.id ? String(meJson.user.id) : null;
+
+        const tierName = item ? tierParamFromItemTier(item.tier) : 'Base';
+        const solTotal = Number(item?.onchain?.priceSol ?? 0);
+
+        const qsClaim = new URLSearchParams();
+        qsClaim.set('tier', tierName);
+        // Temporary: `claim` currently expects `eur`, we pass SOL value to re-enable the pipeline.
+        if (solTotal > 0) qsClaim.set('eur', String(solTotal));
+        qsClaim.set('qty', '1');
+        if (meId) qsClaim.set('userId', meId);
+
+        await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
+      } catch (err) {
+        console.error('claim failed (on-chain)', err);
+      }
+
       setMintMsg(`${t('nft.mint.txSent')} ${sig}`);
 
       // refresh UI

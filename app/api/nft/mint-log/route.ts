@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE } from '@/lib/session';
+import { creditEcho } from '@/lib/echo';
 
 export const runtime = 'nodejs';
 
@@ -35,6 +36,118 @@ async function resolveSessionUserId(req: NextRequest): Promise<string | null> {
   if (session.idleExpires <= now) return null;
 
   return session.userId;
+}
+
+function getEchoSelfForTier(tierId: number): number {
+  switch (tierId) {
+    case 0: // Tree / Steel
+      return 10;
+    case 1: // Bronze
+      return 40;
+    case 2: // Silver
+      return 200;
+    case 3: // Gold
+      return 800;
+    case 4: // Platinum
+      return 1600;
+    default:
+      return 0;
+  }
+}
+
+async function awardEchoForMint(params: {
+  buyerUserId: string | null;
+  tierId: number;
+  quantity: number;
+  txSignature: string;
+  network: string;
+}) {
+  const { buyerUserId, tierId, quantity, txSignature, network } = params;
+
+  if (!buyerUserId) return;
+  if (!Number.isFinite(tierId) || quantity <= 0) return;
+
+  const echoSelf = getEchoSelfForTier(tierId);
+  if (echoSelf <= 0) return;
+
+  const buyerEchoTotal = echoSelf * quantity;
+  if (buyerEchoTotal <= 0) return;
+
+  const me = await prisma.user.findUnique({
+    where: { id: buyerUserId },
+    select: { id: true, referrerId: true },
+  });
+  if (!me) return;
+
+  const l1 = me.referrerId ?? null;
+
+  const l2User = l1
+    ? await prisma.user.findUnique({
+        where: { id: l1 },
+        select: { referrerId: true },
+      })
+    : null;
+  const l2 = l2User?.referrerId ?? null;
+
+  const l3User = l2
+    ? await prisma.user.findUnique({
+        where: { id: l2 },
+        select: { referrerId: true },
+      })
+    : null;
+  const l3 = l3User?.referrerId ?? null;
+
+  const sourceId = `mint:${txSignature}`;
+  const metaBase = { network, tierId, quantity };
+
+  try {
+    await creditEcho(prisma, {
+      userId: buyerUserId,
+      kind: 'purchase',
+      action: 'purchase.nft.self',
+      amount: buyerEchoTotal,
+      sourceId,
+      dedupeKey: `mint:self:${txSignature}`,
+      meta: metaBase,
+    });
+  } catch (e) {
+    console.error('echo award (buyer) failed', e);
+  }
+
+  const awardLevel = async (levelUserId: string | null, lvl: 1 | 2 | 3) => {
+    if (!levelUserId) return;
+
+    let pct: number;
+    if (lvl === 1) pct = 0.30;
+    else if (lvl === 2) pct = 0.10;
+    else pct = 0.05;
+
+    let amount = Math.floor(buyerEchoTotal * pct);
+
+    if (lvl === 3 && amount < 1) amount = 1;
+    if (amount <= 0) return;
+
+    const action =
+      lvl === 1 ? 'referral.purchase.l1' : lvl === 2 ? 'referral.purchase.l2' : 'referral.purchase.l3';
+
+    try {
+      await creditEcho(prisma, {
+        userId: levelUserId,
+        kind: 'referral',
+        action,
+        amount,
+        sourceId,
+        dedupeKey: `mint:${txSignature}:l${lvl}`,
+        meta: metaBase,
+      });
+    } catch (e) {
+      console.error(`echo award (L${lvl}) failed`, e);
+    }
+  };
+
+  await awardLevel(l1, 1);
+  await awardLevel(l2, 2);
+  await awardLevel(l3, 3);
 }
 
 export async function POST(req: NextRequest) {
@@ -91,8 +204,7 @@ export async function POST(req: NextRequest) {
         ? designChoice
         : null;
 
-    const withPhysicalIn =
-      typeof withPhysical === 'boolean' ? withPhysical : null;
+    const withPhysicalIn = typeof withPhysical === 'boolean' ? withPhysical : null;
 
     let buyerFirstName: string | null = null;
     let buyerLastName: string | null = null;
@@ -127,6 +239,18 @@ export async function POST(req: NextRequest) {
         // tierCode / serial / designKey / collectorId will be filled later from on-chain data
       },
     });
+
+    try {
+      await awardEchoForMint({
+        buyerUserId: sessionUserId,
+        tierId,
+        quantity: qty,
+        txSignature,
+        network: net,
+      });
+    } catch (e) {
+      console.error('awardEchoForMint failed', e);
+    }
 
     return NextResponse.json({ ok: true, eventId: event.id });
   } catch (err) {
