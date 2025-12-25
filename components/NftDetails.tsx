@@ -11,7 +11,7 @@ import InlineLoader from '@/components/ui/InlineLoader';
 import SalesBar from '@/components/ui/SalesBar';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
 import { getKycBadgeStateForNftList } from '@/lib/kyc/getKycUiState';
-import { Transaction, TransactionInstruction, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram } from '@solana/web3.js';
+import { Transaction, TransactionInstruction, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, ComputeBudgetProgram } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
@@ -1035,16 +1035,24 @@ export default function NftDetails({ id }: { id: string }) {
         data[11] = 0; // invite_proof = None
       }
 
+      // placeholders
+      const COLLECTION_MINT = new PublicKey('Dqa6Zzh2sYgviEQxxPnhTAwJD5MA5FDxAyLhkGeaULJg');
+      const COLLECTION_METADATA = new PublicKey('FiTMjeJ1mxJNzNUZijKccx3Gn293phTondw9qATyTege');
+      const COLLECTION_MASTER_EDITION = new PublicKey('AnEjffPqDmdhAUKRL5RjK1BUGYMR9G4FSJpQWuAf991U');
+
       const ix = new TransactionInstruction({
         programId: PRESALE_PROGRAM_ID,
         keys: [
-          { pubkey: publicKey, isSigner: true, isWritable: true }, // payer
-          { pubkey: globalConfig, isSigner: false, isWritable: true }, // global_config (PDA)
-          { pubkey: admin, isSigner: false, isWritable: true }, // admin/treasury
-          { pubkey: mintPk, isSigner: true, isWritable: true }, // mint (init)
-          { pubkey: payerAta, isSigner: false, isWritable: true }, // payer_token_account (init ATA)
-          { pubkey: metadata, isSigner: false, isWritable: true }, // metadata PDA
-          { pubkey: edition, isSigner: false, isWritable: true }, // master edition PDA
+          { pubkey: publicKey, isSigner: true, isWritable: true },         // payer
+          { pubkey: globalConfig, isSigner: false, isWritable: true },     // global_config (PDA)
+          { pubkey: admin, isSigner: false, isWritable: true },            // admin / treasury
+          { pubkey: COLLECTION_MINT, isSigner: false, isWritable: false },  // collection_mint (placeholder)
+          { pubkey: COLLECTION_METADATA, isSigner: false, isWritable: true }, // collection_metadata (placeholder)
+          { pubkey: COLLECTION_MASTER_EDITION, isSigner: false, isWritable: true }, // collection_master_edition (placeholder)
+          { pubkey: mintPk, isSigner: true, isWritable: true },            // mint (init)
+          { pubkey: payerAta, isSigner: false, isWritable: true },         // payer_token_account (init ATA)
+          { pubkey: metadata, isSigner: false, isWritable: true },         // metadata PDA
+          { pubkey: edition, isSigner: false, isWritable: true },          // master edition PDA
           { pubkey: TOKEN_METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
           { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
           { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
@@ -1052,6 +1060,11 @@ export default function NftDetails({ id }: { id: string }) {
           { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
         ],
         data: Buffer.from(data),
+      });
+
+      // give more compute units for metadata + master edition + collection link
+      const computeIx = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 300000,
       });
 
       const { blockhash, lastValidBlockHeight } =
@@ -1063,7 +1076,7 @@ export default function NftDetails({ id }: { id: string }) {
         lastValidBlockHeight,
       });
 
-      tx.add(ix);
+      tx.add(computeIx, ix);
 
       // partial sign with mint keypair (because mint is created by Anchor init)
       tx.partialSign(mintKp);

@@ -1,6 +1,7 @@
 {
   "name": "VIGRI Presale Collection",
   "symbol": "VIGRINFT",
+  "uri": "https://vigri.ee/metadata/collection/vigri-presale-collection.json",
   "description": "Official collection for the VIGRI presale NFTs (Tree/Steel, Bronze, Silver, Gold, Platinum, WS-20). Each NFT is a digital proof of participation and may unlock benefits according to the terms published on vigri.ee. Mystery artworks are planned to be revealed in Q2 2026.",
   "seller_fee_basis_points": 0,
   "image": "https://vigri.ee/images/nft/mb.png",
@@ -11,7 +12,7 @@
     { "trait_type": "Type", "value": "Collection NFT" },
     { "trait_type": "Reveal", "value": "Planned Q2 2026" }
   ],
-  "properties": {
+    "properties": {
     "category": "image",
     "files": [
       {
@@ -19,5 +20,19 @@
         "type": "image/png"
       }
     ]
-  }
+  },
+  "creators": [
+    {
+      "address": "7dL4aQ9ePkijrRZ95oLujHVqUQuZv6Tvr33ULm1gB1j5",
+      "verified": true,
+      "share": 100
+    }
+  ],
+  "primary_sale_happened": false,
+  "is_mutable": true,
+  "token_standard": "NonFungible",
+  "collection": null,
+  "uses": null,
+  "collection_details": null,
+  "rule_set": null
 }
