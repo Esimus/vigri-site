@@ -49,7 +49,7 @@ export const clusterLabel = isMainnet ? "Mainnet" : CONFIG.CLUSTER === "devnet" 
 
 // UTC ISO start moment for presale (used on NFT cards, etc.)
 // 29.12.2025 12:00 Tallinn (UTC+2) = 2025-12-29T10:00:00Z
-export const PRESALE_START_ISO = '2025-12-24T10:00:00Z';
+export const PRESALE_START_ISO = '2025-12-29T10:00:00Z';
 
 // Elapsed milliseconds since presale start (0 before the start)
 export function presaleElapsedMs(now = Date.now()): number {

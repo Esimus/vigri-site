@@ -979,6 +979,17 @@ export default function NftDetails({ id }: { id: string }) {
       const payerAta = findAta(publicKey, mintPk);
       const metadata = findMetadataPda(mintPk);
 
+      // Master Edition PDA for this mint (must match on-chain accounts)
+      const [edition] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('metadata'),
+          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          mintPk.toBuffer(),
+          Buffer.from('edition'),
+        ],
+        TOKEN_METADATA_PROGRAM_ID,
+      );
+
       const sig8 = await anchorSighash('mint_nft');
 
       // Data layout must match IDL: tier_id, design_choice, kyc_proof, invite_proof
@@ -1033,6 +1044,7 @@ export default function NftDetails({ id }: { id: string }) {
           { pubkey: mintPk, isSigner: true, isWritable: true }, // mint (init)
           { pubkey: payerAta, isSigner: false, isWritable: true }, // payer_token_account (init ATA)
           { pubkey: metadata, isSigner: false, isWritable: true }, // metadata PDA
+          { pubkey: edition, isSigner: false, isWritable: true }, // master edition PDA
           { pubkey: TOKEN_METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
           { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
           { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
