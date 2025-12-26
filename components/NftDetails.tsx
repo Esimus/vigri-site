@@ -10,6 +10,7 @@ import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
 import InlineLoader from '@/components/ui/InlineLoader';
 import SalesBar from '@/components/ui/SalesBar';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
+import { useSolflareWallet } from '@/hooks/useSolflareWallet';
 import { getKycBadgeStateForNftList } from '@/lib/kyc/getKycUiState';
 import { Transaction, TransactionInstruction, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, ComputeBudgetProgram } from '@solana/web3.js';
 import { Buffer } from 'buffer';
@@ -70,10 +71,20 @@ type PhantomProviderLike = {
   signAndSendTransaction: (tx: Transaction) => Promise<{ signature?: string } | string>;
 };
 
-function getPhantomProviderClient(): PhantomProviderLike | null {
-  if (typeof window === 'undefined') return null;
-  const w = window as unknown as { solana?: PhantomProviderLike };
-  return w.solana ?? null;
+function getActiveWalletProvider(kind: 'phantom' | 'solflare' | null): PhantomProviderLike | null {
+  if (typeof window === 'undefined' || !kind) return null;
+  const w = window as unknown as {
+    solana?: PhantomProviderLike;
+    solflare?: PhantomProviderLike;
+  };
+
+  if (kind === 'phantom') {
+    return w.solana ?? null;
+  }
+  if (kind === 'solflare') {
+    return w.solflare ?? null;
+  }
+  return null;
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -518,7 +529,28 @@ function ExplainerText({ text }: { text: string }) {
 
 export default function NftDetails({ id }: { id: string }) {
   const { t } = useI18n();
-  const { connected, publicKey, cluster, connection } = usePhantomWallet();
+
+  const phantom = usePhantomWallet();
+  const solflare = useSolflareWallet();
+
+  const activeWalletKind: 'phantom' | 'solflare' | null =
+    phantom.connected && phantom.publicKey
+      ? 'phantom'
+      : solflare.connected && solflare.publicKey
+        ? 'solflare'
+        : null;
+
+  const activeWallet =
+    activeWalletKind === 'phantom'
+      ? phantom
+      : activeWalletKind === 'solflare'
+        ? solflare
+        : null;
+
+  const connected = !!activeWallet?.connected && !!activeWallet?.publicKey;
+  const publicKey = activeWallet?.publicKey ?? null;
+  const cluster = activeWallet?.cluster ?? phantom.cluster;
+  const connection = activeWallet?.connection ?? phantom.connection;
 
   // Static catalog metadata for given id
   const meta = NFT_CATALOG[id];
@@ -836,28 +868,29 @@ export default function NftDetails({ id }: { id: string }) {
   }
 
   const mintPresaleDevnet = async (tierId: number) => {
-    setMintMsg(null);
+  setMintMsg(null);
 
-    if (mintBlocked) {
-      setMintMsg(mintBlockedText);
-      return;
-    }
+  if (mintBlocked) {
+    setMintMsg(mintBlockedText);
+    return;
+  }
 
-    if (cluster !== 'devnet') {
-      setMintMsg(t('nft.mint.onlyDevnet'));
-      return;
-    }
+  if (cluster !== 'devnet') {
+    setMintMsg(t('nft.mint.onlyDevnet'));
+    return;
+  }
 
-    if (!connected || !publicKey) {
-      setMintMsg(t('nft.mint.connectWallet'));
-      return;
-    }
+  if (!connected || !publicKey) {
+    setMintMsg(t('nft.mint.connectWallet'));
+    return;
+  }
 
-    const provider = getPhantomProviderClient();
-    if (!provider) {
-      setMintMsg(t('nft.mint.phantomNotFound'));
-      return;
-    }
+  const provider = getActiveWalletProvider(activeWalletKind);
+  if (!provider) {
+    // пока используем старый текст, он просто будет значить "кошелёк не найден"
+    setMintMsg(t('nft.mint.phantomNotFound'));
+    return;
+  }
 
     try {
       // Derive PDAs

@@ -158,7 +158,6 @@ export function useSolflareWallet(): WalletState {
       setPublicKey(null);
       setAddress(null);
       setBalance(null);
-      setManualDisconnectFlag(true);
     };
 
     const handleAccountChanged = (...args: unknown[]) => {
@@ -176,8 +175,11 @@ export function useSolflareWallet(): WalletState {
     provider.on?.('disconnect', handleDisconnect);
     provider.on?.('accountChanged', handleAccountChanged);
 
-    // Auto-connect disabled: user explicitly chooses when to connect Solflare
-    hasManualDisconnectFlag();
+    // Restore session after reload if user did not manually disconnect
+    const manuallyDisconnected = hasManualDisconnectFlag();
+    if (!manuallyDisconnected && provider.publicKey) {
+      updateFromPubkey(provider.publicKey);
+    }
 
     return () => {
       provider.off?.('connect', handleConnect);

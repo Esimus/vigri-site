@@ -157,8 +157,7 @@ export function usePhantomWallet(): WalletState {
     const handleDisconnect = () => {
       setPublicKey(null);
       setAddress(null);
-      setBalance(null);
-      setManualDisconnectFlag(true);
+      void setBalance(null);
     };
 
     const handleAccountChanged = (...args: unknown[]) => {
@@ -172,12 +171,25 @@ export function usePhantomWallet(): WalletState {
       }
     };
 
+    // Session restore:
+    // if user did NOT manually disconnect and provider already has publicKey,
+    // restore address/balance from provider after page reload.
+    if (!hasManualDisconnectFlag()) {
+      const existingPubkey = provider.publicKey ?? null;
+      if (existingPubkey) {
+        updateFromPubkey(existingPubkey);
+      }
+    }
+
     provider.on?.('connect', handleConnect);
     provider.on?.('disconnect', handleDisconnect);
     provider.on?.('accountChanged', handleAccountChanged);
 
-    // Auto-connect disabled: user explicitly chooses when to connect Phantom
-    hasManualDisconnectFlag();
+    // Restore session after reload if user did not manually disconnect
+    const manuallyDisconnected = hasManualDisconnectFlag();
+    if (!manuallyDisconnected && provider.publicKey) {
+      updateFromPubkey(provider.publicKey);
+    }
 
     return () => {
       provider.off?.('connect', handleConnect);
