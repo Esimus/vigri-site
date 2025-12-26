@@ -1,4 +1,4 @@
-// hooks/usePhantomWallet.ts
+// hooks/useSolflareWallet.ts
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -16,7 +16,7 @@ const RPC_URL =
 
 const connection = new Connection(RPC_URL, 'confirmed');
 
-const DISCONNECT_FLAG_KEY = 'vigri_phantom_disconnected';
+const DISCONNECT_FLAG_KEY = 'vigri_solflare_disconnected';
 
 function setManualDisconnectFlag(value: boolean) {
   if (typeof window === 'undefined') return;
@@ -40,8 +40,8 @@ function hasManualDisconnectFlag(): boolean {
   }
 }
 
-type PhantomProvider = {
-  isPhantom?: boolean;
+type SolflareProvider = {
+  isSolflare?: boolean;
   publicKey?: PublicKey;
   connect: (options?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: PublicKey }>;
   disconnect: () => Promise<void>;
@@ -49,10 +49,10 @@ type PhantomProvider = {
   off: (event: string, handler: (...args: unknown[]) => void) => void;
 };
 
-function getPhantomProvider(): PhantomProvider | null {
+function getSolflareProvider(): SolflareProvider | null {
   if (typeof window === 'undefined') return null;
-  const anyWindow = window as unknown as { solana?: PhantomProvider };
-  return anyWindow.solana ?? null;
+  const anyWindow = window as unknown as { solflare?: SolflareProvider };
+  return anyWindow.solflare ?? null;
 }
 
 type WalletState = {
@@ -68,7 +68,7 @@ type WalletState = {
   cluster: string;
 };
 
-export function usePhantomWallet(): WalletState {
+export function useSolflareWallet(): WalletState {
   const [address, setAddress] = useState<string | null>(null);
   const [publicKey, setPublicKey] = useState<PublicKey | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
@@ -87,11 +87,11 @@ export function usePhantomWallet(): WalletState {
   const connect = useCallback(async () => {
     setError(null);
 
-    const provider = getPhantomProvider();
+    const provider = getSolflareProvider();
     if (!provider) return;
 
-    if (!provider || !provider.isPhantom) {
-      setError('Phantom wallet not found');
+    if (!provider) {
+      setError('Solflare wallet not found');
       return;
     }
 
@@ -117,9 +117,9 @@ export function usePhantomWallet(): WalletState {
   const disconnect = useCallback(async () => {
     setError(null);
 
-    const provider = getPhantomProvider();
+    const provider = getSolflareProvider();
     if (!provider) {
-      setError('Phantom wallet not found');
+      setError('Solflare wallet not found');
       return;
     }
 
@@ -136,7 +136,7 @@ export function usePhantomWallet(): WalletState {
   }, []);
 
   useEffect(() => {
-    const provider = getPhantomProvider();
+    const provider = getSolflareProvider();
     if (!provider) return;
 
     const updateFromPubkey = (pubkey: PublicKey) => {
@@ -176,7 +176,7 @@ export function usePhantomWallet(): WalletState {
     provider.on?.('disconnect', handleDisconnect);
     provider.on?.('accountChanged', handleAccountChanged);
 
-    // Auto-connect disabled: user explicitly chooses when to connect Phantom
+    // Auto-connect disabled: user explicitly chooses when to connect Solflare
     hasManualDisconnectFlag();
 
     return () => {

@@ -1,8 +1,12 @@
+// components/wallet/WalletBannerMain.tsx
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
+import { useSolflareWallet } from '@/hooks/useSolflareWallet';
 
 type WalletBannerMainProps = {
   className?: string;
@@ -10,7 +14,15 @@ type WalletBannerMainProps = {
 
 export default function WalletBannerMain({ className }: WalletBannerMainProps) {
   const { t } = useI18n();
-  const { address, connect, disconnect } = usePhantomWallet();
+
+  const phantom = usePhantomWallet();
+  const solflare = useSolflareWallet();
+
+  const [walletMenuOpen, setWalletMenuOpen] = useState(false);
+  const active = phantom.address ? phantom : solflare;
+
+  const address = active.address;
+  const disconnect = active.disconnect;
 
   const shortAddress =
     address && address.length > 12
@@ -75,98 +87,151 @@ export default function WalletBannerMain({ className }: WalletBannerMainProps) {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void (isConnected ? disconnect() : connect())}
-              className="relative inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] md:text-xs font-medium shadow-md whitespace-nowrap transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                background: isConnected
-                  ? 'linear-gradient(135deg, #1d4ed8, #22c55e)'
-                  : 'linear-gradient(135deg, #22c55e, #0ea5e9)',
-                color: '#f9fafb',
-                border: '1px solid rgba(148,163,184,0.6)',
-              }}
-            >
-              <span
-                className="flex h-5 w-5 items-center justify-center rounded-full text-xs"
+            <div className="relative flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isConnected) {
+                    void disconnect();
+                  } else {
+                    setWalletMenuOpen((open) => !open);
+                  }
+                }}
+                className="relative inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] md:text-xs font-medium shadow-md whitespace-nowrap transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
                 style={{
-                  background: 'rgba(15,23,42,0.2)',
+                  background: isConnected
+                    ? 'linear-gradient(135deg, #1d4ed8, #22c55e)'
+                    : 'linear-gradient(135deg, #22c55e, #0ea5e9)',
+                  color: '#f9fafb',
                   border: '1px solid rgba(148,163,184,0.6)',
                 }}
               >
-                ◎
-              </span>
-              <span>
-                {isConnected
-                  ? (t('overview.wallet_disconnect') ?? 'Disconnect wallet')
-                  : t('overview.wallet_connect')}
-              </span>
-            </button>
+                <span
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-xs"
+                  style={{
+                    background: 'rgba(15,23,42,0.2)',
+                    border: '1px solid rgba(148,163,184,0.6)',
+                  }}
+                >
+                  ◎
+                </span>
+                <span>
+                  {isConnected
+                    ? (t('overview.wallet_disconnect') ?? 'Disconnect wallet')
+                    : t('overview.wallet_connect')}
+                </span>
+              </button>
 
-            {isConnected && (
-              <Link
-                href={walletHref}
-                className="btn btn-outline !rounded-full !px-3 !py-1 text-[11px] md:text-xs whitespace-nowrap"
-              >
-                {t('overview.wallet_manage')}
-              </Link>
-            )}
-          </div>
+              {isConnected && (
+                <Link
+                  href={walletHref}
+                  className="btn btn-outline !rounded-full !px-3 !py-1 text-[11px] md:text-xs whitespace-nowrap"
+                >
+                  {t('overview.wallet_manage')}
+                </Link>
+              )}
+
+              {!isConnected && walletMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-44 card shadow-lg p-1.5 text-xs z-30">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setWalletMenuOpen(false);
+                      void phantom.connect();
+                    }}
+                    className="mt-0 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/80"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden bg-white/10">
+                      <Image
+                        src="/icons/phantom.svg"
+                        alt="Phantom logo"
+                        width={20}
+                        height={20}
+                      />
+                    </span>
+                    <span>Phantom wallet</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setWalletMenuOpen(false);
+                      void solflare.connect();
+                    }}
+                    className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/80"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden bg-white/10">
+                      <Image
+                        src="/icons/solflare.svg"
+                        alt="Solflare logo"
+                        width={20}
+                        height={20}
+                      />
+                    </span>
+                    <span>Solflare wallet</span>
+                  </button>
+                </div>
+              )}
+            </div>
         </div>
 
         {/* Mobile layout */}
-        <div className="flex md:hidden items-center gap-2">
-          <button
-            type="button"
-            onClick={() => void (isConnected ? disconnect() : connect())}
-            className="btn btn-outline !rounded-full !px-2.5 !py-1 text-[11px] flex items-center gap-1.5"
-            aria-label={
-              isConnected
-                ? (t('overview.wallet_disconnect') ?? 'Disconnect wallet')
-                : t('overview.wallet_connect')
-            }
-          >
-            <span
-              className={
-                'h-2.5 w-2.5 rounded-full ' +
-                (isConnected
-                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]'
-                  : 'bg-zinc-500/70')
+        <div className="relative flex md:hidden items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (isConnected) {
+                  void disconnect();
+                } else {
+                  setWalletMenuOpen((open) => !open);
+                }
+              }}
+              className="btn btn-outline !rounded-full !px-2.5 !py-1 text-[11px] flex items-center gap-1.5"
+              aria-label={
+                isConnected
+                  ? (t('overview.wallet_disconnect') ?? 'Disconnect wallet')
+                  : t('overview.wallet_connect')
               }
-              aria-hidden
-            />
-            <span
-              className={
-                'ml-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] ' +
-                (isConnected
-                  ? 'bg-emerald-500 text-emerald-50'
-                  : 'bg-zinc-800 text-zinc-100')
-              }
-              aria-hidden
             >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+              <span
+                className={
+                  'h-2.5 w-2.5 rounded-full ' +
+                  (isConnected
+                    ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]'
+                    : 'bg-zinc-500/70')
+                }
+                aria-hidden
+              />
+              <span
+                className={
+                  'ml-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] ' +
+                  (isConnected
+                    ? 'bg-emerald-500 text-emerald-50'
+                    : 'bg-zinc-800 text-zinc-100')
+                }
+                aria-hidden
               >
-                <path
-                  d="M12 3v7"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M8.5 5.75A6.5 6.5 0 1 0 15.5 5.75"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-          </button>
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 3v7"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M8.5 5.75A6.5 6.5 0 1 0 15.5 5.75"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </button>
 
           {isConnected && (
             <Link
@@ -199,6 +264,47 @@ export default function WalletBannerMain({ className }: WalletBannerMainProps) {
                 <circle cx="15" cy="12" r="1.2" fill="currentColor" />
               </svg>
             </Link>
+          )}
+
+          {!isConnected && walletMenuOpen && (
+            <div className="absolute right-0 top-full mt-1 w-44 card shadow-lg p-1.5 text-xs z-30">
+              <button
+                type="button"
+                onClick={() => {
+                  setWalletMenuOpen(false);
+                  void phantom.connect();
+                }}
+                className="mt-0 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/80"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden bg-white/10">
+                  <Image
+                    src="/icons/phantom.svg"
+                    alt="Phantom logo"
+                    width={20}
+                    height={20}
+                  />
+                </span>
+                <span>Phantom wallet</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setWalletMenuOpen(false);
+                  void solflare.connect();
+                }}
+                className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/80"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full overflow-hidden bg-white/10">
+                  <Image
+                    src="/icons/solflare.svg"
+                    alt="Solflare logo"
+                    width={20}
+                    height={20}
+                  />
+                </span>
+                <span>Solflare wallet</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
