@@ -42,7 +42,7 @@ type Item = {
 function pngNameFor(id: string): string {
   switch (id) {
     case 'nft-tree-steel':
-      return '1_mb_wood_stell.webp';
+      return '1_mb_wood_steel.webp';
     case 'nft-bronze':
       return '2_mb_bronze.webp';
     case 'nft-silver':

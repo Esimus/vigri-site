@@ -80,7 +80,7 @@ export const NFT_CATALOG: Record<string, NftMeta> = {
     ],
 
     // visual
-    image: '1_mb_wood_stell.webp',
+    image: '1_mb_wood_steel.webp',
 
     // flags (tune if needed)
     kycRequired: false,

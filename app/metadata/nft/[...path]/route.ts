@@ -68,7 +68,7 @@ function tierDisplayName(tier: TierKey): string {
 function imageForTier(tier: TierKey): string {
   switch (tier) {
     case 'tree-steel':
-      return 'https://vigri.ee/images/nft/1_mb_wood_stell.png';
+      return 'https://vigri.ee/images/nft/1_mb_wood_steel.png';
     case 'bronze':
       return 'https://vigri.ee/images/nft/2_mb_bronze.png';
     case 'silver':

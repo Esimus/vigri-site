@@ -161,7 +161,7 @@ function findGlobalConfigPda(): PublicKey {
 // Fallback PNG name from /public/images/nft/
 function pngNameFor(id: string): string {
   switch (id) {
-    case 'nft-tree-steel':  return '1_mb_wood_stell.png';
+    case 'nft-tree-steel':  return '1_mb_wood_steel.png';
     case 'nft-bronze':      return '2_mb_bronze.png';
     case 'nft-silver':      return '3_mb_silver.png';
     case 'nft-gold':        return '4_mb_gold.png';

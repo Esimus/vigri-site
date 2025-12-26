@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/useI18n';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
+import { useSolflareWallet } from '@/hooks/useSolflareWallet';
 import { NFT_CATALOG } from '@/constants/nftCatalog';
 
 type CSSWithExtras = React.CSSProperties & {
@@ -23,13 +24,20 @@ const MAX_EXPANDED_SHOW = 10;
 
 function pngNameFor(id: string): string {
   switch (id) {
-    case 'nft-tree-steel':  return '1_mb_wood_stell.webp';
-    case 'nft-bronze':      return '2_mb_bronze.webp';
-    case 'nft-silver':      return '3_mb_silver.webp';
-    case 'nft-gold':        return '4_mb_gold.webp';
-    case 'nft-platinum':    return '5_mb_platinum.webp';
-    case 'nft-ws-20':       return '6_mb_ws.webp';
-    default:                return '6_mb_ws.webp';
+    case 'nft-tree-steel':
+      return '1_mb_wood_steel.webp';
+    case 'nft-bronze':
+      return '2_mb_bronze.webp';
+    case 'nft-silver':
+      return '3_mb_silver.webp';
+    case 'nft-gold':
+      return '4_mb_gold.webp';
+    case 'nft-platinum':
+      return '5_mb_platinum.webp';
+    case 'nft-ws-20':
+      return '6_mb_ws.webp';
+    default:
+      return '6_mb_ws.webp';
   }
 }
 
@@ -87,7 +95,12 @@ function shortTx(sig: string, prefix = 14, suffix = 10): string {
 
 export default function MyNftsStrip() {
   const { t } = useI18n();
-  const { address } = usePhantomWallet();
+  const { address: phantomAddress } = usePhantomWallet();
+  const { address: solflareAddress } = useSolflareWallet();
+
+  // Универсальный адрес: сначала Phantom, если нет — Solflare
+  const walletAddress = phantomAddress ?? solflareAddress ?? null;
+
   const [groups, setGroups] = useState<Group[]>([]);
   const [events, setEvents] = useState<MintEvent[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -95,8 +108,8 @@ export default function MyNftsStrip() {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!address) {
-      // Clear once; subsequent calls become no-op (same reference back).
+    if (!walletAddress) {
+      // очищаем только если что-то было
       setGroups((prev) => (prev.length ? [] : prev));
       setEvents((prev) => (prev.length ? [] : prev));
       return;
@@ -107,7 +120,7 @@ export default function MyNftsStrip() {
     const load = async () => {
       try {
         const params = new URLSearchParams({
-          wallet: address,
+          wallet: walletAddress,
           network: 'devnet',
         });
 
@@ -170,7 +183,7 @@ export default function MyNftsStrip() {
     return () => {
       cancelled = true;
     };
-  }, [address, t]);
+  }, [walletAddress, t]);
 
   const hasAny = groups.length > 0;
 
@@ -210,12 +223,31 @@ export default function MyNftsStrip() {
     }
   };
 
-  const Tile = ({ src, alt, overlay }: { src: string; alt: string; overlay?: React.ReactNode }) => (
+  const Tile = ({
+    src,
+    alt,
+    overlay,
+  }: {
+    src: string;
+    alt: string;
+    overlay?: React.ReactNode;
+  }) => (
     <div
       className="relative rounded-xl overflow-hidden border select-none snap-start"
-      style={{ width: TILE_W, height: TILE_H, background: 'var(--card)', borderColor: 'var(--border)' }}
+      style={{
+        width: TILE_W,
+        height: TILE_H,
+        background: 'var(--card)',
+        borderColor: 'var(--border)',
+      }}
     >
-      <Image src={src} alt={alt} fill className="object-cover" sizes={`${TILE_W}px`} />
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        sizes={`${TILE_W}px`}
+      />
       {overlay}
     </div>
   );
@@ -291,7 +323,13 @@ export default function MyNftsStrip() {
             onClick={revealMore}
             title={`Show ${Math.min(rest, MAX_EXPANDED_SHOW)} more`}
             className="grid place-items-center text-sm rounded-xl border snap-start"
-            style={{ width: TILE_W, height: TILE_H, flex: '0 0 auto', background: 'var(--card)', borderColor: 'var(--border)' }}
+            style={{
+              width: TILE_W,
+              height: TILE_H,
+              flex: '0 0 auto',
+              background: 'var(--card)',
+              borderColor: 'var(--border)',
+            }}
           >
             +{rest}
           </button>
@@ -314,14 +352,27 @@ export default function MyNftsStrip() {
       href="/dashboard/nft"
       className="grid place-items-center rounded-xl border border-dashed snap-start"
       title={t('nft.add_more') ?? 'Add NFT'}
-      style={{ width: TILE_W, height: TILE_H, flex: '0 0 auto', background: 'var(--card)', borderColor: 'var(--border)' }}
+      style={{
+        width: TILE_W,
+        height: TILE_H,
+        flex: '0 0 auto',
+        background: 'var(--card)',
+        borderColor: 'var(--border)',
+      }}
     >
       +
     </Link>
   );
 
-  const sectionStyle: CSSWithExtras = { contain: 'layout paint', overflowX: 'clip' };
-  const viewportStyle: CSSWithExtras = { height: TILE_H, overflowX: 'clip', contain: 'layout paint' };
+  const sectionStyle: CSSWithExtras = {
+    contain: 'layout paint',
+    overflowX: 'clip',
+  };
+  const viewportStyle: CSSWithExtras = {
+    height: TILE_H,
+    overflowX: 'clip',
+    contain: 'layout paint',
+  };
   const scrollerStyle: CSSWithExtras = {
     position: 'absolute',
     inset: 0,
@@ -342,11 +393,18 @@ export default function MyNftsStrip() {
 
   return (
     <section className="relative w-full" style={sectionStyle}>
-      <div className="flex items-center justify-center mb-2" style={{ paddingInline: EDGE_PAD }}>
+      <div
+        className="flex items-center justify-center mb-2"
+        style={{ paddingInline: EDGE_PAD }}
+      >
         <div className="h-px bg-zinc-200 flex-1 mx-2 rounded-full" />
         <div
           className="px-3 py-1 rounded-full border text-[11px] uppercase tracking-wide shadow-sm"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--fg)' }}
+          style={{
+            background: 'var(--card)',
+            borderColor: 'var(--border)',
+            color: 'var(--fg)',
+          }}
         >
           {t('nft.my_title') ?? 'My NFT'}
         </div>
@@ -362,11 +420,17 @@ export default function MyNftsStrip() {
           className="snap-x snap-mandatory select-none"
           style={scrollerStyle}
         >
-          <style>{`[aria-label="My NFTs"]::-webkit-scrollbar{display:none}`}</style>
+          <style>
+            {`[aria-label="My NFTs"]::-webkit-scrollbar{display:none}`}
+          </style>
 
           {hasAny &&
             groups.map((g) =>
-              expanded[g.id] ? <ExpandedRow key={g.id} g={g} /> : <Stack key={g.id} g={g} />
+              expanded[g.id] ? (
+                <ExpandedRow key={g.id} g={g} />
+              ) : (
+                <Stack key={g.id} g={g} />
+              ),
             )}
           <PlusTile />
           <div aria-hidden style={{ width: GAP }} />
@@ -379,7 +443,8 @@ export default function MyNftsStrip() {
           style={{
             width: EDGE_PAD,
             height: TILE_H,
-            background: 'linear-gradient(90deg, var(--bg) 70%, rgba(0,0,0,0) 100%)',
+            background:
+              'linear-gradient(90deg, var(--bg) 70%, rgba(0,0,0,0) 100%)',
             zIndex: 10,
           }}
         />
@@ -389,7 +454,8 @@ export default function MyNftsStrip() {
           style={{
             width: EDGE_PAD,
             height: TILE_H,
-            background: 'linear-gradient(270deg, var(--bg) 70%, rgba(0,0,0,0) 100%)',
+            background:
+              'linear-gradient(270deg, var(--bg) 70%, rgba(0,0,0,0) 100%)',
             zIndex: 10,
           }}
         />
@@ -454,7 +520,10 @@ export default function MyNftsStrip() {
                 (nftId ?? `Tier #${ev.tierId}`);
 
               return (
-                <li key={ev.id} className="truncate md:whitespace-normal md:overflow-visible md:text-clip">
+                <li
+                  key={ev.id}
+                  className="truncate md:whitespace-normal md:overflow-visible md:text-clip"
+                >
                   {tierName} · {formatDate(ev.createdAt)} ·{' '}
                   <a
                     href={`https://solscan.io/tx/${ev.txSignature}?cluster=devnet`}
@@ -462,8 +531,12 @@ export default function MyNftsStrip() {
                     rel="noreferrer"
                     className="underline hover:no-underline"
                   >
-                    <span className="md:hidden">{shortTx(ev.txSignature, 8, 4)}</span>
-                    <span className="hidden md:inline">{shortTx(ev.txSignature, 14, 10)}</span>
+                    <span className="md:hidden">
+                      {shortTx(ev.txSignature, 8, 4)}
+                    </span>
+                    <span className="hidden md:inline">
+                      {shortTx(ev.txSignature, 14, 10)}
+                    </span>
                   </a>
                 </li>
               );
@@ -471,7 +544,10 @@ export default function MyNftsStrip() {
           </ul>
           {recentExpanded && (
             <div className="mt-1 opacity-75">
-              <Link href="/dashboard/assets" className="underline hover:no-underline">
+              <Link
+                href="/dashboard/assets"
+                className="underline hover:no-underline"
+              >
                 {t('assets.history') ?? 'All operations'}
               </Link>
             </div>
@@ -480,10 +556,7 @@ export default function MyNftsStrip() {
       )}
 
       {hasRecentOverflow ? (
-        <div
-          className="relative mt-2"
-          style={{ marginInline: EDGE_PAD }}
-        >
+        <div className="relative mt-2" style={{ marginInline: EDGE_PAD }}>
           {/* Base line (always visible) */}
           <div className="h-px w-full bg-zinc-200 rounded-full" />
 
@@ -495,7 +568,8 @@ export default function MyNftsStrip() {
             aria-expanded={recentExpanded}
             aria-label={
               recentExpanded
-                ? t('nft.recent_toggle_hide') ?? 'Hide full purchase history'
+                ? t('nft.recent_toggle_hide') ??
+                  'Hide full purchase history'
                 : t('nft.recent_toggle_show') ?? 'Show all purchases'
             }
           >
@@ -513,12 +587,7 @@ export default function MyNftsStrip() {
                 }
                 aria-hidden
               >
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M6 14l6-6 6 6"
                     stroke="currentColor"

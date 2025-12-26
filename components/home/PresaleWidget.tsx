@@ -111,7 +111,7 @@ export default function PresaleWidget({
 
       <div className="mt-4 grid grid-cols-5 gap-3">
         {[
-          { src: '/images/nft/1_mb_wood_stell.webp', alt: 'Tree / Steel' },
+          { src: '/images/nft/1_mb_wood_steel.webp', alt: 'Tree / Steel' },
           { src: '/images/nft/2_mb_bronze.webp', alt: 'Bronze' },
           { src: '/images/nft/3_mb_silver.webp', alt: 'Silver' },
           { src: '/images/nft/4_mb_gold.webp', alt: 'Gold' },
