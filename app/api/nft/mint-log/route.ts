@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE } from '@/lib/session';
 import { creditEcho } from '@/lib/echo';
+import { Connection } from '@solana/web3.js';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
 export const runtime = 'nodejs';
 
@@ -53,6 +56,75 @@ function getEchoSelfForTier(tierId: number): number {
     default:
       return 0;
   }
+}
+
+const execFileAsync = promisify(execFile);
+
+function rpcForNetwork(net: string): string {
+  if (net === 'mainnet' || net === 'mainnet-beta') return process.env.SOLANA_RPC_MAINNET ?? 'https://api.mainnet-beta.solana.com';
+  return process.env.SOLANA_RPC_DEVNET ?? 'https://api.devnet.solana.com';
+}
+
+type UiTokenAmount = { amount?: string; decimals?: number };
+type TokenBalance = { owner?: string; mint?: string; uiTokenAmount?: UiTokenAmount };
+type ParsedTxMeta = { preTokenBalances?: TokenBalance[]; postTokenBalances?: TokenBalance[] };
+type ParsedTx = { meta?: ParsedTxMeta };
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+function asParsedTx(v: unknown): ParsedTx | null {
+  if (!isRecord(v)) return null;
+
+  const metaRaw = v['meta'];
+  if (!isRecord(metaRaw)) return { meta: undefined };
+
+  const preRaw = metaRaw['preTokenBalances'];
+  const postRaw = metaRaw['postTokenBalances'];
+
+  const meta: ParsedTxMeta = {};
+  if (Array.isArray(preRaw)) meta.preTokenBalances = preRaw.filter(isRecord) as unknown as TokenBalance[];
+  if (Array.isArray(postRaw)) meta.postTokenBalances = postRaw.filter(isRecord) as unknown as TokenBalance[];
+
+  return { meta };
+}
+
+function extractNewMintsFromParsedTx(parsed: unknown, ownerWallet: string): string[] {
+  const tx = asParsedTx(parsed);
+  const preTokenBalances = tx?.meta?.preTokenBalances ?? [];
+  const postTokenBalances = tx?.meta?.postTokenBalances ?? [];
+
+  const pre = new Set<string>();
+  for (const b of preTokenBalances) {
+    if (b.owner === ownerWallet && typeof b.mint === 'string') pre.add(b.mint);
+  }
+
+  const out = new Set<string>();
+  for (const b of postTokenBalances) {
+    if (b.owner !== ownerWallet) continue;
+    const mint = b.mint;
+    if (typeof mint !== 'string') continue;
+    if (pre.has(mint)) continue;
+
+    const amount = b.uiTokenAmount?.amount;
+    const decimals = b.uiTokenAmount?.decimals;
+    if (decimals === 0 && amount === '1') out.add(mint);
+  }
+
+  return Array.from(out);
+}
+
+async function signCreatorForMint(params: { mint: string; network: string }) {
+  const keypair = process.env.METABOSS_KEYPAIR_PATH ?? `${process.env.HOME}/.config/solana/id.json`;
+  const rpc = rpcForNetwork(params.network);
+
+  await execFileAsync('metaboss', [
+    'sign', 'one',
+    '--rpc', rpc,
+    '--keypair', keypair,
+    '--account', params.mint,
+  ]);
 }
 
 async function awardEchoForMint(params: {
@@ -250,6 +322,19 @@ export async function POST(req: NextRequest) {
       });
     } catch (e) {
       console.error('awardEchoForMint failed', e);
+    }
+
+    try {
+      const rpc = rpcForNetwork(net);
+      const connection = new Connection(rpc, 'confirmed');
+      const parsed = await connection.getParsedTransaction(txSignature, { maxSupportedTransactionVersion: 0 });
+
+      const mints = extractNewMintsFromParsedTx(parsed, wallet);
+      for (const mint of mints) {
+        await signCreatorForMint({ mint, network: net });
+      }
+    } catch (e) {
+      console.error('post-mint creator sign failed', e);
     }
 
     return NextResponse.json({ ok: true, eventId: event.id });
