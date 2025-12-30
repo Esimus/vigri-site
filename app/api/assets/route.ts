@@ -30,6 +30,19 @@ type HistoryItem = {
   txSignature?: string;
 };
 
+type MintEventRecord = {
+  id: string;
+  tierId: number;
+  wallet: string | null;
+  txSignature: string | null;
+  network: string | null;
+  paidSol: number | null;
+  designChoice: number | null;
+  withPhysical: boolean | null;
+  quantity: number | null;
+  createdAt: Date;
+};
+
 type State = {
   balances: Record<string, number>;
   history: HistoryItem[];
@@ -291,7 +304,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const historyFromMints: HistoryItem[] = events.map((ev) => {
+    const historyFromMints: HistoryItem[] = events.map((ev: MintEventRecord) => {
       const meta = NFT_TIERS[ev.tierId];
       const presale = presaleTiers.get(ev.tierId);
       const priceSol = presale?.priceSol ?? 0;
@@ -299,11 +312,11 @@ export async function GET(req: NextRequest) {
       return {
         id: `nft:${ev.id}`,
         ts: ev.createdAt.getTime(),
-        type: 'buy_nft',
-        symbol: meta?.label ?? `Tier #${ev.tierId}`,
+        type: 'nft-mint',
+        symbol: meta?.key ?? 'NFT',
         amount: ev.quantity ?? 1,
         unitPriceSol: priceSol,
-        txSignature: ev.txSignature,
+        txSignature: ev.txSignature ?? undefined,
       };
     });
 
