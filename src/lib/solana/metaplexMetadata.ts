@@ -5,23 +5,11 @@ import {
   type MetadataAccountData,
 } from '@metaplex-foundation/mpl-token-metadata';
 import type { SolanaCluster } from './presaleTx';
+import { SOLANA_RPC_URL } from '@/lib/config';
 
 const METAPLEX_METADATA_PROGRAM_ID = new PublicKey(
   'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s',
 );
-
-function getRpcUrl(cluster: SolanaCluster): string {
-  const dev = process.env.SOLANA_RPC_DEVNET;
-  const main = process.env.SOLANA_RPC_MAINNET;
-
-  const url = cluster === 'devnet' ? dev : main;
-  if (!url) {
-    throw new Error(
-      `Missing RPC URL for cluster=${cluster}. Set SOLANA_RPC_DEVNET / SOLANA_RPC_MAINNET.`,
-    );
-  }
-  return url;
-}
 
 function deriveMetadataPda(mint: PublicKey): PublicKey {
   const seeds = [
@@ -50,6 +38,12 @@ export async function getMetadataUriForMint(
   mintAddress: string,
   cluster: SolanaCluster,
 ): Promise<string | null> {
+  // Mainnet-only in production: block devnet usage explicitly.
+  if (process.env.NODE_ENV === 'production' && cluster === 'devnet') {
+    console.error('MPL_METADATA_DEVNET_BLOCKED_IN_PROD', { mint: mintAddress });
+    return null;
+  }
+
   let mint: PublicKey;
   try {
     mint = new PublicKey(mintAddress);
@@ -62,8 +56,8 @@ export async function getMetadataUriForMint(
     return null;
   }
 
-  const rpcUrl = getRpcUrl(cluster);
-  const connection = new Connection(rpcUrl, { commitment: 'confirmed' });
+  // Single source of truth for RPC across the app.
+  const connection = new Connection(SOLANA_RPC_URL, { commitment: 'confirmed' });
 
   const metadataPda = deriveMetadataPda(mint);
 

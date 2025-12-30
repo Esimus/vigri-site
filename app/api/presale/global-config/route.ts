@@ -1,7 +1,29 @@
 // app/api/presale/global-config/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSolanaConnection } from '@/lib/solana/vigriPresale';
 import { fetchGlobalConfigDecoded } from '@/lib/solana/vigriPresaleAccounts';
+import { PublicKey } from '@solana/web3.js';
+
+const CLUSTER = 'mainnet' as const;
+type Network = typeof CLUSTER;
+
+function toBase58Maybe(v: unknown): string | null {
+  if (!v) return null;
+  try {
+    if (typeof v === 'string') return new PublicKey(v).toBase58();
+    // Most Anchor decoders return PublicKey or Uint8Array-like values here
+    return new PublicKey(v as never).toBase58();
+  } catch {
+    return null;
+  }
+}
+
+function normalizeMainnet(raw: unknown): Network | null {
+  if (typeof raw !== 'string') return null;
+  const v = raw.trim().toLowerCase();
+  if (v === 'mainnet' || v === 'mainnet-beta') return 'mainnet';
+  return null;
+}
 
 interface RawTier {
   id: number;
@@ -84,20 +106,31 @@ function lamportsToSol(lamports: number): number {
   return lamports / 1_000_000_000;
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    // mainnet-only: reject any non-mainnet cluster param (defensive)
     const { searchParams } = new URL(req.url);
-    const clusterParam = (searchParams.get('cluster') || '').toLowerCase();
-    const cluster = clusterParam === 'mainnet' ? 'mainnet' : 'devnet';
+    const clusterParam = searchParams.get('cluster');
+    const net: Network | null = clusterParam ? normalizeMainnet(clusterParam) : CLUSTER;
 
-    const connection = getSolanaConnection(cluster);
-    const decoded = await fetchGlobalConfigDecoded(connection, cluster);
+    if (!net) {
+      return NextResponse.json(
+        { ok: false, error: 'Cluster is mainnet-only' },
+        { status: 400 },
+      );
+    }
+
+    // mainnet-only: getSolanaConnection() should be configured for mainnet in lib/config
+    const connection = getSolanaConnection();
+    const decoded = await fetchGlobalConfigDecoded(connection);
 
     if (!decoded) {
       return NextResponse.json(
         {
+          ok: false,
           exists: false,
           message: 'GlobalConfig account not found',
+          cluster: CLUSTER,
         },
         { status: 404 },
       );
@@ -122,14 +155,17 @@ export async function GET(req: Request) {
       };
     });
 
+    const admin = toBase58Maybe(cfg.admin);
+
     return NextResponse.json(
       {
+        ok: true,
         exists: true,
-        pda: decoded.pda,
-        admin: cfg.admin ?? null,
-        treasury: cfg.admin ?? null,
+        pda: String(decoded.pda),
+        admin,
+        treasury: admin, // current contract uses same pubkey; keep both fields for frontend
         tiers,
-        cluster,
+        cluster: CLUSTER,
       },
       { status: 200 },
     );
@@ -146,8 +182,10 @@ export async function GET(req: Request) {
 
     return NextResponse.json(
       {
+        ok: false,
         error: 'Failed to fetch GlobalConfig',
         details: message,
+        cluster: CLUSTER,
       },
       { status: 500 },
     );

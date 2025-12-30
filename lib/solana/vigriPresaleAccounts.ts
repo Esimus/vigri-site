@@ -22,10 +22,9 @@ const GLOBAL_CONFIG_ACCOUNT_NAME =
 
 export async function fetchGlobalConfigDecoded(
   connection?: Connection,
-  cluster?: 'devnet' | 'mainnet',
 ): Promise<{ pda: string; account: GlobalConfigAccount } | null> {
-  const conn = connection ?? getSolanaConnection(cluster);
-  const pda = getGlobalConfigPda(cluster);
+  const conn = connection ?? getSolanaConnection();
+  const pda = getGlobalConfigPda();
 
   const accountInfo = await conn.getAccountInfo(pda);
   if (!accountInfo) {

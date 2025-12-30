@@ -142,7 +142,7 @@ export default function DashboardOverview() {
         const params = new URLSearchParams();
         if (address) {
           params.set('wallet', address);
-          params.set('network', 'devnet');
+          params.set('network', 'mainnet');
         }
         const qs = params.toString();
 

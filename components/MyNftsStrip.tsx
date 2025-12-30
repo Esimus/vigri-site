@@ -121,7 +121,7 @@ export default function MyNftsStrip() {
       try {
         const params = new URLSearchParams({
           wallet: walletAddress,
-          network: 'devnet',
+          network: 'mainnet',
         });
 
         const res = await fetch(`/api/nft/mint-log?${params.toString()}`, {
@@ -526,7 +526,7 @@ export default function MyNftsStrip() {
                 >
                   {tierName} · {formatDate(ev.createdAt)} ·{' '}
                   <a
-                    href={`https://solscan.io/tx/${ev.txSignature}?cluster=devnet`}
+                    href={`https://solscan.io/tx/${ev.txSignature}`}
                     target="_blank"
                     rel="noreferrer"
                     className="underline hover:no-underline"

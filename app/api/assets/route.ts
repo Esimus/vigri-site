@@ -2,15 +2,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCookie } from '@/lib/cookies';
-import { Connection, PublicKey, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js';
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { SOLANA_RPC_URL } from '@/lib/config';
 
 const COOKIE = 'vigri_assets';
 
-// mock prices (EUR)
-// TODO: replace with real rates (SOL/EUR, VIGRI price) later
-const PRICES = {
+// Base prices (EUR). SOL is fetched dynamically.
+const PRICES_BASE = {
   VIGRI: 0.0008,
-  SOL: 195.2,
+  SOL: 0,
   USDC: 0.94,
 } satisfies Record<'VIGRI' | 'SOL' | 'USDC', number>;
 
@@ -25,7 +25,7 @@ type HistoryItem = {
   ts: number;
   type: string;
   symbol: string;
-  amount: number;   // positive = received / negative = spent
+  amount: number; // positive = received / negative = spent
   unitPriceSol: number;
   txSignature?: string;
 };
@@ -48,6 +48,10 @@ type NftPortfolioItem = {
 
 type TierAgg = { count: number; paidSol: number };
 
+// mainnet-only
+type Cluster = 'mainnet';
+const NETWORK: Cluster = 'mainnet';
+
 // NFT tier metadata for labels/keys
 const NFT_TIERS: Record<number, { key: string; label: string }> = {
   0: { key: 'tree_steel', label: 'Tree / Steel' },
@@ -55,14 +59,14 @@ const NFT_TIERS: Record<number, { key: string; label: string }> = {
   2: { key: 'silver', label: 'Silver NFT' },
   3: { key: 'gold', label: 'Gold NFT' },
   4: { key: 'platinum', label: 'Platinum NFT' },
-  5: { key: 'ws', label: 'WS 20' },
+  5: { key: 'ws20', label: 'WS 20' },
 };
 
 function defaultState(): State {
   return {
     balances: {
       VIGRI: 125_000,
-      SOL: 2.35,
+      SOL: 0,
       USDC: 0,
     },
     history: [],
@@ -80,14 +84,17 @@ async function readState(): Promise<State> {
   }
 }
 
-function positionsOf(s: State) {
+function positionsOf(s: State, prices: Record<string, number>) {
   const positions = Object.keys(s.balances)
     .map((sym) => {
       const amount = s.balances[sym] || 0;
-      const price = sym in PRICES ? PRICES[sym as keyof typeof PRICES] : 0;
+
+      // noUncheckedIndexedAccess => use ?? 0
+      const price = prices[sym] ?? 0;
+
       return {
         symbol: sym,
-        name: sym in NAMES ? NAMES[sym as keyof typeof NAMES] : sym,
+        name: NAMES[sym] ?? sym,
         amount,
         priceEUR: price,
         valueEUR: +(amount * price).toFixed(2),
@@ -95,11 +102,64 @@ function positionsOf(s: State) {
     })
     .filter((p) => p.amount > 0);
 
-  const totalValueEUR = +positions
-    .reduce((a, p) => a + p.valueEUR, 0)
-    .toFixed(2);
+  const totalValueEUR = +positions.reduce((a, p) => a + p.valueEUR, 0).toFixed(2);
 
   return { positions, totalValueEUR };
+}
+
+// ---- SOL/EUR (CoinGecko) ----
+
+type SolEurCache = { value: number; ts: number };
+let solEurCache: SolEurCache | null = null;
+
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
+}
+
+function parseCoinGeckoSolEur(data: unknown): number | null {
+  if (!isRecord(data)) return null;
+  const solana = data['solana'];
+  if (!isRecord(solana)) return null;
+  const eur = solana['eur'];
+  if (typeof eur !== 'number') return null;
+  if (!Number.isFinite(eur) || eur <= 0) return null;
+  return eur;
+}
+
+async function fetchSolEurFromCoinGecko(): Promise<number> {
+  const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=eur';
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: { accept: 'application/json' },
+  });
+
+  if (!res.ok) {
+    throw new Error(`CoinGecko HTTP ${res.status}`);
+  }
+
+  const data: unknown = await res.json();
+  const eur = parseCoinGeckoSolEur(data);
+  if (eur === null) {
+    throw new Error('CoinGecko response missing solana.eur');
+  }
+  return eur;
+}
+
+async function getSolEurCached(ttlMs = 120_000): Promise<number> {
+  const now = Date.now();
+  if (solEurCache && now - solEurCache.ts < ttlMs) {
+    return solEurCache.value;
+  }
+
+  try {
+    const value = await fetchSolEurFromCoinGecko();
+    solEurCache = { value, ts: now };
+    return value;
+  } catch (e) {
+    if (solEurCache) return solEurCache.value;
+    console.error('Failed to fetch SOL/EUR from CoinGecko', e);
+    return 0;
+  }
 }
 
 // ---- Presale config bridge ----
@@ -120,16 +180,10 @@ function isFiniteNumber(x: unknown): x is number {
   return typeof x === 'number' && Number.isFinite(x);
 }
 
-async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
+async function loadPresaleTiers(base: string): Promise<Map<number, PresaleTierApi>> {
   const map = new Map<number, PresaleTierApi>();
 
   try {
-    const base =
-      typeof process.env.INTERNAL_API_BASE === 'string' &&
-      process.env.INTERNAL_API_BASE.length > 0
-        ? process.env.INTERNAL_API_BASE
-        : 'http://127.0.0.1:3000';
-
     const res = await fetch(`${base}/api/presale/global-config`, {
       cache: 'no-store',
     });
@@ -147,12 +201,8 @@ async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
       map.set(t.id, {
         id: t.id,
         priceSol: isFiniteNumber(t.priceSol) ? t.priceSol : undefined,
-        supplyTotal: isFiniteNumber(t.supplyTotal)
-          ? t.supplyTotal
-          : undefined,
-        supplyMinted: isFiniteNumber(t.supplyMinted)
-          ? t.supplyMinted
-          : undefined,
+        supplyTotal: isFiniteNumber(t.supplyTotal) ? t.supplyTotal : undefined,
+        supplyMinted: isFiniteNumber(t.supplyMinted) ? t.supplyMinted : undefined,
       });
     }
   } catch {
@@ -165,7 +215,6 @@ async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
 // ---- Handler ----
 
 export async function GET(req: NextRequest) {
-  // auth guard
   const session = await getCookie('vigri_session');
   if (!session) {
     return NextResponse.json({ ok: false }, { status: 401 });
@@ -173,23 +222,21 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const wallet = url.searchParams.get('wallet');
-  const network = url.searchParams.get('network') ?? 'devnet';
+
+  // mainnet-only: reject any other network value if sent
+  const networkParam = (url.searchParams.get('network') ?? '').trim().toLowerCase();
+  if (networkParam && networkParam !== 'mainnet' && networkParam !== 'mainnet-beta') {
+    return NextResponse.json({ ok: false, error: 'Network is mainnet-only' }, { status: 400 });
+  }
 
   const s = await readState();
 
   if (wallet) {
     try {
-      const endpoint =
-        network === 'devnet'
-          ? clusterApiUrl('devnet')
-          : clusterApiUrl('mainnet-beta');
-
-      const connection = new Connection(endpoint, 'confirmed');
+      const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
       const pubkey = new PublicKey(wallet);
       const balanceLamports = await connection.getBalance(pubkey);
-      const solAmount = balanceLamports / LAMPORTS_PER_SOL;
-
-      s.balances.SOL = solAmount;
+      s.balances.SOL = balanceLamports / LAMPORTS_PER_SOL;
     } catch (e) {
       console.error('Failed to load SOL balance', e);
       s.balances.SOL = 0;
@@ -198,7 +245,10 @@ export async function GET(req: NextRequest) {
     s.balances.SOL = 0;
   }
 
-  const { positions, totalValueEUR } = positionsOf(s);
+  const solEur = await getSolEurCached();
+  const prices: Record<string, number> = { ...PRICES_BASE, SOL: solEur };
+
+  const { positions, totalValueEUR } = positionsOf(s, prices);
   let history: HistoryItem[] = [...s.history];
 
   let nftPortfolio: NftPortfolioItem[] = [];
@@ -207,7 +257,7 @@ export async function GET(req: NextRequest) {
     const events = await prisma.nftMintEvent.findMany({
       where: {
         wallet,
-        network,
+        network: NETWORK,
       },
     });
 
@@ -221,7 +271,8 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const presaleTiers = await loadPresaleTiers();
+    const base = new URL(req.url).origin;
+    const presaleTiers = await loadPresaleTiers(base);
 
     nftPortfolio = Array.from(byTier.entries()).map(([tierNum, agg]) => {
       const meta = NFT_TIERS[tierNum];
@@ -239,8 +290,8 @@ export async function GET(req: NextRequest) {
         currentValueSol,
       };
     });
-      // --- History from NFT mints ---
-      const historyFromMints: HistoryItem[] = events.map((ev) => {
+
+    const historyFromMints: HistoryItem[] = events.map((ev) => {
       const meta = NFT_TIERS[ev.tierId];
       const presale = presaleTiers.get(ev.tierId);
       const priceSol = presale?.priceSol ?? 0;
@@ -255,12 +306,13 @@ export async function GET(req: NextRequest) {
         txSignature: ev.txSignature,
       };
     });
+
     history = history.concat(historyFromMints);
   }
 
   return NextResponse.json({
     ok: true,
-    prices: PRICES,
+    prices,
     positions,
     totalValueEUR,
     nftPortfolio,

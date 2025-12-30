@@ -1,27 +1,11 @@
 // src/lib/solana/presaleTx.ts
-import {
-  Connection,
-  ParsedTransactionWithMeta,
-  TokenBalance,
-} from '@solana/web3.js';
+import { Connection, ParsedTransactionWithMeta, TokenBalance } from '@solana/web3.js';
+import { SOLANA_RPC_URL } from '@/lib/config';
 
 export type SolanaCluster = 'devnet' | 'mainnet';
 
 type SolanaTx = ParsedTransactionWithMeta;
 type GetTxConfig = Parameters<Connection['getParsedTransaction']>[1];
-
-function getRpcUrl(cluster: SolanaCluster): string {
-  const dev = process.env.SOLANA_RPC_DEVNET;
-  const main = process.env.SOLANA_RPC_MAINNET;
-
-  const url = cluster === 'devnet' ? dev : main;
-  if (!url) {
-    throw new Error(
-      `Missing RPC URL for cluster=${cluster}. Set SOLANA_RPC_DEVNET / SOLANA_RPC_MAINNET.`,
-    );
-  }
-  return url;
-}
 
 /**
  * Try to determine the minted token mint by comparing pre/post token balances.
@@ -79,23 +63,22 @@ export async function getMintFromPresaleTx(
   signature: string,
   cluster: SolanaCluster,
 ): Promise<string | null> {
-  const rpcUrl = getRpcUrl(cluster);
-  const connection = new Connection(rpcUrl, { commitment: 'confirmed' });
+  // Mainnet-only in production: block devnet usage explicitly.
+  if (process.env.NODE_ENV === 'production' && cluster === 'devnet') {
+    console.error('PRESALE_TX_DEVNET_BLOCKED_IN_PROD', { signature });
+    return null;
+  }
+
+  // Single source of truth for RPC across the app.
+  const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
   const config: GetTxConfig = {
     commitment: 'confirmed',
     maxSupportedTransactionVersion: 0,
   };
 
-  const tx = (await connection.getParsedTransaction(
-    signature,
-    config,
-  )) as SolanaTx | null;
-
+  const tx = (await connection.getParsedTransaction(signature, config)) as SolanaTx | null;
   if (!tx) return null;
 
-  const mintFromBalances = tryMintFromTokenBalances(tx);
-  if (mintFromBalances) return mintFromBalances;
-
-  return null;
+  return tryMintFromTokenBalances(tx);
 }

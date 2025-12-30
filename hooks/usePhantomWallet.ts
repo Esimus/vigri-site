@@ -3,18 +3,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { CONFIG, SOLANA_RPC_URL } from '@/lib/config';
 
-// Simple cluster → RPC mapping for dev/test/main
-const CLUSTER = process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? 'devnet';
-
-const RPC_URL =
-  CLUSTER === 'mainnet'
-    ? 'https://api.mainnet-beta.solana.com'
-    : CLUSTER === 'testnet'
-      ? 'https://api.testnet.solana.com'
-      : 'https://api.devnet.solana.com';
-
-const connection = new Connection(RPC_URL, 'confirmed');
+// Single source of truth
+const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
 const DISCONNECT_FLAG_KEY = 'vigri_phantom_disconnected';
 
@@ -81,6 +73,7 @@ export function usePhantomWallet(): WalletState {
       setBalance(lamports / LAMPORTS_PER_SOL);
     } catch (err) {
       console.error('Failed to load SOL balance', err);
+      setBalance(null);
     }
   }, []);
 
@@ -88,8 +81,6 @@ export function usePhantomWallet(): WalletState {
     setError(null);
 
     const provider = getPhantomProvider();
-    if (!provider) return;
-
     if (!provider || !provider.isPhantom) {
       setError('Phantom wallet not found');
       return;
@@ -100,9 +91,11 @@ export function usePhantomWallet(): WalletState {
       const res = await provider.connect({ onlyIfTrusted: false });
       const pubkey: PublicKey = res.publicKey;
       const addr = pubkey.toBase58();
+
       setPublicKey(pubkey);
       setAddress(addr);
       setManualDisconnectFlag(false);
+
       await fetchBalance(pubkey);
     } catch (err: unknown) {
       const e = err as { code?: number; message?: string };
@@ -118,7 +111,7 @@ export function usePhantomWallet(): WalletState {
     setError(null);
 
     const provider = getPhantomProvider();
-    if (!provider) {
+    if (!provider || !provider.isPhantom) {
       setError('Phantom wallet not found');
       return;
     }
@@ -137,7 +130,7 @@ export function usePhantomWallet(): WalletState {
 
   useEffect(() => {
     const provider = getPhantomProvider();
-    if (!provider) return;
+    if (!provider || !provider.isPhantom) return;
 
     const updateFromPubkey = (pubkey: PublicKey) => {
       const addr = pubkey.toBase58();
@@ -150,14 +143,13 @@ export function usePhantomWallet(): WalletState {
     const handleConnect = (...args: unknown[]) => {
       const first = args[0];
       if (!first) return;
-      const pubkey = first as PublicKey;
-      updateFromPubkey(pubkey);
+      updateFromPubkey(first as PublicKey);
     };
 
     const handleDisconnect = () => {
       setPublicKey(null);
       setAddress(null);
-      void setBalance(null);
+      setBalance(null);
     };
 
     const handleAccountChanged = (...args: unknown[]) => {
@@ -171,9 +163,7 @@ export function usePhantomWallet(): WalletState {
       }
     };
 
-    // Session restore:
-    // if user did NOT manually disconnect and provider already has publicKey,
-    // restore address/balance from provider after page reload.
+    // Session restore: if user did NOT manually disconnect and provider already has publicKey
     if (!hasManualDisconnectFlag()) {
       const existingPubkey = provider.publicKey ?? null;
       if (existingPubkey) {
@@ -208,6 +198,6 @@ export function usePhantomWallet(): WalletState {
     connect,
     disconnect,
     connection,
-    cluster: CLUSTER,
+    cluster: CONFIG.CLUSTER,
   };
 }

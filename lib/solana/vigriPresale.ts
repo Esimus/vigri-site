@@ -1,63 +1,57 @@
 // lib/solana/vigriPresale.ts
-import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { Buffer } from 'buffer';
+import { CONFIG, SOLANA_RPC_URL } from '@/lib/config';
 
 /**
- * On-chain configuration for Vigri NFT presale (cluster-aware).
+ * On-chain configuration for Vigri NFT presale (mainnet-only).
  */
 
 export type SolanaCluster = 'devnet' | 'mainnet';
 
-// Program IDs (devnet is known; mainnet comes from env)
-export const VIGRI_PRESALE_PROGRAM_ID_DEVNET = new PublicKey(
+// Mainnet ProgramId (source of truth fallback)
+export const VIGRI_PRESALE_PROGRAM_ID_MAINNET = new PublicKey(
   'GmrUAwBvC3ijaM2L7kjddQFMWHevxRnArngf7jFx1yEk',
 );
 
-export function getPresaleProgramId(cluster: SolanaCluster): PublicKey {
-  if (cluster === 'devnet') return VIGRI_PRESALE_PROGRAM_ID_DEVNET;
+function assertMainnet(cluster: SolanaCluster) {
+  if (cluster !== 'mainnet') {
+    throw new Error('Devnet is disabled for Vigri. Set NEXT_PUBLIC_SOLANA_CLUSTER=mainnet.');
+  }
+}
+
+export function getPresaleProgramId(cluster?: SolanaCluster): PublicKey {
+  const cl = cluster ?? (CONFIG.CLUSTER as SolanaCluster);
+
+  assertMainnet(cl);
 
   const s =
     process.env.NEXT_PUBLIC_VIGRI_PRESALE_PROGRAM_ID_MAINNET ||
     process.env.VIGRI_PRESALE_PROGRAM_ID_MAINNET ||
     '';
 
-  if (!s) {
-    throw new Error('Missing VIGRI_PRESALE_PROGRAM_ID_MAINNET env var');
-  }
-  return new PublicKey(s);
+  if (s) return new PublicKey(s);
+
+  return VIGRI_PRESALE_PROGRAM_ID_MAINNET;
 }
 
 // PDA seed for GlobalConfig
 export const VIGRI_PRESALE_GLOBAL_CONFIG_SEED = 'vigri-presale-config';
 
-function defaultCluster(): SolanaCluster {
-  const c =
-    (process.env.NEXT_PUBLIC_SOLANA_CLUSTER ||
-      process.env.SOLANA_CLUSTER ||
-      'devnet') as string;
-
-  return c === 'mainnet' || c === 'mainnet-beta' ? 'mainnet' : 'devnet';
-}
-
-// Create a Solana connection (cluster-aware)
+// Create a Solana connection (mainnet-only)
 export function getSolanaConnection(cluster?: SolanaCluster): Connection {
-  const cl = cluster ?? defaultCluster();
+  const cl = cluster ?? (CONFIG.CLUSTER as SolanaCluster);
+  assertMainnet(cl);
 
-  const rpcUrl =
-    cl === 'mainnet'
-      ? (process.env.NEXT_PUBLIC_SOLANA_RPC_URL_MAINNET ||
-          process.env.SOLANA_RPC_URL_MAINNET ||
-          clusterApiUrl('mainnet-beta'))
-      : (process.env.NEXT_PUBLIC_SOLANA_RPC_URL_DEVNET ||
-          process.env.SOLANA_RPC_URL_DEVNET ||
-          process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
-          clusterApiUrl('devnet'));
-
-  return new Connection(rpcUrl, 'confirmed');
+  // single source of truth for RPC
+  return new Connection(SOLANA_RPC_URL, 'confirmed');
 }
 
-// Derive GlobalConfig PDA (cluster-aware)
+// Derive GlobalConfig PDA (mainnet-only)
 export function getGlobalConfigPda(cluster?: SolanaCluster): PublicKey {
-  const cl = cluster ?? defaultCluster();
+  const cl = cluster ?? (CONFIG.CLUSTER as SolanaCluster);
+  assertMainnet(cl);
+
   const programId = getPresaleProgramId(cl);
 
   const [pda] = PublicKey.findProgramAddressSync(

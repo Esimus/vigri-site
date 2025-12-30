@@ -17,6 +17,7 @@ import { Buffer } from 'buffer';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
 import { WalletBannerMain } from '@/components/wallet';
+import { getPresaleProgramId, getGlobalConfigPda } from '@/lib/solana/vigriPresale';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -123,39 +124,17 @@ function isDiscountResp(v: unknown): v is DiscountResp {
 
 type KycStatus = 'none' | 'pending' | 'approved' | 'rejected';
 
-// --- Presale on-chain constants (devnet) ---
-const PRESALE_PROGRAM_ID = new PublicKey('GmrUAwBvC3ijaM2L7kjddQFMWHevxRnArngf7jFx1yEk');
+// --- Presale on-chain constants (cluster-aware) ---
 const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
-const GLOBAL_CONFIG_SEED = new TextEncoder().encode('vigri-presale-config');
-
-async function anchorSighash(ixName: string): Promise<Uint8Array> {
-  // first 8 bytes of sha256("global:<name>")
-  const preimage = new TextEncoder().encode(`global:${ixName}`);
-  const hash = await crypto.subtle.digest('SHA-256', preimage);
-  return new Uint8Array(hash).slice(0, 8);
-}
-
-function findAta(owner: PublicKey, mint: PublicKey): PublicKey {
-  const [ata] = PublicKey.findProgramAddressSync(
-    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-  );
-  return ata;
-}
-
-function findMetadataPda(mint: PublicKey): PublicKey {
-  const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    TOKEN_METADATA_PROGRAM_ID,
-  );
-  return pda;
-}
 
 function findGlobalConfigPda(): PublicKey {
-  const [pda] = PublicKey.findProgramAddressSync([GLOBAL_CONFIG_SEED], PRESALE_PROGRAM_ID);
-  return pda;
+  return getGlobalConfigPda('mainnet');
+}
+
+function presaleProgramId(): PublicKey {
+  return getPresaleProgramId('mainnet');
 }
 
 // Fallback PNG name from /public/images/nft/
@@ -171,13 +150,6 @@ function pngNameFor(id: string): string {
   }
 }
 
-type BuyPayload = {
-  id: string;
-  qty: number;
-  designId?: string;
-  activation?: 'claim100' | 'split50' | 'discount100';
-};
-
 function BuyPanelMobile(props: {
   item: Item | null;
   designs: Design[];
@@ -186,8 +158,6 @@ function BuyPanelMobile(props: {
   activationType: 'flex' | 'fixed' | 'none';
   act: 'claim100' | 'split50' | 'discount100';
   setAct: (a: 'claim100' | 'split50' | 'discount100') => void;
-  qty: number;
-  setQty: (n: number) => void;
   withPhysical: boolean;
   setWithPhysical: (v: boolean) => void;
   onBuy: () => void;
@@ -195,6 +165,7 @@ function BuyPanelMobile(props: {
   purchaseBlocked: boolean;
   amlReason?: string | null;
   solPrice: number | null;
+  eurNow: number | null;
   mintMsg: string | null;
   kycPills: KycUiPill[];
   isBuying: boolean;
@@ -203,9 +174,10 @@ function BuyPanelMobile(props: {
   const {
     item, designs, design, setDesign,
     activationType, act, setAct,
-    qty, setQty, withPhysical, setWithPhysical,
+    withPhysical, setWithPhysical,
     onBuy, t,
     solPrice,
+    eurNow,
     purchaseBlocked,
     amlReason,
     mintMsg,
@@ -219,7 +191,6 @@ function BuyPanelMobile(props: {
   const isSilver = item.tier === 'silver';
 
   const hasSol = solPrice !== null && solPrice > 0;
-  const hasEur = typeof item.eurPrice === 'number' && item.eurPrice > 0;
 
   return (
     <div className="card p-4 md:p-5 flex flex-wrap items-end gap-3">
@@ -294,28 +265,15 @@ function BuyPanelMobile(props: {
         </div>
       )}
 
-      {/* Qty + buy */}
-      <div>
-        <label className="label">{t('nft.qty')}</label>
-        <input
-          type="number"
-          min={1}
-          step={1}
-          className="input w-24 text-sm"
-          value={qty}
-          onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
-          style={{ accentColor: 'var(--brand-400)' }}
-        />
-      </div>
-
+      {/* Buy */}
       <div className="flex items-end gap-4">
         <div className="flex flex-col items-start">
           <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
             {hasSol ? `${solPrice} SOL` : ''}
           </div>
-          {hasSol && hasEur && (
+          {hasSol && eurNow !== null && (
             <div className="text-xs opacity-70 mt-1">
-              ≈ {item.eurPrice.toFixed(0)}€ (presale reference)
+              ≈ {eurNow.toFixed(0)}€ (CoinGecko)
             </div>
           )}
           <button
@@ -533,7 +491,7 @@ export default function NftDetails({ id }: { id: string }) {
   const phantom = usePhantomWallet();
   const solflare = useSolflareWallet();
 
-  const activeWalletKind: 'phantom' | 'solflare' | null =
+  const activeWalletKind =
     phantom.connected && phantom.publicKey
       ? 'phantom'
       : solflare.connected && solflare.publicKey
@@ -549,7 +507,7 @@ export default function NftDetails({ id }: { id: string }) {
 
   const connected = !!activeWallet?.connected && !!activeWallet?.publicKey;
   const publicKey = activeWallet?.publicKey ?? null;
-  const cluster = activeWallet?.cluster ?? phantom.cluster;
+  const cluster = 'mainnet' as const;
   const connection = activeWallet?.connection ?? phantom.connection;
 
   // Static catalog metadata for given id
@@ -557,7 +515,6 @@ export default function NftDetails({ id }: { id: string }) {
 
   const [item, setItem] = useState<Item | null>(null);
   const [design, setDesign] = useState<string | null>(null);
-  const [qty, setQty] = useState<number>(1);
   const [act, setAct] = useState<'claim100' | 'split50' | 'discount100'>('discount100');
 
   // Physical card selection (Silver)
@@ -570,6 +527,8 @@ export default function NftDetails({ id }: { id: string }) {
   const [mintMsg, setMintMsg] = useState<string | null>(null);
   const [isBuying, setIsBuying] = useState<boolean>(false);
   const [presaleAdmin, setPresaleAdmin] = useState<string | null>(null);
+
+  const [solEurRate, setSolEurRate] = useState<number | null>(null);
 
   const [kycStatus, setKycStatus] = useState<KycStatus>('none');
   const [countryZone, setCountryZone] = useState<CountryZone>(null);
@@ -634,9 +593,9 @@ export default function NftDetails({ id }: { id: string }) {
         setRights(null);
       }
 
-      // 3) Presale GlobalConfig (devnet admin/treasury)
+      // 3) Presale GlobalConfig (mainnet admin/treasury)
       try {
-        const gr = await fetch(`/api/presale/global-config?ts=${Date.now()}`, { cache: 'no-store' });
+        const gr = await fetch(`/api/presale/global-config?cluster=mainnet&ts=${Date.now()}`, { cache: 'no-store' });
         const gj: unknown = await gr.json().catch(() => ({}));
 
         if (gr.ok && isObject(gj) && (gj as { ok?: unknown }).ok === true) {
@@ -749,9 +708,57 @@ export default function NftDetails({ id }: { id: string }) {
   const solPrice = typeof rawSol === 'number' ? rawSol : null;
   const hasSol = solPrice !== null && solPrice > 0;
 
-  const eurFromItem =
-    typeof item?.eurPrice === 'number' ? item.eurPrice : undefined;
-  const hasEurItem = typeof eurFromItem === 'number' && eurFromItem > 0;
+  const eurNow = useMemo(() => {
+    if (!hasSol || !solEurRate || solEurRate <= 0) return null;
+    return solPrice! * solEurRate;
+  }, [hasSol, solPrice, solEurRate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchSolEur() {
+
+      // Prefer backend endpoint (caching, no CORS, no key leakage).
+      try {
+        const r = await fetch(`/api/price/sol-eur?ts=${Date.now()}`, { cache: 'no-store' });
+        const j: unknown = await r.json().catch(() => ({}));
+        if (!cancelled && r.ok && isObject(j) && (j as { ok?: unknown }).ok === true) {
+          const eur =
+            (j as { eur?: unknown }).eur ??
+            (j as { rateEur?: unknown }).rateEur ??
+            (j as { rate?: unknown }).rate;
+          if (typeof eur === 'number' && eur > 0) {
+            setSolEurRate(eur);
+            return;
+          }
+        }
+      } catch {
+        // Ignore and try direct CoinGecko next.
+      }
+
+      // Fallback: direct CoinGecko simple price.
+      try {
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=eur';
+        const r = await fetch(url, { cache: 'no-store' });
+        const j: unknown = await r.json().catch(() => ({}));
+        const eur = isObject(j) && isObject((j as Record<string, unknown>)['solana'])
+          ? (j as { solana?: { eur?: unknown } }).solana?.eur
+          : undefined;
+
+        if (!cancelled && typeof eur === 'number' && eur > 0) {
+          setSolEurRate(eur);
+          return;
+        }
+
+        if (!cancelled) return;
+      } catch {
+        if (!cancelled) return;
+      }
+    }
+
+    if (hasSol) void fetchSolEur();
+    return () => { cancelled = true; };
+  }, [hasSol]);
 
   function tierIdFromItemTier(t: Item['tier'] | undefined): number {
     switch (t) {
@@ -867,16 +874,11 @@ export default function NftDetails({ id }: { id: string }) {
     }
   }
 
-  const mintPresaleDevnet = async (tierId: number) => {
+  const mintPresaleOnchain = async (tierId: number) => {
   setMintMsg(null);
 
   if (mintBlocked) {
     setMintMsg(mintBlockedText);
-    return;
-  }
-
-  if (cluster !== 'devnet') {
-    setMintMsg(t('nft.mint.onlyDevnet'));
     return;
   }
 
@@ -887,7 +889,7 @@ export default function NftDetails({ id }: { id: string }) {
 
   const provider = getActiveWalletProvider(activeWalletKind);
   if (!provider) {
-    // пока используем старый текст, он просто будет значить "кошелёк не найден"
+    // Keep legacy i18n key: here it means "wallet provider not found".
     setMintMsg(t('nft.mint.phantomNotFound'));
     return;
   }
@@ -1005,6 +1007,29 @@ export default function NftDetails({ id }: { id: string }) {
         return;
       }
 
+      async function anchorSighash(ixName: string): Promise<Uint8Array> {
+        // first 8 bytes of sha256("global:<name>")
+        const preimage = new TextEncoder().encode(`global:${ixName}`);
+        const hash = await crypto.subtle.digest('SHA-256', preimage);
+        return new Uint8Array(hash).slice(0, 8);
+      }
+
+      function findAta(owner: PublicKey, mint: PublicKey): PublicKey {
+        const [ata] = PublicKey.findProgramAddressSync(
+          [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+          ASSOCIATED_TOKEN_PROGRAM_ID,
+        );
+        return ata;
+      }
+
+      function findMetadataPda(mint: PublicKey): PublicKey {
+        const [pda] = PublicKey.findProgramAddressSync(
+          [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+          TOKEN_METADATA_PROGRAM_ID,
+        );
+        return pda;
+      }
+
       // Fresh mint keypair (NFT mint)
       const mintKp = Keypair.generate();
       const mintPk = mintKp.publicKey;
@@ -1037,7 +1062,7 @@ export default function NftDetails({ id }: { id: string }) {
 
         let dc: number | null = null;
 
-        // Tree / Steel: маппим несколько возможных значений design на 1/2
+        // Tree/Steel: map UI design ids to the program enum values (1/2).
         if (design === 'tree' || design === 'wood' || design === 'tree-wood') {
           dc = 1; // TR = Tree
         } else if (design === 'steel' || design === 'tree-steel') {
@@ -1068,13 +1093,13 @@ export default function NftDetails({ id }: { id: string }) {
         data[11] = 0; // invite_proof = None
       }
 
-      // placeholders
+      // Collection accounts (placeholder values for now; must match on-chain config in v2).
       const COLLECTION_MINT = new PublicKey('Dqa6Zzh2sYgviEQxxPnhTAwJD5MA5FDxAyLhkGeaULJg');
       const COLLECTION_METADATA = new PublicKey('FiTMjeJ1mxJNzNUZijKccx3Gn293phTondw9qATyTege');
       const COLLECTION_MASTER_EDITION = new PublicKey('AnEjffPqDmdhAUKRL5RjK1BUGYMR9G4FSJpQWuAf991U');
 
       const ix = new TransactionInstruction({
-        programId: PRESALE_PROGRAM_ID,
+        programId: presaleProgramId(),
         keys: [
           { pubkey: publicKey, isSigner: true, isWritable: true },         // payer
           { pubkey: globalConfig, isSigner: false, isWritable: true },     // global_config (PDA)
@@ -1158,7 +1183,7 @@ export default function NftDetails({ id }: { id: string }) {
             tierId,
             quantity: 1,
             txSignature: sig,
-            network: 'devnet',
+            network: 'mainnet',
             paidSol: item?.onchain?.priceSol ?? null,
             designChoice: designChoiceLog,
             withPhysical: withPhysicalLog,
@@ -1194,7 +1219,7 @@ export default function NftDetails({ id }: { id: string }) {
       // refresh UI
       await loadAll(false);
       await fetch(
-        `/api/presale/global-config?cluster=${cluster}&ts=${Date.now()}`,
+        `/api/presale/global-config?cluster=mainnet&ts=${Date.now()}`,
         { cache: 'no-store' },
       );
       await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
@@ -1214,7 +1239,7 @@ export default function NftDetails({ id }: { id: string }) {
     }
   };
 
-  // Purchase (mock)
+  // Purchase (on-chain only)
   const buy = async () => {
     if (isBuying) return;
 
@@ -1229,50 +1254,14 @@ export default function NftDetails({ id }: { id: string }) {
     setIsBuying(true);
 
     try {
-      // If tier is on-chain AND we are on devnet: BUY = real on-chain mint
-      if (cluster === 'devnet' && item?.onchain && typeof item.onchain.tierId === 'number') {
-        await mintPresaleDevnet(item.onchain.tierId);
+      // On-chain mint (mainnet)
+      if (item?.onchain && typeof item.onchain.tierId === 'number') {
+        await mintPresaleOnchain(item.onchain.tierId);
         return;
       }
 
-      const payload: BuyPayload = { id: item.id, qty: isWS ? 1 : qty };
-      if (design) payload.designId = design;
-      if (activationType === 'flex') payload.activation = act;
-
-      // 1) Mock purchase
-      const r = await fetch('/api/nft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const j: unknown = await r.json().catch(() => ({} as Record<string, unknown>));
-      const ok = typeof j === 'object' && j !== null && (j as { ok?: boolean }).ok === true;
-      if (!r.ok || !ok) return;
-
-      // 2) Trigger rewards/referral (non-blocking)
-      try {
-        const meRes = await fetch('/api/me', { cache: 'no-store' });
-        const meJson = await meRes.json().catch(() => ({} as { ok?: boolean; user?: { id?: string } }));
-        const meId = meJson?.ok && meJson?.user?.id ? String(meJson.user.id) : null;
-
-        const tierName = tierParamFromItemTier(item.tier);
-
-        const eurSingle = item?.eurPrice ?? 0;
-        const eurTotal = eurSingle * (isWS ? 1 : qty);
-
-        const qsClaim = new URLSearchParams();
-        qsClaim.set('tier', tierName);
-        if (eurTotal > 0) qsClaim.set('eur', String(eurTotal));
-        qsClaim.set('qty', String(isWS ? 1 : qty));
-        if (meId) qsClaim.set('userId', meId);
-
-        await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
-      } catch (err) {
-        console.error('claim failed', err);
-      } finally {
-        await fetch(`/api/nft/summary?ts=${Date.now()}`, { cache: 'no-store' });
-      }
+      // No mock fallback in mainnet-only mode
+      setMintMsg(t('nft.mint.notAvailable'));
     } finally {
       setIsBuying(false);
     }
@@ -1339,7 +1328,7 @@ export default function NftDetails({ id }: { id: string }) {
       );
     }
 
-    // Если загрузка закончилась, а item так и не нашёлся — оставляем Not found
+    // If the download is complete and the item is still not found, leave it as Not found.
     return (
       <div className="space-y-2">
         <Link href="/dashboard/nft" className="link-accent text-sm">
@@ -1431,13 +1420,12 @@ export default function NftDetails({ id }: { id: string }) {
           activationType={activationType}
           act={act}
           setAct={(a) => setAct(a)}
-          qty={qty}
-          setQty={(n) => setQty(n)}
           withPhysical={withPhysical}
           setWithPhysical={setWithPhysical}
           onBuy={buy}
           t={t}
           solPrice={solPrice}
+          eurNow={eurNow}
           purchaseBlocked={purchaseBlocked}
           amlReason={purchaseReason}
           mintMsg={mintMsg}
@@ -1573,18 +1561,6 @@ export default function NftDetails({ id }: { id: string }) {
                 </div>
               ) : null}
 
-              <div>
-                <label className="label">{t('nft.qty')}</label>
-                <input
-                  type="number"
-                  min={1}
-                  step={1}
-                  className="input w-24 text-sm"
-                  value={qty}
-                  onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
-                />
-              </div>
-
               <div className="flex items-end gap-4">
                 <div className="flex flex-col items-start">
                   <div
@@ -1593,9 +1569,9 @@ export default function NftDetails({ id }: { id: string }) {
                   >
                     {hasSol ? `${solPrice} SOL` : ""}
                   </div>
-                  {hasSol && hasEurItem && eurFromItem !== undefined && (
+                  {hasSol && eurNow !== null && (
                     <div className="text-xs opacity-70 mt-1">
-                      ≈ {eurFromItem.toFixed(0)}€ (presale reference)
+                      ≈ {eurNow.toFixed(0)}€ (CoinGecko)
                     </div>
                   )}
                   <button

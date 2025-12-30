@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { SolanaCluster, getMintFromPresaleTx } from '../lib/solana/presaleTx';
 import { getMetadataUriForMint } from '../lib/solana/metaplexMetadata';
 
-export type NftMintNetwork = 'devnet' | 'mainnet';
+// mainnet-only
+export type NftMintNetwork = 'mainnet';
 
 export interface NftMintEventMinimal {
   txSignature: string;
@@ -21,8 +22,8 @@ export interface NftOnchainEnrichmentResult {
   collectorId: string;
 }
 
-function mapNetworkToCluster(network: NftMintNetwork): SolanaCluster {
-  return network === 'devnet' ? 'devnet' : 'mainnet';
+function mapNetworkToCluster(): SolanaCluster {
+  return 'mainnet';
 }
 
 function tierCodeFromTierId(tierId: number, designChoice?: number | null): string {
@@ -91,7 +92,7 @@ function buildCollectorId(
 export async function computeOnchainNftEnrichment(
   input: NftMintEventMinimal,
 ): Promise<NftOnchainEnrichmentResult | null> {
-  const cluster: SolanaCluster = mapNetworkToCluster(input.network);
+  const cluster: SolanaCluster = mapNetworkToCluster();
 
   const mint = await getMintFromPresaleTx(input.txSignature, cluster);
   if (!mint) {
@@ -167,7 +168,8 @@ export async function computeOnchainNftEnrichment(
  * Softly normalize event.network coming from DB into our NftMintNetwork union.
  */
 function normalizeEventNetwork(network: string): NftMintNetwork | null {
-  if (network === 'devnet' || network === 'mainnet') return network;
+  const v = (network ?? '').trim().toLowerCase();
+  if (v === 'mainnet' || v === 'mainnet-beta') return 'mainnet';
   return null;
 }
 
@@ -212,8 +214,7 @@ export async function enrichNftMintEvent(eventId: string): Promise<boolean> {
     txSignature: event.txSignature,
     network,
     tierId: event.tierId,
-    designChoice:
-      typeof event.designChoice === 'number' ? event.designChoice : null,
+    designChoice: typeof event.designChoice === 'number' ? event.designChoice : null,
   });
 
   if (!enrichment) {
@@ -265,9 +266,7 @@ export async function enrichNftMintEvent(eventId: string): Promise<boolean> {
  *
  * @returns number of records that were actually updated.
  */
-export async function enrichPendingNftMintEvents(
-  limit: number,
-): Promise<number> {
+export async function enrichPendingNftMintEvents(limit: number): Promise<number> {
   if (limit <= 0) return 0;
 
   const events = await prisma.nftMintEvent.findMany({

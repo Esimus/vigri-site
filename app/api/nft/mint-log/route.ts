@@ -4,10 +4,24 @@ import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE } from '@/lib/session';
 import { creditEcho } from '@/lib/echo';
 import { Connection } from '@solana/web3.js';
+import { SOLANA_RPC_URL } from '@/lib/config';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 export const runtime = 'nodejs';
+
+const execFileAsync = promisify(execFile);
+
+// mainnet-only
+type Network = 'mainnet';
+const NETWORK: Network = 'mainnet';
+
+function normalizeMainnet(raw: unknown): Network | null {
+  if (typeof raw !== 'string') return null;
+  const v = raw.trim().toLowerCase();
+  if (v === 'mainnet' || v === 'mainnet-beta') return 'mainnet';
+  return null;
+}
 
 function readCookie(header: string | null, name: string): string | null {
   if (!header) return null;
@@ -58,16 +72,9 @@ function getEchoSelfForTier(tierId: number): number {
   }
 }
 
-const execFileAsync = promisify(execFile);
-
-function rpcForNetwork(net: string): string {
-  if (net === 'mainnet' || net === 'mainnet-beta') return process.env.SOLANA_RPC_MAINNET ?? 'https://api.mainnet-beta.solana.com';
-  return process.env.SOLANA_RPC_DEVNET ?? 'https://api.devnet.solana.com';
-}
-
 type UiTokenAmount = { amount?: string; decimals?: number };
 type TokenBalance = { owner?: string; mint?: string; uiTokenAmount?: UiTokenAmount };
-type ParsedTxMeta = { preTokenBalances?: TokenBalance[]; postTokenBalances?: TokenBalance[] };
+type ParsedTxMeta = { preTokenBalances?: TokenBalance[]; postTokenBalances?: TokenBalance[]; err?: unknown };
 type ParsedTx = { meta?: ParsedTxMeta };
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -86,6 +93,7 @@ function asParsedTx(v: unknown): ParsedTx | null {
   const meta: ParsedTxMeta = {};
   if (Array.isArray(preRaw)) meta.preTokenBalances = preRaw.filter(isRecord) as unknown as TokenBalance[];
   if (Array.isArray(postRaw)) meta.postTokenBalances = postRaw.filter(isRecord) as unknown as TokenBalance[];
+  if ('err' in metaRaw) meta.err = metaRaw['err'];
 
   return { meta };
 }
@@ -115,15 +123,19 @@ function extractNewMintsFromParsedTx(parsed: unknown, ownerWallet: string): stri
   return Array.from(out);
 }
 
-async function signCreatorForMint(params: { mint: string; network: string }) {
-  const keypair = process.env.METABOSS_KEYPAIR_PATH ?? `${process.env.HOME}/.config/solana/id.json`;
-  const rpc = rpcForNetwork(params.network);
+async function signCreatorForMint(params: { mint: string }) {
+  const keypair =
+    process.env.METABOSS_KEYPAIR_PATH ?? `${process.env.HOME}/.config/solana/id.json`;
 
   await execFileAsync('metaboss', [
-    'sign', 'one',
-    '--rpc', rpc,
-    '--keypair', keypair,
-    '--account', params.mint,
+    'sign',
+    'one',
+    '--rpc',
+    SOLANA_RPC_URL,
+    '--keypair',
+    keypair,
+    '--account',
+    params.mint,
   ]);
 }
 
@@ -132,7 +144,7 @@ async function awardEchoForMint(params: {
   tierId: number;
   quantity: number;
   txSignature: string;
-  network: string;
+  network: Network;
 }) {
   const { buyerUserId, tierId, quantity, txSignature, network } = params;
 
@@ -190,8 +202,8 @@ async function awardEchoForMint(params: {
     if (!levelUserId) return;
 
     let pct: number;
-    if (lvl === 1) pct = 0.30;
-    else if (lvl === 2) pct = 0.10;
+    if (lvl === 1) pct = 0.3;
+    else if (lvl === 2) pct = 0.1;
     else pct = 0.05;
 
     let amount = Math.floor(buyerEchoTotal * pct);
@@ -200,7 +212,11 @@ async function awardEchoForMint(params: {
     if (amount <= 0) return;
 
     const action =
-      lvl === 1 ? 'referral.purchase.l1' : lvl === 2 ? 'referral.purchase.l2' : 'referral.purchase.l3';
+      lvl === 1
+        ? 'referral.purchase.l1'
+        : lvl === 2
+          ? 'referral.purchase.l2'
+          : 'referral.purchase.l3';
 
     try {
       await creditEcho(prisma, {
@@ -243,16 +259,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const {
-      wallet,
-      tierId,
-      quantity,
-      txSignature,
-      network,
-      paidSol,
-      designChoice,
-      withPhysical,
-    } = body;
+    const { wallet, tierId, txSignature, network, paidSol, designChoice, withPhysical } = body;
 
     if (!wallet || typeof wallet !== 'string') {
       return NextResponse.json({ ok: false, error: 'wallet is required' }, { status: 400 });
@@ -261,20 +268,53 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'tierId must be a number' }, { status: 400 });
     }
     if (!txSignature || typeof txSignature !== 'string') {
+      return NextResponse.json({ ok: false, error: 'txSignature is required' }, { status: 400 });
+    }
+
+    // mainnet-only network validation
+    const net: Network | null = network ? normalizeMainnet(network) : NETWORK;
+    if (!net) {
+      return NextResponse.json({ ok: false, error: 'Network is mainnet-only' }, { status: 400 });
+    }
+
+    // Dedupe: same wallet + txSignature + network
+    const existing = await prisma.nftMintEvent.findFirst({
+      where: { wallet, txSignature, network: net },
+      select: { id: true },
+    });
+    if (existing) {
+      return NextResponse.json({ ok: true, eventId: existing.id, duplicate: true });
+    }
+
+    // Verify tx on-chain + derive actual minted NFTs for this wallet
+    const rpc = new Connection(SOLANA_RPC_URL, 'confirmed');
+    const parsed = await rpc.getParsedTransaction(txSignature, {
+      maxSupportedTransactionVersion: 0,
+    });
+
+    if (!parsed || parsed.meta?.err) {
       return NextResponse.json(
-        { ok: false, error: 'txSignature is required' },
+        { ok: false, error: 'Transaction not found or failed' },
         { status: 400 },
       );
     }
 
-    const qty = typeof quantity === 'number' && quantity > 0 ? quantity : 1;
-    const net = typeof network === 'string' && network.length > 0 ? network : 'devnet';
+    const mints = extractNewMintsFromParsedTx(parsed, wallet);
+    if (mints.length === 0) {
+      return NextResponse.json(
+        { ok: false, error: 'No new NFT mint detected for this wallet' },
+        { status: 400 },
+      );
+    }
+
+    // Use on-chain qty (prevents forging quantity in request body)
+    const qtyOnchain = Math.max(1, mints.length);
+
+    const qty = qtyOnchain;
     const paid = typeof paidSol === 'number' && paidSol > 0 ? paidSol : 0;
 
     const designChoiceIn =
-      typeof designChoice === 'number' && Number.isFinite(designChoice)
-        ? designChoice
-        : null;
+      typeof designChoice === 'number' && Number.isFinite(designChoice) ? designChoice : null;
 
     const withPhysicalIn = typeof withPhysical === 'boolean' ? withPhysical : null;
 
@@ -325,13 +365,8 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const rpc = rpcForNetwork(net);
-      const connection = new Connection(rpc, 'confirmed');
-      const parsed = await connection.getParsedTransaction(txSignature, { maxSupportedTransactionVersion: 0 });
-
-      const mints = extractNewMintsFromParsedTx(parsed, wallet);
       for (const mint of mints) {
-        await signCreatorForMint({ mint, network: net });
+        await signCreatorForMint({ mint });
       }
     } catch (e) {
       console.error('post-mint creator sign failed', e);
@@ -348,10 +383,16 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const wallet = searchParams.get('wallet');
-  const net = searchParams.get('network') ?? 'devnet';
+  const netParam = searchParams.get('network');
 
   if (!wallet) {
     return NextResponse.json({ ok: false, error: 'Missing wallet' }, { status: 400 });
+  }
+
+  // mainnet-only: default mainnet; reject non-mainnet if provided
+  const net: Network | null = netParam ? normalizeMainnet(netParam) : NETWORK;
+  if (!net) {
+    return NextResponse.json({ ok: false, error: 'Network is mainnet-only' }, { status: 400 });
   }
 
   try {
@@ -361,7 +402,7 @@ export async function GET(req: NextRequest) {
         network: net,
       },
       orderBy: {
-        id: 'desc',
+        createdAt: 'desc',
       },
       take: 100,
     });

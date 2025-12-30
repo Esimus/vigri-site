@@ -1,133 +1,161 @@
-# VIGRI Site — Technical Summary (2025-11-11)
+# VIGRI Site — Technical Summary (2025-12-29)
 
 ## Overview
-VIGRI Site is the **frontend platform** of the **Lumiros / Люмирос** ecosystem, providing user interaction with the `$VIGRI` token, fan clubs, NFTs, and user dashboard.  
-Current stage — **staging / pre-production**, deployed locally via **WSL (Ubuntu 24.04.1)**.
+
+**VIGRI Site** is the web platform of the **Lumiros / Люмирос** ecosystem. It provides public pages plus a user dashboard for interacting with the **$VIGRI** initiative, including **NFT presale**, **KYC/AML gating**, **referrals**, and **rewards (Echo)**.
+
+**Network policy:** **Mainnet-only** — the production build operates strictly on **Solana mainnet** (`mainnet` / `mainnet-beta`). Devnet/testnet are not supported in production.
 
 ---
 
-## Core Stack
+## Core stack
 
 | Layer | Technology | Purpose |
-|-------|-------------|----------|
-| **Framework** | Next.js 15 (App Router, TypeScript) | SSR, SSG, React 19 |
-| **Database** | Prisma + SQLite (local) | Users / sessions |
-| **Auth** | Cookie `vigri_session` (TTL 14 days), Argon2 (`@node-rs/argon2`) | Secure user login |
-| **Theme** | Light / Dark / Auto (SSR) | Stored in cookie `vigri_theme_resolved` |
-| **i18n** | `useI18n` hook | Unified keys `common.*`, `nav.*`, `activity.*` |
-| **UI** | Tailwind v4 tokens | Smooth transitions, `rounded-2xl` cards |
-| **Compliance** | EU Cookie Consent (client-only gate) | GDPR compliance without SSR hydration errors |
-| **Build system** | Turbopack | Optimized dev/prod builds |
+|------|------------|---------|
+| Framework | Next.js 15 (App Router) + TypeScript | SSR/SSG, API routes, React UI |
+| Styling | Tailwind CSS v4 | Design tokens, responsive UI |
+| Database | PostgreSQL + Prisma | Users, sessions, mint logs, referrals, awards |
+| Auth | Cookie session (`vigri_session`) + password hashing (Argon2 via `@node-rs/argon2`) | User login & session management |
+| i18n | JSON dictionaries + `useI18n` hook | EN / RU / ET translations |
+| Solana | `@solana/web3.js` | On-chain reads + transaction integrations |
+| Pricing | CoinGecko (SOL/EUR) + in-memory cache | Fiat display & tier pricing support |
+| Compliance | EU Cookie Consent gate (client-safe) | GDPR-friendly consent flow |
+| Build | Turbopack (Next.js) | Fast dev + optimized builds |
 
 ---
 
-## Pages
+## Product areas
 
-- `/` — Home (hero, auth modal, language switcher, theme)  
-- `/dashboard/*` — Internal area (DashboardShell + sidebar, breadcrumbs, notifications, profile menu)  
-- `/center` — Public page **“International Training and Rehabilitation Center for Sport and Dance”**  
-  (own header and OG metadata)
+### Public pages
+- `/` — Home / landing
+- `/center` — Public page: **“International Training and Rehabilitation Center for Sport and Dance”** (custom header + OG metadata)
 
----
-
-## Runtime & Build
-
-- **Next.js 15.5.3** (App Router, Turbopack)  
-- `next.config.ts`: `eslint.ignoreDuringBuilds = true` (lint does not block prod build)  
-- `metadataBase` is derived from `NEXT_PUBLIC_APP_URL` (fallback: `http://localhost:3000`)
+### Dashboard
+- `/dashboard/*` — authenticated area with navigation, profile, notifications, and purchase-related UI.
 
 ---
 
-## Environment
+## Runtime & build
 
-- `.env.local` — development  
-- `.env.production` — production  
-
-**Required keys (minimum):**
-- `NEXT_PUBLIC_APP_URL` — e.g. `https://vigri.ee` (for OG/Twitter images)  
-- **SMTP (later):**
-  - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+- Next.js 15 (App Router)
+- `metadataBase` derived from `NEXT_PUBLIC_APP_URL` (fallback: `http://localhost:3000`)
+- ESLint and typecheck are expected to be clean for release readiness (`npm run lint`, `npm run typecheck`)
 
 ---
 
-## Routing & API (mock state via cookies)
+## Environment & configuration
 
-| Endpoint | Cookie | Description |
-|-----------|---------|-------------|
-| `/api/assets` | `vigri_assets` | Portfolio / asset mocks |
-| `/api/nft` | `vigri_nfts` | NFT catalog / purchase / activation |
-| `/api/nft/claim` | `vigri_nft_claim` | NFT claiming endpoint |
-| `/api/nft/discount` | `vigri_nft_discount` | Apply discount codes |
-| `/api/nft/rights` | `vigri_nft_rights` | NFT rights info |
-| `/api/nft/summary` | — | Dynamic sales summary (force-dynamic, no cache) |
-| `/api/award/kyc` | — | One-time KYC reward (see award_rules.json) |
-| `/api/kyc` | `vigri_kyc` | KYC status (`none | pending | approved | rejected`) |
-| `/api/auth/*` | `vigri_session` | Real authentication (Prisma + Argon2) |
-| `/api/auth/dev-verify` | — | Dev-only; disabled in production |
+### Environment files
+- `.env.local` — local development
+- `.env.production` — production runtime (server)
 
----
+### Key variables (high level)
+- `NEXT_PUBLIC_APP_URL` — required in production for correct `metadataBase`
+- `DATABASE_URL` — PostgreSQL connection string
+- `SOLANA_RPC_URL` — server-side mainnet RPC endpoint
+- `NEXT_PUBLIC_SOLANA_CLUSTER=mainnet` — public marker; production must be mainnet
+- `NEXT_PUBLIC_PROGRAM_ID` — Solana program identifier (presale)
+- Public links: `NEXT_PUBLIC_TELEGRAM_URL`, `NEXT_PUBLIC_X_URL`, `NEXT_PUBLIC_GITHUB_URL`, `NEXT_PUBLIC_DEX_URL`
 
-## Cookies (client/server)
-
-- `vigri_session` — authentication (TTL 14 days)  
-- `vigri_theme_resolved` — theme (SSR)  
-- `vigri_nft_claim` — NFT claim tracking  
-- See other cookies in API table above  
-
-> ⚙️ **Note:**  
-> All cookie access is unified via `lib/cookies.ts → getCookie(name: string): string | null`.  
-> All API routes migrated from `cookies().get(...)` to this helper for safer typing (Next 15).
+> `.env.local` must never be committed (ignored by `.gitignore`).  
+> `.env.example` is the source of truth for the complete list.
 
 ---
 
-## Components & Structure (refactor)
+## Mainnet-only policy
 
-- `components/layout/` → `DashboardShell`, `DashboardNav`, `PublicHeader` (+ barrel `index.ts`)
-- `components/nav/` → `LanguageSwitcher`, `ProfileMenu` (+ barrel)
-- `components/notifications/` → `NotificationsBell` (+ barrel)
-- `components/ui/` → clean presentational components (`PublicBreadcrumbs`, `StatusBadge`, etc.)
-
-- Imports unified through **barrel exports**  
-- Layout components standardized in style and markup  
-- `DashboardShell` uses only `<Link />` from `next/link`
+- The app is configured and validated to operate on **Solana mainnet only**.
+- Any API endpoints that accept `network`/`cluster` query parameters must normalize and validate to mainnet (`mainnet` / `mainnet-beta`) and reject other values.
+- UI must not expose devnet/testnet toggles in production.
 
 ---
 
-## UI / UX
+## Solana integration (presale)
 
-- Tailwind v4 inline tokens  
-- Smooth transitions and hover effects  
-- Unified color scheme (`brand-400`, `brand-600`, `brand-800`)  
-- `rounded-2xl` cards  
-- i18n: unified `useI18n` hook with keys `common.*`, `nav.*`, `activity.*`
+### Global config / tiers (on-chain)
+- Endpoint: `GET /api/presale/global-config`
+  - Returns on-chain **GlobalConfig** and **tiers**
+  - Response includes normalized **mainnet** cluster info
 
----
+### Mint logging + post-processing
+- Endpoint: `POST /api/nft/mint-log`
+  - Mainnet-only validation through a normalizer (rejects non-mainnet networks)
+  - Persists mint events to the database
+  - Triggers server-side post-processing steps (including creator signature via Metaboss flow)
+  - Applies rewards logic (Echo) related to purchase events
 
-## Cookie Consent (EU)
-
-**Files:**
-- `components/CookieConsent.tsx` — banner UI with i18n texts  
-- `components/CookieConsentGate.tsx` — server-side cookie check  
-- `components/CookieConsentClient.tsx` — client wrapper to prevent hydration mismatch  
-- `lib/cookieConsent.ts` — helpers for read/write operations  
-
-**Integration:**
-- `<CookieConsentGate />` added to `app/layout.tsx` before `</body>`  
-- Renders only on client side; no SSR issues  
-
-**Status:**
-- Fixed: `t is not a function`, `Property 'get'`, `Hook called conditionally`, hydration mismatch  
-- Banner works correctly, texts load from localization, console clean
+> Note: The platform is built so the site can read on-chain state, log off-chain purchase/mint metadata, and enrich records after the on-chain transaction is confirmed.
 
 ---
 
-## Awards (Echo) — Mock Implementation
+## Price feed (SOL/EUR) & tier pricing
 
-**Source:**  
-- `config/award_rules.json` — canonical source of reward rules (server-side)
-  
+- Endpoint: `GET /api/assets`
+  - Fetches **SOL/EUR** from **CoinGecko**
+  - Uses **in-memory cache** with **TTL 120 seconds**
+  - Builds `prices` from a base set + computed `SOL: solEur`
+  - Derives tier pricing by calling internal `GET /api/presale/global-config` and merging results into the response
+  - Validates `network` query param: only `mainnet` / `mainnet-beta` are accepted, otherwise returns **400**
 
-**Structure example:**
+---
+
+## Auth & sessions
+
+- Cookie-based session auth:
+  - `vigri_session` — authentication cookie (TTL configured in app logic)
+- Password hashing: Argon2 (`@node-rs/argon2`)
+- Server routes under `app/api/auth/*` handle login / verification flows.
+
+---
+
+## Cookies
+
+- `vigri_session` — auth session
+- `vigri_theme_resolved` — resolved theme (SSR-safe)
+- Cookie Consent state cookie(s) — used by the consent gate
+
+> Cookie access is centralized via helper utilities (to avoid unsafe direct usage and to stay compatible with Next.js 15 runtime patterns).
+
+---
+
+## i18n (EN / RU / ET)
+
+- Dictionaries:
+  - `locales/en.json`
+  - `locales/ru.json`
+  - `locales/et.json`
+- Hook: `hooks/useI18n.ts`
+- Rule: keep keys aligned across all languages.
+
+---
+
+## UI structure (high level)
+
+- `app/` — Next.js routes (pages + API routes)
+- `components/` — UI building blocks (dashboard, NFT views, shared UI)
+- `hooks/` — wallet hooks, i18n hook, client utilities
+- `lib/` — shared config and helpers
+- `src/` — services and Solana helper modules (transactions, enrichment)
+- `prisma/` — schema + migrations
+- `docs/` — technical documentation
+
+---
+
+## Compliance: EU Cookie Consent (GDPR)
+
+Implemented as a client-safe consent gate to avoid hydration mismatches:
+- Banner UI component (localized)
+- Gate wrapper that checks consent cookie state
+- Client wrapper to ensure SSR/CSR consistency
+
+---
+
+## Rewards & referrals (Echo)
+
+- Rewards system applies server-side logic on key events (e.g., purchase/mint flows).
+- Reward rules are defined in a canonical server-side config (e.g., `config/award_rules.json`).
+
+Example structure:
 ```json
 {
   "echo_unit_eur": 1,
@@ -139,5 +167,38 @@ Current stage — **staging / pre-production**, deployed locally via **WSL (Ubun
   "feedback": { "bonus": 3 },
   "share_link": { "bonus": 0.5 }
 }
+```
+
+---
+
+## Database (Prisma)
+
+Typical workflow:
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+Production migrations:
+```bash
+npx prisma migrate deploy
+```
+
+---
+
+## Release readiness checklist (practical)
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+- Confirm production env:
+  - `NEXT_PUBLIC_APP_URL` set to live domain
+  - `SOLANA_RPC_URL` is mainnet RPC
+  - `NEXT_PUBLIC_SOLANA_CLUSTER=mainnet`
+  - DB connection works (`DATABASE_URL`)
+- Confirm mainnet-only behavior:
+  - `/api/presale/global-config` returns mainnet cluster
+  - `/api/assets` rejects non-mainnet network values
+  - `/api/nft/mint-log` rejects non-mainnet network values
 
 ---

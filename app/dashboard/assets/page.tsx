@@ -37,6 +37,7 @@ type NftPortfolioItem = {
 
 type GetResp = {
   ok: boolean;
+  prices?: Record<string, number>;
   positions: Position[];
   totalValueEUR: number;
   nftPortfolio: NftPortfolioItem[];
@@ -154,7 +155,7 @@ export default function AssetsPage() {
 
       if (wallet) {
         params.set('wallet', wallet);
-        params.set('network', 'devnet');
+        params.set('network', 'mainnet');
       }
 
       const qs = params.toString();
@@ -531,7 +532,7 @@ export default function AssetsPage() {
 
                       {h.txSignature && (
                         <a
-                          href={`https://solscan.io/tx/${h.txSignature}?cluster=devnet`}
+                          href={`https://solscan.io/tx/${h.txSignature}`}
                           target="_blank"
                           rel="noreferrer"
                           className="truncate underline opacity-70 hover:opacity-100"

@@ -1,4 +1,6 @@
+// app/dev/presale/page.tsx
 import React from 'react';
+import { notFound } from 'next/navigation';
 
 type Tier = {
   id: number;
@@ -14,9 +16,11 @@ type Tier = {
 
 type GlobalConfigResponse = {
   exists: boolean;
-  pda: string;
-  admin: string;
-  tiers: Tier[];
+  pda?: string;
+  admin?: string | null;
+  treasury?: string | null;
+  tiers?: Tier[];
+  cluster?: string;
 };
 
 type GlobalConfigOrError =
@@ -29,7 +33,7 @@ function isGlobalConfigResponse(value: GlobalConfigOrError): value is GlobalConf
 
 async function fetchGlobalConfig(): Promise<{
   status: number;
-  body: GlobalConfigResponse | { error: string; details?: string; message?: string };
+  body: GlobalConfigOrError;
 }> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -37,47 +41,56 @@ async function fetchGlobalConfig(): Promise<{
     cache: 'no-store',
   });
 
-  const data = await res.json();
+  const data = (await res.json().catch(() => ({}))) as GlobalConfigOrError;
+
   return {
     status: res.status,
     body: data,
   };
 }
 
-// NOTE: Business rule reminder:
-// After 2025-12-31 NFT prices are planned to be doubled.
-// This page shows current on-chain base prices only.
-
 export default async function PresaleDevPage() {
+  if (process.env.NODE_ENV === 'production') notFound();
+
   const result = await fetchGlobalConfig();
-  const body: GlobalConfigOrError = result.body;
+  const body = result.body;
 
   const tiers: Tier[] =
     isGlobalConfigResponse(body) && Array.isArray(body.tiers) ? body.tiers : [];
+
+  const pda =
+    isGlobalConfigResponse(body) && typeof body.pda === 'string' ? body.pda : null;
+
+  const admin =
+    isGlobalConfigResponse(body) && typeof body.admin === 'string' ? body.admin : null;
+
+  const cluster =
+    isGlobalConfigResponse(body) && typeof body.cluster === 'string' ? body.cluster : null;
 
   return (
     <main className="min-h-screen p-6 space-y-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-bold">NFT Presale · Dev view</h1>
 
-        <p className="text-sm text-gray-600">
-          Read-only debug view of GlobalConfig from devnet.
-        </p>
+        <p className="text-sm text-gray-600">Read-only debug view of GlobalConfig (mainnet).</p>
 
-        <p className="text-xs text-gray-500">
-          Note: business rule says NFT prices are planned to double after
-          2025-12-31. This dev page shows current on-chain base prices only.
-        </p>
-
-        {body && 'pda' in body && 'admin' in body && (
+        {(pda || admin || cluster) && (
           <div className="text-xs font-mono space-y-1">
-            <div>
-              <span className="font-semibold">GlobalConfig PDA:</span>{' '}
-              {body.pda}
-            </div>
-            <div>
-              <span className="font-semibold">Admin:</span> {body.admin}
-            </div>
+            {cluster && (
+              <div>
+                <span className="font-semibold">Cluster:</span> {cluster}
+              </div>
+            )}
+            {pda && (
+              <div>
+                <span className="font-semibold">GlobalConfig PDA:</span> {pda}
+              </div>
+            )}
+            {admin && (
+              <div>
+                <span className="font-semibold">Admin:</span> {admin}
+              </div>
+            )}
           </div>
         )}
       </header>
@@ -85,13 +98,10 @@ export default async function PresaleDevPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Tiers (from chain)</h2>
 
-        {Array.isArray(tiers) && tiers.length > 0 ? (
+        {tiers.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {tiers.map((tier) => (
-              <div
-                key={tier.id}
-                className="rounded-lg border p-4 text-sm space-y-2"
-              >
+              <div key={tier.id} className="rounded-lg border p-4 text-sm space-y-2">
                 <div className="flex items-baseline justify-between gap-2">
                   <div className="font-semibold">Tier #{tier.id}</div>
                   <div className="font-mono text-xs">
@@ -112,9 +122,7 @@ export default async function PresaleDevPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-600">
-            No tiers data available (check devnet or API).
-          </p>
+          <p className="text-sm text-gray-600">No tiers data available (check API).</p>
         )}
       </section>
 
@@ -124,9 +132,7 @@ export default async function PresaleDevPage() {
           <div className="mb-1">
             <span className="font-semibold">Status:</span> {result.status}
           </div>
-          <pre className="whitespace-pre-wrap break-all">
-            {JSON.stringify(body, null, 2)}
-          </pre>
+          <pre className="whitespace-pre-wrap break-all">{JSON.stringify(body, null, 2)}</pre>
         </div>
       </section>
     </main>

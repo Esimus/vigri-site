@@ -3,18 +3,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { SOLANA_RPC_URL } from '@/lib/config';
 
-// Simple cluster → RPC mapping for dev/test/main
-const CLUSTER = process.env.NEXT_PUBLIC_SOLANA_CLUSTER ?? 'devnet';
-
-const RPC_URL =
-  CLUSTER === 'mainnet'
-    ? 'https://api.mainnet-beta.solana.com'
-    : CLUSTER === 'testnet'
-      ? 'https://api.testnet.solana.com'
-      : 'https://api.devnet.solana.com';
-
-const connection = new Connection(RPC_URL, 'confirmed');
+const CLUSTER = 'mainnet' as const;
+const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
 const DISCONNECT_FLAG_KEY = 'vigri_solflare_disconnected';
 
@@ -81,6 +73,7 @@ export function useSolflareWallet(): WalletState {
       setBalance(lamports / LAMPORTS_PER_SOL);
     } catch (err) {
       console.error('Failed to load SOL balance', err);
+      setBalance(null);
     }
   }, []);
 
@@ -88,8 +81,6 @@ export function useSolflareWallet(): WalletState {
     setError(null);
 
     const provider = getSolflareProvider();
-    if (!provider) return;
-
     if (!provider) {
       setError('Solflare wallet not found');
       return;

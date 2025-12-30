@@ -1,174 +1,176 @@
 # 🌐 VIGRI Site
 
-🇷🇺 [Русская версия](#-vigri-site-ru)  
-🇬🇧 [English version](#-vigri-site-en)
+Web platform for the **VIGRI** project: public pages + user dashboard with **KYC/AML gating**, **NFT presale purchases**, **referrals & rewards (Echo)**, and on-chain reads from the **Solana mainnet**.
+
+> **Mainnet-only:** production is **strictly Solana mainnet**. Devnet/testnet are not supported in production builds.
 
 ---
 
-## 🇷🇺 VIGRI Site (RU)
+## Key features
 
-Лендинг **VIGRI** на **Next.js (App Router)** с локализацией **EN / RU / ET** и вынесенной конфигурацией.
-
-### 🚀 Быстрый старт
-
-1. Установить зависимости:
-
-   ```bash
-   npm install
-   ```
-
-2. Запустить дев-сервер:
-
-   ```bash
-   npm run dev
-   ```
-
-3. Открыть: [http://localhost:3000](http://localhost:3000)
+- **Next.js App Router** (Next.js 15)
+- **i18n (EN / RU / ET)** via JSON dictionaries in `locales/`
+- **User dashboard** (profile completion, KYC/AML gating)
+- **NFT presale flow**
+  - Reads **GlobalConfig** + tiers from Solana on-chain
+  - Purchase logging to DB + post-processing (incl. creator signature step)
+- **Rewards / Referrals**
+  - Echo awards and referral tracking on purchase-related events
+- **Price feed**
+  - SOL/EUR via **CoinGecko** with in-memory caching (TTL 120s)
 
 ---
 
-### ⚙️ Переменные окружения
+## Tech stack
 
-Скопируй `.env.example` → `.env.local` и при необходимости обнови значения.
-
-Основные переменные:
-
-- `NEXT_PUBLIC_SOLANA_CLUSTER` — `devnet` | `testnet` | `mainnet`
-- `NEXT_PUBLIC_TELEGRAM_URL`, `NEXT_PUBLIC_X_URL`, `NEXT_PUBLIC_GITHUB_URL`, `NEXT_PUBLIC_DEX_URL`
-- `NEXT_PUBLIC_CONTRACT_ADDRESS`, `NEXT_PUBLIC_PROGRAM_ID`, `NEXT_PUBLIC_ARWEAVE_URI`
-
-> ⚠️ Файл `.env.local` **не коммитим** (уже добавлен в `.gitignore`).
+- **Frontend / Server:** Next.js (App Router), TypeScript
+- **Styling:** Tailwind CSS v4
+- **Database:** PostgreSQL + Prisma
+- **Solana:** `@solana/web3.js` (mainnet RPC)
+- **Ops (production):** typically behind Nginx + process manager (e.g., PM2)
 
 ---
 
-### 🌍 Локализация (i18n)
+## Mainnet-only policy
 
-- Тексты: `locales/en.json`, `locales/ru.json`, `locales/et.json`  
-- Хук: `hooks/useI18n.ts` (использование: `t("key")`)  
-- Переключатель языков: `components/LanguageSwitcher.tsx`  
-- Новые строки добавляем **одинаковыми ключами** во все языки
-
----
-
-### 🧱 Полезно знать
-
-- Статика: `public/` (картинки, иконки)  
-- Токен-лист (план): `public/tokenlist.json`  
-- Конфиг: `lib/config.ts` (читает публичные переменные окружения)  
-- Главная страница: `app/page.tsx`  
-- Глобальные стили: `app/globals.css`
-- Cookie Consent: `components/CookieConsent*`, `lib/cookieConsent.ts` — баннер согласия с cookies (EU, только client-side)
+- The app is configured and validated to operate on **Solana mainnet only**.
+- API endpoints that accept a `network`/`cluster` query param must resolve to `mainnet` / `mainnet-beta` only.
+- UI should not expose devnet/testnet toggles in production.
 
 ---
 
-### 🧩 Скрипты
+## Requirements
 
-| Команда | Назначение |
-|----------|------------|
-| `npm run dev` | режим разработки |
-| `npm run build` | сборка продакшен |
-| `npm start` | запуск собранного приложения |
-| `npm run lint` | проверка ESLint |
-| `npm run backup` | резервная копия проекта |
+- Node.js **20+**
+- npm **9+**
+- PostgreSQL **14+** (or compatible managed Postgres)
 
 ---
 
-### 🏗 Примечания (архитектура)
+## Quick start (local)
 
-- Проект готов к расширению (личный кабинет, API-роуты, KYC-интеграция).  
-- Используется **crypto-agile** подход (абстрактные криптослои и централизованный конфиг).  
-- Архитектура протестирована на WSL (Ubuntu 24.04.1).  
-- Бэкенд API и Next.js связаны через cookies и Prisma ORM.
-- Внедрён **EU Cookie Banner** и базовая система **Echo awards (mock)**.
+```bash
+npm install
+npm run dev
+```
 
----
-
-### 📘 Документация
-
-📄 **Technical summary:** [docs/TECHNICAL_SUMMARY.md](docs/TECHNICAL_SUMMARY.md)
-🗂 **Репозиторий:** [Esimus/vigri-site](https://github.com/Esimus/vigri-site)
----
-
-## 🇬🇧 VIGRI Site (EN)
-
-Landing page and web platform for **VIGRI**, built on **Next.js (App Router)** with multilingual support (**EN / RU / ET**) and modular configuration.
-
-### 🚀 Quick Start
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-3. Open: [http://localhost:3000](http://localhost:3000)
+Open: http://localhost:3000
 
 ---
 
-### ⚙️ Environment Variables
+## Environment variables
 
-Copy `.env.example` → `.env.local` and update values if necessary.
+Copy `.env.example` → `.env.local` and fill in values.
 
-Main variables:
+`.env.local` must not be committed (already ignored by `.gitignore`).
 
-- `NEXT_PUBLIC_SOLANA_CLUSTER` — `devnet` | `testnet` | `mainnet`
-- `NEXT_PUBLIC_TELEGRAM_URL`, `NEXT_PUBLIC_X_URL`, `NEXT_PUBLIC_GITHUB_URL`, `NEXT_PUBLIC_DEX_URL`
-- `NEXT_PUBLIC_CONTRACT_ADDRESS`, `NEXT_PUBLIC_PROGRAM_ID`, `NEXT_PUBLIC_ARWEAVE_URI`
+This project uses a mix of public (`NEXT_PUBLIC_*`) and server-only variables.  
+Use `.env.example` as the source of truth for the full list.
 
-> ⚠️ `.env.local` **must not be committed** (already ignored via `.gitignore`).
+### Commonly used variables
 
----
+#### Solana (mainnet)
 
-### 🌍 Localization (i18n)
+- `SOLANA_RPC_URL` (server-side mainnet RPC endpoint)
+- `NEXT_PUBLIC_SOLANA_CLUSTER=mainnet` (public marker; production must be mainnet)
 
-- Texts: `locales/en.json`, `locales/ru.json`, `locales/et.json`  
-- Hook: `hooks/useI18n.ts` (usage: `t("key")`)  
-- Switcher: `components/LanguageSwitcher.tsx`  
-- Add new strings using identical keys in all languages
+Program / presale identifiers (kept in env/config):
 
----
+- `NEXT_PUBLIC_PROGRAM_ID`
+- other on-chain addresses if applicable
 
-### 🧱 Useful Info
+#### Links / marketing
 
-- Static files: `public/`  
-- Token list (planned): `public/tokenlist.json`  
-- Config: `lib/config.ts` (reads public env vars)  
-- Main page: `app/page.tsx`  
-- Global styles: `app/globals.css`
-- Cookie Consent: `components/CookieConsent*`, `lib/cookieConsent.ts` — баннер согласия с cookies (EU, только client-side)
+- `NEXT_PUBLIC_TELEGRAM_URL`
+- `NEXT_PUBLIC_X_URL`
+- `NEXT_PUBLIC_GITHUB_URL`
+- `NEXT_PUBLIC_DEX_URL`
 
----
+#### App URL (production)
 
-### 🧩 Scripts
+- `NEXT_PUBLIC_APP_URL` (must be set on production so Next `metadataBase` resolves correctly)
 
-| Command | Purpose |
-|----------|----------|
-| `npm run dev` | development mode |
-| `npm run build` | production build |
-| `npm start` | run compiled app |
-| `npm run lint` | run ESLint |
-| `npm run backup` | create local backup archive |
+#### Database / Auth
+
+- `DATABASE_URL` (PostgreSQL connection string)
+- Auth-related secrets (see `.env.example`)
 
 ---
 
-### 🏗 Architecture Notes
+## Database (Prisma)
 
-- Ready for expansion (dashboard, API routes, KYC integration).  
-- Uses **crypto-agile** design (abstract crypto layers, centralized configuration).  
-- Fully compatible with **Next.js 15 (Turbopack)**.  
-- Designed for **transparency**, **security**, and **maintainability**.
-- Added **EU Cookie Banner** and **Echo awards (mock)** system.
+Typical workflow:
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+For production migrations:
+
+```bash
+npx prisma migrate deploy
+```
 
 ---
 
-## 📘 Project Docs
+## Scripts
 
-**VIGRI Site** — part of the *Lumiros Ecosystem*, a web platform for `$VIGRI` token holders, fan clubs, and cultural initiatives.  
-Built with **Next.js 15**, **Prisma**, **Tailwind v4**, and **TypeScript**, focused on transparency, reliability, and strong data protection.
+| Command | Description |
+|--------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm start` | Run the production build |
+| `npm run lint` | ESLint (no warnings) |
+| `npm run typecheck` | TypeScript typecheck |
+| `npm run backup` | Create a local backup archive (if present in package scripts) |
 
-📄 **Technical summary:** [docs/TECHNICAL_SUMMARY.md](docs/TECHNICAL_SUMMARY.md)  
-🗂 **Repository:** [Esimus/vigri-site](https://github.com/Esimus/vigri-site)
+---
+
+## Project structure (high level)
+
+- `app/` — Next.js App Router (pages + API routes)
+- `app/api/` — server routes (presale config, mint logging, auth, etc.)
+- `components/` — UI components (dashboard, NFT cards, etc.)
+- `hooks/` — wallet integrations, i18n, client utilities
+- `lib/` — shared utilities & config
+- `src/` — services and Solana helpers (transactions/enrichment, etc.)
+- `prisma/` — Prisma schema and migrations
+- `locales/` — i18n dictionaries (`en.json`, `ru.json`, `et.json`)
+- `docs/` — technical documentation
+
+---
+
+## i18n (EN / RU / ET)
+
+- Dictionaries: `locales/en.json`, `locales/ru.json`, `locales/et.json`
+- Hook: `hooks/useI18n.ts`
+- Always keep keys aligned across all languages.
+
+---
+
+## Notes on pricing (SOL/EUR)
+
+- Endpoint: `app/api/assets/route.ts`
+- SOL/EUR is fetched from CoinGecko and cached in-memory for 120 seconds.
+- Tier pricing is derived via an internal call to `/api/presale/global-config` and merged into the response.
+
+---
+
+## Security & compliance (KYC/AML)
+
+The platform includes a KYC/AML gating layer and user profile completeness checks.  
+Higher tiers can require stricter verification rules depending on residency/citizenship and internal compliance logic.
+
+---
+
+## Documentation
+
+- Technical summary: `docs/TECHNICAL_SUMMARY.md`
+- Repo: `Esimus/vigri-site`
+
+---
+
+## License
+
+TBD (add a license file or specify the intended license here).
