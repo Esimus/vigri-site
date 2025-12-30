@@ -1093,10 +1093,24 @@ export default function NftDetails({ id }: { id: string }) {
         data[11] = 0; // invite_proof = None
       }
 
-      // Collection accounts (placeholder values for now; must match on-chain config in v2).
-      const COLLECTION_MINT = new PublicKey('Dqa6Zzh2sYgviEQxxPnhTAwJD5MA5FDxAyLhkGeaULJg');
-      const COLLECTION_METADATA = new PublicKey('FiTMjeJ1mxJNzNUZijKccx3Gn293phTondw9qATyTege');
-      const COLLECTION_MASTER_EDITION = new PublicKey('AnEjffPqDmdhAUKRL5RjK1BUGYMR9G4FSJpQWuAf991U');
+      // Collection accounts: mainnet VIGRI Presale Collection
+      const COLLECTION_MINT = new PublicKey(
+        '7wGaXNPmB14HmhiYybf8o8Vb9jA7eVSNRDLWnYjDKYwt',
+      );
+
+      // Derive collection metadata PDA (same pattern as for NFT metadata)
+      const COLLECTION_METADATA = findMetadataPda(COLLECTION_MINT);
+
+      // Derive collection master edition PDA
+      const [COLLECTION_MASTER_EDITION] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('metadata'),
+          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          COLLECTION_MINT.toBuffer(),
+          Buffer.from('edition'),
+        ],
+        TOKEN_METADATA_PROGRAM_ID,
+      );
 
       const ix = new TransactionInstruction({
         programId: presaleProgramId(),
