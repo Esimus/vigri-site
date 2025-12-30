@@ -4,11 +4,11 @@ import { prisma } from '@/lib/prisma';
 import { getCookie } from '@/lib/cookies';
 import { SESSION_COOKIE } from '@/lib/session';
 import { resolveAmlZone } from '@/constants/amlAnnexA';
-import type { Session, UserProfile, KycStatus, CountryZone as DbCountryZone } from '@prisma/client';
+import type { UserProfile, KycStatus, CountryZone as DbCountryZone } from '@prisma/client';
 
 export const runtime = 'nodejs';
 
-type DbSession = Pick<Session, 'userId' | 'idleExpires'>;
+type DbSession = { userId: string; idleExpires: bigint };
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
