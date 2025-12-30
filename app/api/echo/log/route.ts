@@ -36,11 +36,11 @@ export async function GET(req: Request) {
     },
   });
 
-  const hasMore = rows.length > limit;
-  const items = rows.slice(0, limit).map(r => ({
-    ...r,
-    amount: r.amountUe / 1_000_000, // echo
-  }));
+    const hasMore = rows.length > limit;
+    const items = rows.slice(0, limit).map((r: { amountUe: number } & Record<string, unknown>) => ({
+      ...r,
+      amount: r.amountUe / 1_000_000, // echo
+    }));
 
   return NextResponse.json({
     ok: true,
