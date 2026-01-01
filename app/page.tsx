@@ -449,8 +449,8 @@ export default function Home() {
         <div className="mt-6 grid gap-4">
           {[
             { k: t('roadmap_i1_k'), v: t('roadmap_i1_v'), p: 1.0 },
-            { k: t('roadmap_i2_k'), v: t('roadmap_i2_v'), p: 0.7 },
-            { k: t('roadmap_i3_k'), v: t('roadmap_i3_v'), p: 0.05 },
+            { k: t('roadmap_i2_k'), v: t('roadmap_i2_v'), p: 1.0 },
+            { k: t('roadmap_i3_k'), v: t('roadmap_i3_v'), p: 0.2 },
             { k: t('roadmap_i4_k'), v: t('roadmap_i4_v'), p: 0 },
             { k: t('roadmap_i5_k'), v: t('roadmap_i5_v'), p: 0 },
           ].map((x) => (

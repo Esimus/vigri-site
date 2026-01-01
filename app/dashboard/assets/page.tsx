@@ -493,7 +493,7 @@ export default function AssetsPage() {
           address ? (
             <InlineLoader label={t('overview.loading_history')} />
           ) : (
-            <div className="text-sm opacity-70">
+            <div className="text-xs text-zinc-600 opacity-70">
               {t('assets.history.wallet_required')}
             </div>
           )
