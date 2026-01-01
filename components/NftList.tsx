@@ -117,6 +117,7 @@ export default function NftList() {
   const [zone, setZone] = useState<CountryZone>(null);
   const [isEe, setIsEe] = useState(false);
   const [kycStatus, setKycStatus] = useState<KycStatus>('none');
+  const [solEurRate, setSolEurRate] = useState<number | null>(null);
 
   // small i18n helper with fallback
   const tr = (key: string, fallback: string) => {
@@ -226,14 +227,54 @@ export default function NftList() {
     void load();
   }, []);
 
-  const cf = useMemo(
-    () =>
-      new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'EUR',
-      }),
-    [],
-  );
+  const hasAnySol = useMemo(() => {
+  if (!Array.isArray(items)) return false;
+  return items.some((i) => typeof i.onchain?.priceSol === 'number' && i.onchain.priceSol > 0);
+}, [items]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchSolEur() {
+      // Prefer backend endpoint (caching, no CORS, no key leakage).
+      try {
+        const r = await fetch(`/api/price/sol-eur?ts=${Date.now()}`, { cache: 'no-store' });
+        const j: unknown = await r.json().catch(() => ({}));
+        if (!cancelled && r.ok && isObject(j) && (j as { ok?: unknown }).ok === true) {
+          const eur =
+            (j as { eur?: unknown }).eur ??
+            (j as { rateEur?: unknown }).rateEur ??
+            (j as { rate?: unknown }).rate;
+          if (typeof eur === 'number' && eur > 0) {
+            setSolEurRate(eur);
+            return;
+          }
+        }
+      } catch {
+        // Ignore and try direct CoinGecko next.
+      }
+
+      // Fallback: direct CoinGecko simple price.
+      try {
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=eur';
+        const r = await fetch(url, { cache: 'no-store' });
+        const j: unknown = await r.json().catch(() => ({}));
+        const eur = isObject(j) && isObject((j as Record<string, unknown>)['solana'])
+          ? (j as { solana?: { eur?: unknown } }).solana?.eur
+          : undefined;
+
+        if (!cancelled && typeof eur === 'number' && eur > 0) {
+          setSolEurRate(eur);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (hasAnySol) void fetchSolEur();
+    return () => { cancelled = true; };
+  }, [hasAnySol]);
+
   const presale = usePresaleCountdown();
 
   const hasItems = Array.isArray(items) && items.length > 0;
@@ -300,6 +341,10 @@ export default function NftList() {
             const showAvailability = i.id !== 'nft-ws-20' && total > 0;
 
             const solPrice = typeof i.onchain?.priceSol === 'number' ? i.onchain.priceSol : null;
+            const eurNow =
+              solPrice !== null && solPrice > 0 && typeof solEurRate === 'number' && solEurRate > 0
+                ? solPrice * solEurRate
+                : null;
 
             const keys = Array.isArray(i.summaryKeys) ? i.summaryKeys : [];
             const hasResume = keys.length > 0;
@@ -405,11 +450,12 @@ export default function NftList() {
                     <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
                       <div>
                         {t('nft.price')}: {hasSol ? <b>{solPrice} SOL</b> : <span className="opacity-70">—</span>}
-                        {hasSol && hasEur && (
+                        {hasSol && eurNow !== null && (
                           <span className="ml-2 text-[11px] opacity-70">
-                            ≈ {cf.format(i.eurPrice)} (presale reference)
+                            ≈ {eurNow.toFixed(0)}€ (CoinGecko)
                           </span>
                         )}
+
                       </div>
                       {hasSol && <span className="chip">{t('nft.after')}</span>}
                     </div>

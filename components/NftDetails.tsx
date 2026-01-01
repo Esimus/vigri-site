@@ -1150,31 +1150,38 @@ export default function NftDetails({ id }: { id: string }) {
 
       tx.add(computeIx, ix);
 
-      // partial sign with mint keypair (because mint is created by Anchor init)
-      tx.partialSign(mintKp);
-
+      // Prefer multi-signer safe flow:
+      // 1) Wallet signs (fee payer) via signTransaction
+      // 2) Then we add the mint signature
+      // 3) Then we send via our RPC
       let sig = '';
 
-      // Safer flow: wallet signs, app broadcasts via our selected RPC (connection)
-      if (provider.signTransaction) {
-        const signedTx = await provider.signTransaction(tx);
-        sig = await connection.sendRawTransaction(signedTx.serialize(), {
+      if (typeof provider.signTransaction === 'function') {
+        const walletSignedTx = await provider.signTransaction(tx);
+
+        // Add mint signature after the wallet signature
+        walletSignedTx.partialSign(mintKp);
+
+        sig = await connection.sendRawTransaction(walletSignedTx.serialize(), {
           skipPreflight: false,
         });
-        await connection.confirmTransaction(
-          { signature: sig, blockhash, lastValidBlockHeight },
-          'confirmed',
-        );
       } else {
-        // Fallback: Phantom signs and broadcasts itself
+        // Fallback: wallet does not support signTransaction (rare)
+        tx.partialSign(mintKp);
         const res = await provider.signAndSendTransaction(tx);
-        sig = typeof res === 'string' ? res : res.signature || '';
+        sig = typeof res === 'string' ? res : (res.signature ?? '');
       }
 
       if (!sig) {
         setMintMsg(t('nft.mint.noSignature'));
         return;
       }
+
+      await connection.confirmTransaction(
+        { signature: sig, blockhash, lastValidBlockHeight },
+        'confirmed',
+      );
+
 
       let designChoiceLog: number | null = null;
       if (tierId === 0) {
@@ -1193,7 +1200,7 @@ export default function NftDetails({ id }: { id: string }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            wallet: publicKey.toBase58(),
+            wallet: publicKey!.toBase58(),
             tierId,
             quantity: 1,
             txSignature: sig,
@@ -1213,7 +1220,7 @@ export default function NftDetails({ id }: { id: string }) {
         const meJson = await meRes.json().catch(() => ({} as { ok?: boolean; user?: { id?: string } }));
         const meId = meJson?.ok && meJson?.user?.id ? String(meJson.user.id) : null;
 
-        const tierName = item ? tierParamFromItemTier(item.tier) : 'Base';
+        const tierName = tierParamFromItemTier(item?.tier);
         const solTotal = Number(item?.onchain?.priceSol ?? 0);
 
         const qsClaim = new URLSearchParams();
@@ -1221,7 +1228,7 @@ export default function NftDetails({ id }: { id: string }) {
         // Temporary: `claim` currently expects `eur`, we pass SOL value to re-enable the pipeline.
         if (solTotal > 0) qsClaim.set('eur', String(solTotal));
         qsClaim.set('qty', '1');
-        if (meId) qsClaim.set('userId', meId);
+        if (meId) qsClaim.set('userId', String(meId));
 
         await fetch(`/api/nft/claim?${qsClaim.toString()}`, { method: 'POST' });
       } catch (err) {
