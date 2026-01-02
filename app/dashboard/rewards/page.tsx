@@ -61,6 +61,17 @@ function isLevels(x: unknown): x is LevelsResp {
 function formatEcho(n: number) {
   return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
+
+function calcParticipationIndex(raw: number): number {
+  if (!Number.isFinite(raw) || raw <= 0) return 0;
+  const v = 1 + 2 * Math.log10(raw + 1);
+  return Math.round(v * 10) / 10; // one decimal
+}
+
+function formatIndex(n: number) {
+  return n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
 function cn(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(' ');
 }
@@ -245,7 +256,7 @@ export default function RewardsPage() {
             <div className="card p-4">
               <div className="text-xs opacity-60">{t('rewards.participation_score')}</div>
               <div className="text-2xl font-semibold mt-1">
-                {formatEcho(balance.participationScore)} <span className="text-base font-normal opacity-70">echo</span>
+                {formatIndex(calcParticipationIndex(balance.participationScore))}
               </div>
             </div>
             <div className="card p-4">

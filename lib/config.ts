@@ -87,8 +87,8 @@ export const clusterLabel = isMainnet
 // ---- Presale shared settings (single source of truth) ----
 
 // UTC ISO start moment for presale (used on NFT cards, etc.)
-// 03.01.2026 12:00 Tallinn (UTC+2) = 2026-01-03T10:00:00Z
-export const PRESALE_START_ISO = "2026-01-03T10:00:00Z";
+// 07.01.2026 12:00 Tallinn (UTC+2) = 2026-01-07T10:00:00Z
+export const PRESALE_START_ISO = "2026-01-07T10:00:00Z";
 
 // Elapsed milliseconds since presale start (0 before the start)
 export function presaleElapsedMs(now = Date.now()): number {

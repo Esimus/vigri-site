@@ -582,7 +582,7 @@ export default function AssetsPage() {
             )}
           </>
         ) : (
-          <div className="text-sm opacity-70">
+          <div className="text-xs text-zinc-600 opacity-70">
             {t('overview.no_activity')}
           </div>
         )}
