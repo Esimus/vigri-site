@@ -122,6 +122,8 @@ export default function AssetsPage() {
     withdraw: 'activity.withdraw',
     buy_nft: 'activity.buy_nft',
     reward: 'activity.reward',
+
+    'nft-mint': 'activity.buy_nft',
   };
 
   const ACTIVITY_ICONS: Record<string, string> = {
@@ -131,6 +133,8 @@ export default function AssetsPage() {
     withdraw: '⬆️',
     buy_nft: '🧾',
     reward: '🎁',
+
+    'nft-mint': '🧾',
   };
 
   const activityLabel = (type: string) => {
