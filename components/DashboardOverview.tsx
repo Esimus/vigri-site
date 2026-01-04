@@ -86,7 +86,10 @@ const ACTIVITY_KEYS: Record<string, string> = {
   withdraw: 'activity.withdraw',
   buy_nft: 'activity.buy_nft',
   reward: 'activity.reward',
+
+  'nft-mint': 'activity.buy_nft',
 };
+
 const ACTIVITY_ICONS: Record<string, string> = {
   buy_vigri: '🟢',
   sell_vigri: '🔴',
@@ -94,12 +97,16 @@ const ACTIVITY_ICONS: Record<string, string> = {
   withdraw: '⬆️',
   buy_nft: '🧾',
   reward: '🎁',
+
+  'nft-mint': '🧾',
 };
+
 const activityLabel = (type: string, t: (k: string) => string) => {
   const key = ACTIVITY_KEYS[type] ?? 'activity.unknown';
   const v = t(key);
   return v === key ? type : v;
 };
+
 const activityIcon = (type: string) => ACTIVITY_ICONS[type] ?? '•';
 
 const amountText = (h: AssetsResp['history'][number]) => {
