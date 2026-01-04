@@ -193,19 +193,23 @@ function isFiniteNumber(x: unknown): x is number {
   return typeof x === 'number' && Number.isFinite(x);
 }
 
-async function loadPresaleTiers(
-  base: string,
-  cluster: Cluster,
-): Promise<Map<number, PresaleTierApi>> {
+async function loadPresaleTiers(): Promise<Map<number, PresaleTierApi>> {
   const map = new Map<number, PresaleTierApi>();
 
   try {
-    const res = await fetch(
-      `${base}/api/presale/global-config?cluster=${cluster}`,
-      { cache: 'no-store' },
-    );
+    const base =
+      typeof process.env.INTERNAL_API_BASE === 'string' &&
+      process.env.INTERNAL_API_BASE.length > 0
+        ? process.env.INTERNAL_API_BASE
+        : 'http://127.0.0.1:3000';
 
-    if (!res.ok) return map;
+    const res = await fetch(`${base}/api/presale/global-config`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      return map;
+    }
 
     const raw: PresaleConfigApi = await res.json();
 
@@ -230,7 +234,6 @@ async function loadPresaleTiers(
 }
 
 // ---- Handler ----
-
 export async function GET(req: NextRequest) {
   const session = await getCookie('vigri_session');
   if (!session) {
@@ -288,8 +291,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const base = new URL(req.url).origin;
-    const presaleTiers = await loadPresaleTiers(base, NETWORK);
+    const presaleTiers = await loadPresaleTiers();
 
     nftPortfolio = Array.from(byTier.entries()).map(([tierNum, agg]) => {
       const meta = NFT_TIERS[tierNum];
