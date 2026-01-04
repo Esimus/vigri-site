@@ -74,7 +74,8 @@ export default function PresaleWidget({
   }, []);
 
   const fmtSol = new Intl.NumberFormat('en', {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
   const fmtInt = new Intl.NumberFormat(undefined, {

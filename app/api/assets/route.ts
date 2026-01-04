@@ -193,13 +193,17 @@ function isFiniteNumber(x: unknown): x is number {
   return typeof x === 'number' && Number.isFinite(x);
 }
 
-async function loadPresaleTiers(base: string): Promise<Map<number, PresaleTierApi>> {
+async function loadPresaleTiers(
+  base: string,
+  cluster: Cluster,
+): Promise<Map<number, PresaleTierApi>> {
   const map = new Map<number, PresaleTierApi>();
 
   try {
-    const res = await fetch(`${base}/api/presale/global-config`, {
-      cache: 'no-store',
-    });
+    const res = await fetch(
+      `${base}/api/presale/global-config?cluster=${cluster}`,
+      { cache: 'no-store' },
+    );
 
     if (!res.ok) return map;
 
@@ -285,7 +289,7 @@ export async function GET(req: NextRequest) {
     }
 
     const base = new URL(req.url).origin;
-    const presaleTiers = await loadPresaleTiers(base);
+    const presaleTiers = await loadPresaleTiers(base, NETWORK);
 
     nftPortfolio = Array.from(byTier.entries()).map(([tierNum, agg]) => {
       const meta = NFT_TIERS[tierNum];

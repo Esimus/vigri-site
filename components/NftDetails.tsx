@@ -1172,16 +1172,37 @@ export default function NftDetails({ id }: { id: string }) {
         sig = typeof res === 'string' ? res : (res.signature ?? '');
       }
 
-      if (!sig) {
-        setMintMsg(t('nft.mint.noSignature'));
-        return;
+      // Confirm transaction, but handle "block height exceeded" gracefully
+      try {
+        await connection.confirmTransaction(
+          { signature: sig, blockhash, lastValidBlockHeight },
+          'confirmed',
+        );
+      } catch (confirmErr) {
+        const text = confirmErr instanceof Error ? confirmErr.message : String(confirmErr);
+        const low = text.toLowerCase();
+
+        const maybeExpired =
+          low.includes('block height exceeded') ||
+          low.includes('has expired');
+
+        if (maybeExpired) {
+          // Fallback: check final status directly by signature
+          const statuses = await connection.getSignatureStatuses([sig]);
+          const info = statuses && statuses.value && statuses.value[0];
+
+          if (info && !info.err) {
+            // Transaction actually succeeded on-chain — treat as success
+            // and continue (do not rethrow).
+          } else {
+            // Real failure — bubble up to outer catch
+            throw confirmErr;
+          }
+        } else {
+          // Any other error — bubble up
+          throw confirmErr;
+        }
       }
-
-      await connection.confirmTransaction(
-        { signature: sig, blockhash, lastValidBlockHeight },
-        'confirmed',
-      );
-
 
       let designChoiceLog: number | null = null;
       if (tierId === 0) {
