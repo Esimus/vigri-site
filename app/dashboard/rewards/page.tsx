@@ -115,6 +115,21 @@ export default function RewardsPage() {
 
   const [refStats, setRefStats] = useState<RefStats | null>(null);
 
+  // copy button
+  const [copied, setCopied] = useState(false);
+  const handleCopyReferral = async () => {
+    if (!referralUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(referralUrl);
+      setCopied(true);
+      // auto-reset
+      setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error('Failed to copy referral link', err);
+    }
+  };
+
   // levels
   const [levels, setLevels] = useState<LevelsResp | null>(null);
   const [showL1, setShowL1] = useState(false);
@@ -288,12 +303,17 @@ export default function RewardsPage() {
             <div className="text-xs opacity-70">
               {t('rewards.cookie_hint')} <code>vigri_ref</code> {t('rewards.cookie_hint_tail')}
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <button
-                className="btn btn-outline"
-                onClick={() => referralUrl && navigator.clipboard.writeText(referralUrl)}
+                type="button"
+                onClick={handleCopyReferral}
+                className={`btn btn-outline transition-transform duration-150 active:scale-95 ${
+                  copied ? 'border-emerald-500 bg-emerald-50 dark:border-zinc-400 dark:bg-[var(--brand-800)]' : ''
+                }`}
               >
-                {t('rewards.copy_link')}
+                {copied
+                  ? t('copied_tooltip') || '✓ Copied'
+                  : t('rewards.copy_link')}
               </button>
             </div>
           </div>

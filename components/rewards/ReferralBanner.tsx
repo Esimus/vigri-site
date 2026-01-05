@@ -275,7 +275,11 @@ export function ReferralBanner(props: {
             />
 
             <button
-              className={cn('btn btn-outline', !userId ? 'opacity-60 cursor-not-allowed' : '')}
+              className={cn(
+                'btn btn-outline transition-transform duration-150 active:scale-95',
+                (!userId || checkStatus === 'checking') &&
+                  'opacity-60 cursor-not-allowed active:scale-100',
+              )}
               onClick={checkInviterEmail}
               disabled={!userId || checkStatus === 'checking'}
             >
