@@ -964,12 +964,14 @@ export function ProfileForm() {
 
                   <div className="space-y-2">
                     <ViewRow label={tr('profile.form.birthDate', 'Birth date')} value={data.birthDate || '—'} mono nowrap />
-                    <ViewRow
-                      label={tr('profile.form.isikukood', 'Personal ID code (EE)')}
-                      value={data.isikukood ? data.isikukood : '—'}
-                      mono
-                      nowrap
-                    />
+                    {data.countryResidence === 'EE' && (
+                      <ViewRow
+                        label={tr('profile.form.isikukood', 'Personal ID code (EE)')}
+                        value={data.isikukood ? data.isikukood : '—'}
+                        mono
+                        nowrap
+                      />
+                    )}
                     <ViewRow
                       label={tr('profile.form.languagePreferred', 'Language')}
                       value={languageLabel(data.language || 'en', tr)}
