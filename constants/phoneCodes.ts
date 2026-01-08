@@ -57,6 +57,8 @@ export const PHONE_CODES: PhoneCode[] = [
   { code: 'AM', dial: '+374', label: '+374 (AM)' },
   { code: 'AZ', dial: '+994', label: '+994 (AZ)' },
   { code: 'GE', dial: '+995', label: '+995 (GE)' },
+  { code: 'KG', dial: '+996', label: '+996 (KG)' },
+  { code: 'UZ', dial: '+998', label: '+998 (UZ)' },
   { code: 'TR', dial: '+90',  label: '+90 (TR)' },
 
   // Middle East
