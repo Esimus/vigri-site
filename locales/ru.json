@@ -170,6 +170,121 @@
   "emails.reset.text": "Чтобы сбросить пароль, откройте ссылку: {link}\nСсылка действительна 1 час. Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.",
   "emails.reset.html": "<p>Чтобы сбросить пароль, нажмите на ссылку ниже:</p><p><a href=\"{link}\">{link}</a></p><p>Ссылка действует 1 час. Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.</p>",
 
+  "faq_menu_title": "FAQ",
+  "faq_solflare_menu_title": "Покупка NFT через Solflare",
+
+  "faq_tag_edge": "Edge",
+  "faq_tag_chrome": "Chrome",
+  "faq_tag_security": "Безопасность",
+  "faq_tag_tip": "Совет",
+  "faq_tag_troubleshooting": "Если не работает",
+
+  "faq_solflare_page_title": "Покупка NFT через Solflare",
+  "faq_solflare_page_intro": "Следуй шагам ниже. Скриншоты необязательны — открывай их только когда нужна визуальная подсказка.",
+  "faq_solflare_ui_screenshot_label": "Скриншот (клик — увеличить)",
+  "faq_solflare_ui_zoom_hint": "Совет: кликни по скриншоту, чтобы увеличить.",
+
+  "faq_solflare_s1_title": "1) Установка Solflare",
+  "faq_solflare_s1_desc": "Установи расширение Solflare, создай кошелёк и закрепи иконку в панели браузера.",
+
+  "faq_solflare_step_solflare_1_title": "Открой официальную страницу Solflare (Download)",
+  "faq_solflare_step_solflare_1_b1": "Перейди на официальный сайт Solflare → Download.",
+  "faq_solflare_step_solflare_1_b2": "В блоке “Supported extensions” нажми свой браузер (Edge/Chrome).",
+  "faq_solflare_action_open_download": "Открыть страницу Solflare Download",
+  "faq_solflare_step_solflare_1_alt": "Solflare Download — supported extensions",
+
+  "faq_solflare_step_solflare_2_title": "Установи расширение из магазина браузера",
+  "faq_solflare_step_solflare_2_b1": "В магазине расширений нажми Get / Установить.",
+  "faq_solflare_step_solflare_2_b2": "Подтверди “Добавить расширение”.",
+  "faq_solflare_step_solflare_2_alt": "Solflare — установка расширения в магазине",
+
+  "faq_solflare_step_solflare_3_title": "Настрой кошелёк (новый или существующий)",
+  "faq_solflare_step_solflare_3_b1": "Открой Solflare и выбери: “I need a new wallet” (создать новый) или “I already have a wallet” (восстановить/импортировать).",
+  "faq_solflare_step_solflare_3_b2": "Если создаёшь новый — появится фраза восстановления из 12 слов.",
+  "faq_solflare_step_solflare_3_b3": "Запиши её на бумагу в правильном порядке (без скриншотов). Если восстанавливаешь существующий — введи recovery phrase внимательно, без ошибок.",
+  "faq_solflare_step_solflare_3_alt": "Solflare — создание кошелька / recovery phrase",
+
+  "faq_solflare_step_solflare_4_title": "Подтверди фразу восстановления",
+  "faq_solflare_step_solflare_4_b1": "Нажми “I saved my recovery phrase”.",
+  "faq_solflare_step_solflare_4_b2": "Введи слова по номерам.",
+  "faq_solflare_step_solflare_4_b3": "Нажми Continue.",
+  "faq_solflare_step_solflare_4_alt": "Solflare — подтверждение recovery phrase",
+
+  "faq_solflare_step_solflare_5_title": "Задай сложный пароль для этого устройства",
+  "faq_solflare_step_solflare_5_b1": "Придумай сложный пароль (он нужен именно для этого устройства).",
+  "faq_solflare_step_solflare_5_b2": "Нажми Continue.",
+  "faq_solflare_step_solflare_5_alt": "Solflare — установка пароля",
+
+  "faq_solflare_step_solflare_6_title": "Прими условия и заверши настройку",
+  "faq_solflare_step_solflare_6_b1": "Отметь согласие с условиями и политикой.",
+  "faq_solflare_step_solflare_6_b2": "Нажми “I agree, let’s go”.",
+  "faq_solflare_step_solflare_6_alt": "Solflare — принятие условий",
+
+  "faq_solflare_step_solflare_7_title": "Закрепи Solflare на панели браузера",
+  "faq_solflare_step_solflare_7_b1": "Edge: нажми Extensions (пазл) → найди Solflare → Pin (булавка).",
+  "faq_solflare_step_solflare_7_b2": "Chrome: нажми Extensions (пазл) → Pin (булавка) напротив Solflare.",
+  "faq_solflare_step_solflare_7_b3": "После закрепления открывай кошелёк кликом по иконке.",
+  "faq_solflare_step_solflare_7_alt": "Меню расширений — закрепление Solflare",
+
+  "faq_solflare_s2_title": "2) Подключение Solflare к vigri.ee",
+  "faq_solflare_s2_desc": "Войди в аккаунт на vigri.ee и подключи кошелёк к платформе.",
+
+  "faq_solflare_step_vigri_1_title": "Открой vigri.ee",
+  "faq_solflare_step_vigri_1_b1": "Открой сайт в браузере.",
+  "faq_solflare_step_vigri_1_alt": "vigri.ee — открытие сайта",
+
+  "faq_solflare_step_vigri_2_title": "Войди в аккаунт (или зарегистрируйся)",
+  "faq_solflare_step_vigri_2_b1": "Войди в аккаунт или создай новый.",
+  "faq_solflare_step_vigri_2_alt": "vigri.ee — вход / регистрация",
+
+  "faq_solflare_step_vigri_3_title": "Открой кабинет и нажми “Connect wallet”",
+  "faq_solflare_step_vigri_3_b1": "Открой личный кабинет.",
+  "faq_solflare_step_vigri_3_b2": "Нажми “Connect wallet / Подключить кошелёк”.",
+  "faq_solflare_step_vigri_3_alt": "Кабинет — кнопка подключения кошелька",
+
+  "faq_solflare_step_vigri_4_title": "Выбери Solflare в списке кошельков",
+  "faq_solflare_step_vigri_4_b1": "Выбери Solflare в списке кошельков.",
+  "faq_solflare_step_vigri_4_alt": "Список кошельков — выбор Solflare",
+
+  "faq_solflare_step_vigri_5_title": "Подтверди подключение в Solflare",
+  "faq_solflare_step_vigri_5_b1": "Во всплывающем окне Solflare введи пароль (Unlock).",
+  "faq_solflare_step_vigri_5_b2": "Подтверди подключение к сайту.",
+  "faq_solflare_step_vigri_5_b3": "Если не подключилось — обнови страницу и попробуй снова.",
+  "faq_solflare_step_vigri_5_alt": "Solflare — подтверждение подключения",
+
+  "faq_solflare_step_vigri_6_title": "Проверь адрес подключенного кошелька",
+  "faq_solflare_step_vigri_6_b1": "После подключения на сайте появится адрес кошелька.",
+  "faq_solflare_step_vigri_6_b2": "Убедись, что он совпадает с адресом в Solflare.",
+  "faq_solflare_step_vigri_6_alt": "Кабинет — отображение адреса кошелька",
+
+  "faq_solflare_s3_title": "3) Покупка NFT на vigri.ee через Solflare",
+  "faq_solflare_s3_desc": "Пополни SOL, купи NFT и проверь результат.",
+
+  "faq_solflare_step_buy_1_title": "Пополни SOL в Solflare",
+  "faq_solflare_step_buy_1_b1": "Открой Solflare (кликни по закреплённой иконке).",
+  "faq_solflare_step_buy_1_b2": "Нажми “Buy” и выбери удобного провайдера покупки SOL.",
+  "faq_solflare_step_buy_1_alt": "Solflare — покупка SOL (Buy)",
+
+  "faq_solflare_step_buy_2_title": "Заверши покупку у провайдера",
+  "faq_solflare_step_buy_2_b1": "Выбери валюту и сумму покупки.",
+  "faq_solflare_step_buy_2_b2": "Выбери доступную платформу/провайдера и способ оплаты.",
+  "faq_solflare_step_buy_2_b3": "Проверь, что получатель — именно твой адрес кошелька, затем заверши покупку у провайдера.",
+  "faq_solflare_step_buy_2_b4": "После покупки проверь баланс SOL в Solflare.",
+  "faq_solflare_step_buy_2_alt": "Покупка SOL у провайдера — оформление",
+
+  "faq_solflare_step_buy_3_title": "Купи NFT на странице NFT",
+  "faq_solflare_step_buy_3_b1": "Вернись на vigri.ee → Кабинет → NFT.",
+  "faq_solflare_step_buy_3_b2": "Убедись, что кошелёк подключен.",
+  "faq_solflare_step_buy_3_b3": "Выбери уровень NFT → открой Details → (если есть) выбери опции → нажми Buy.",
+  "faq_solflare_step_buy_3_b4": "Подтверди транзакцию в Solflare.",
+  "faq_solflare_step_buy_3_b5": "Дождись завершения — пока кнопка Buy снова не станет активной.",
+  "faq_solflare_step_buy_3_alt": "NFT — процесс покупки",
+
+  "faq_solflare_step_buy_4_title": "Проверь транзакцию и результат",
+  "faq_solflare_step_buy_4_b1": "После покупки открой Overview / Assets / Rewards и проверь новые записи.",
+  "faq_solflare_step_buy_4_b2": "Также можно открыть ссылку на транзакцию (signature) и проверить статус в сети.",
+  "faq_solflare_step_buy_4_alt": "После покупки — проверка результатов",
+
   "header.notifications": "Уведомления",
   "header.mail_empty": "Новых сообщений нет",
   "header.mail_open": "Открыть входящие",

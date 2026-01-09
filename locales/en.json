@@ -170,6 +170,121 @@
   "emails.reset.text": "To reset your password, open this link: {link}\nThe link is valid for 1 hour. If you didn't request this, ignore this email.",
   "emails.reset.html": "<p>To reset your password, click the link below:</p><p><a href=\"{link}\">{link}</a></p><p>The link is valid for 1 hour. If you didn't request this, you can ignore this email.</p>",
 
+  "faq_menu_title": "FAQ",
+  "faq_solflare_menu_title": "Purchase NFT via Solflare",
+
+  "faq_tag_edge": "Edge",
+  "faq_tag_chrome": "Chrome",
+  "faq_tag_security": "Security",
+  "faq_tag_tip": "Tip",
+  "faq_tag_troubleshooting": "Troubleshooting",
+
+  "faq_solflare_page_title": "Purchase NFT via Solflare",
+  "faq_solflare_page_intro": "Follow the steps below. Screenshots are optional — open them only when you need a visual reference.",
+  "faq_solflare_ui_screenshot_label": "Screenshot (click to zoom)",
+  "faq_solflare_ui_zoom_hint": "Tip: click the screenshot to zoom.",
+
+  "faq_solflare_s1_title": "1) Install Solflare",
+  "faq_solflare_s1_desc": "Install the Solflare browser extension, create a wallet, and pin the icon.",
+
+  "faq_solflare_step_solflare_1_title": "Open the official Solflare download page",
+  "faq_solflare_step_solflare_1_b1": "Go to the official Solflare website → Download.",
+  "faq_solflare_step_solflare_1_b2": "In “Supported extensions”, click your browser (Edge/Chrome).",
+  "faq_solflare_action_open_download": "Open Solflare download",
+  "faq_solflare_step_solflare_1_alt": "Solflare download page — supported extensions",
+
+  "faq_solflare_step_solflare_2_title": "Install the extension from the browser store",
+  "faq_solflare_step_solflare_2_b1": "In the extension store, click Get / Install.",
+  "faq_solflare_step_solflare_2_b2": "Confirm Add extension.",
+  "faq_solflare_step_solflare_2_alt": "Solflare extension — install in browser store",
+
+  "faq_solflare_step_solflare_3_title": "Set up your wallet (new or existing)",
+  "faq_solflare_step_solflare_3_b1": "Open Solflare and choose either: “I need a new wallet” (new) or “I already have a wallet” (restore/import).",
+  "faq_solflare_step_solflare_3_b2": "If you create a new wallet, you will see a 12-word recovery phrase.",
+  "faq_solflare_step_solflare_3_b3": "Write it down on paper in the correct order (no screenshots). If you restore an existing wallet, enter your recovery phrase carefully.",
+  "faq_solflare_step_solflare_3_alt": "Solflare — create wallet / recovery phrase screen",
+
+  "faq_solflare_step_solflare_4_title": "Confirm the recovery phrase",
+  "faq_solflare_step_solflare_4_b1": "Click “I saved my recovery phrase”.",
+  "faq_solflare_step_solflare_4_b2": "Enter the requested words by number.",
+  "faq_solflare_step_solflare_4_b3": "Click Continue.",
+  "faq_solflare_step_solflare_4_alt": "Solflare — confirm recovery phrase",
+
+  "faq_solflare_step_solflare_5_title": "Set a strong password for this device",
+  "faq_solflare_step_solflare_5_b1": "Create a strong password (this is device-specific).",
+  "faq_solflare_step_solflare_5_b2": "Click Continue.",
+  "faq_solflare_step_solflare_5_alt": "Solflare — set password",
+
+  "faq_solflare_step_solflare_6_title": "Accept terms and finish setup",
+  "faq_solflare_step_solflare_6_b1": "Agree with Terms and Privacy Policy.",
+  "faq_solflare_step_solflare_6_b2": "Click “I agree, let’s go”.",
+  "faq_solflare_step_solflare_6_alt": "Solflare — terms acceptance",
+
+  "faq_solflare_step_solflare_7_title": "Pin Solflare to your browser toolbar",
+  "faq_solflare_step_solflare_7_b1": "Edge: click Extensions (puzzle) → find Solflare → Pin.",
+  "faq_solflare_step_solflare_7_b2": "Chrome: click Extensions (puzzle) → Pin Solflare.",
+  "faq_solflare_step_solflare_7_b3": "After pinning, click the icon to open the wallet popup.",
+  "faq_solflare_step_solflare_7_alt": "Browser extensions menu — pin Solflare",
+
+  "faq_solflare_s2_title": "2) Connect Solflare to vigri.ee",
+  "faq_solflare_s2_desc": "Log in to your account and connect the wallet to the platform.",
+
+  "faq_solflare_step_vigri_1_title": "Open vigri.ee",
+  "faq_solflare_step_vigri_1_b1": "Open the website in your browser.",
+  "faq_solflare_step_vigri_1_alt": "vigri.ee — open website",
+
+  "faq_solflare_step_vigri_2_title": "Log in (or register)",
+  "faq_solflare_step_vigri_2_b1": "Log in to your account or create a new one.",
+  "faq_solflare_step_vigri_2_alt": "vigri.ee — login / register",
+
+  "faq_solflare_step_vigri_3_title": "Go to Dashboard and click “Connect wallet”",
+  "faq_solflare_step_vigri_3_b1": "Open your dashboard.",
+  "faq_solflare_step_vigri_3_b2": "Click “Connect wallet”.",
+  "faq_solflare_step_vigri_3_alt": "Dashboard — connect wallet button",
+
+  "faq_solflare_step_vigri_4_title": "Choose Solflare in the wallet list",
+  "faq_solflare_step_vigri_4_b1": "Select Solflare from the list of wallets.",
+  "faq_solflare_step_vigri_4_alt": "Wallet list — choose Solflare",
+
+  "faq_solflare_step_vigri_5_title": "Approve the connection in Solflare",
+  "faq_solflare_step_vigri_5_b1": "In the Solflare popup, unlock with your password.",
+  "faq_solflare_step_vigri_5_b2": "Approve the connection request.",
+  "faq_solflare_step_vigri_5_b3": "If it does not connect, refresh the page and try again.",
+  "faq_solflare_step_vigri_5_alt": "Solflare popup — approve connection",
+
+  "faq_solflare_step_vigri_6_title": "Verify the connected wallet address",
+  "faq_solflare_step_vigri_6_b1": "After connection, you should see your wallet address on the site.",
+  "faq_solflare_step_vigri_6_b2": "Make sure it matches your Solflare wallet.",
+  "faq_solflare_step_vigri_6_alt": "Dashboard — connected wallet address",
+
+  "faq_solflare_s3_title": "3) Buy NFT on vigri.ee using Solflare",
+  "faq_solflare_s3_desc": "Top up SOL, buy an NFT, and verify the result.",
+
+  "faq_solflare_step_buy_1_title": "Top up SOL in Solflare",
+  "faq_solflare_step_buy_1_b1": "Open Solflare (click the pinned icon).",
+  "faq_solflare_step_buy_1_b2": "Press “Buy” to purchase SOL via a supported provider.",
+  "faq_solflare_step_buy_1_alt": "Solflare — Buy SOL",
+
+  "faq_solflare_step_buy_2_title": "Complete the purchase with the provider",
+  "faq_solflare_step_buy_2_b1": "Choose currency and amount.",
+  "faq_solflare_step_buy_2_b2": "Select the available platform/provider and payment method.",
+  "faq_solflare_step_buy_2_b3": "Confirm that your wallet address is the recipient, then complete the provider flow.",
+  "faq_solflare_step_buy_2_b4": "After purchase, verify your SOL balance in Solflare.",
+  "faq_solflare_step_buy_2_alt": "Provider checkout — buy SOL",
+
+  "faq_solflare_step_buy_3_title": "Buy an NFT on the NFT page",
+  "faq_solflare_step_buy_3_b1": "Return to vigri.ee → Dashboard → NFT.",
+  "faq_solflare_step_buy_3_b2": "Make sure the wallet is connected.",
+  "faq_solflare_step_buy_3_b3": "Choose an NFT tier → open Details → select options (if any) → click Buy.",
+  "faq_solflare_step_buy_3_b4": "Confirm the transaction in Solflare.",
+  "faq_solflare_step_buy_3_b5": "Wait until the Buy button becomes active again.",
+  "faq_solflare_step_buy_3_alt": "NFT page — buy flow",
+
+  "faq_solflare_step_buy_4_title": "Verify transaction and results",
+  "faq_solflare_step_buy_4_b1": "After the transaction appears, open Overview / Assets / Rewards to verify new records.",
+  "faq_solflare_step_buy_4_b2": "You can also open the transaction link (signature) to confirm on-chain status.",
+  "faq_solflare_step_buy_4_alt": "Post-purchase — verify transaction and records",
+
   "header.notifications": "Notifications",
   "header.mail_empty": "No new messages",
   "header.mail_open": "Open inbox",

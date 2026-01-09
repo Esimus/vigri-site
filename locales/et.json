@@ -170,6 +170,121 @@
   "emails.reset.text": "Parooli lähtestamiseks ava see link: {link}\nLink kehtib 1 tund. Kui sa ei taotlenud seda, võid selle kirja ignoreerida.",
   "emails.reset.html": "<p>Parooli lähtestamiseks klõpsa alloleval lingil:</p><p><a href=\"{link}\">{link}</a></p><p>Link kehtib 1 tund. Kui sa ei taotlenud parooli lähtestamist, võid selle kirja ignoreerida.</p>",
 
+  "faq_menu_title": "KKK",
+  "faq_solflare_menu_title": "NFT ostmine Solflare’iga",
+
+  "faq_tag_edge": "Edge",
+  "faq_tag_chrome": "Chrome",
+  "faq_tag_security": "Turvalisus",
+  "faq_tag_tip": "Nipp",
+  "faq_tag_troubleshooting": "Kui ei tööta",
+
+  "faq_solflare_page_title": "NFT ostmine Solflare’iga",
+  "faq_solflare_page_intro": "Järgi allolevaid samme. Ekraanipildid on valikulised — ava need ainult siis, kui vajad visuaalset abi.",
+  "faq_solflare_ui_screenshot_label": "Ekraanipilt (klõps — suurenda)",
+  "faq_solflare_ui_zoom_hint": "Nipp: klõpsa ekraanipildil, et seda suurendada.",
+
+  "faq_solflare_s1_title": "1) Solflare’i paigaldamine",
+  "faq_solflare_s1_desc": "Paigalda Solflare’i brauserilaiendus, loo rahakott ja kinnita ikoon tööriistaribale.",
+
+  "faq_solflare_step_solflare_1_title": "Ava ametlik Solflare’i allalaadimisleht",
+  "faq_solflare_step_solflare_1_b1": "Mine Solflare’i ametlikule veebilehele → Download.",
+  "faq_solflare_step_solflare_1_b2": "Jaotises “Supported extensions” vali oma brauser (Edge/Chrome).",
+  "faq_solflare_action_open_download": "Ava Solflare’i allalaadimine",
+  "faq_solflare_step_solflare_1_alt": "Solflare’i allalaadimine — supported extensions",
+
+  "faq_solflare_step_solflare_2_title": "Paigalda laiendus brauseripoest",
+  "faq_solflare_step_solflare_2_b1": "Brauseripoes vajuta Get / Install.",
+  "faq_solflare_step_solflare_2_b2": "Kinnita Add extension.",
+  "faq_solflare_step_solflare_2_alt": "Solflare — laienduse paigaldus brauseripoes",
+
+  "faq_solflare_step_solflare_3_title": "Seadista rahakott (uus või olemasolev)",
+  "faq_solflare_step_solflare_3_b1": "Ava Solflare ja vali kas: “I need a new wallet” (uus) või “I already have a wallet” (taasta/impordi).",
+  "faq_solflare_step_solflare_3_b2": "Kui lood uue rahakoti, kuvatakse 12-sõnaline taastamisfraas.",
+  "faq_solflare_step_solflare_3_b3": "Kirjuta see paberile õiges järjekorras (ära tee ekraanipilte). Kui taastad olemasoleva rahakoti, sisesta taastamisfraas väga hoolikalt.",
+  "faq_solflare_step_solflare_3_alt": "Solflare — rahakoti loomine / recovery phrase",
+
+  "faq_solflare_step_solflare_4_title": "Kinnita taastamisfraas",
+  "faq_solflare_step_solflare_4_b1": "Vajuta “I saved my recovery phrase”.",
+  "faq_solflare_step_solflare_4_b2": "Sisesta sõnad vastavalt numbritele.",
+  "faq_solflare_step_solflare_4_b3": "Vajuta Continue.",
+  "faq_solflare_step_solflare_4_alt": "Solflare — taastamisfraasi kinnitamine",
+
+  "faq_solflare_step_solflare_5_title": "Sea sellele seadmele tugev parool",
+  "faq_solflare_step_solflare_5_b1": "Loo tugev parool (see on selle seadme jaoks).",
+  "faq_solflare_step_solflare_5_b2": "Vajuta Continue.",
+  "faq_solflare_step_solflare_5_alt": "Solflare — parooli seadistamine",
+
+  "faq_solflare_step_solflare_6_title": "Nõustu tingimustega ja lõpeta seadistus",
+  "faq_solflare_step_solflare_6_b1": "Nõustu tingimuste ja privaatsuspoliitikaga.",
+  "faq_solflare_step_solflare_6_b2": "Vajuta “I agree, let’s go”.",
+  "faq_solflare_step_solflare_6_alt": "Solflare — tingimustega nõustumine",
+
+  "faq_solflare_step_solflare_7_title": "Kinnita Solflare brauseri tööriistaribale",
+  "faq_solflare_step_solflare_7_b1": "Edge: Extensions (pusle) → Solflare → Pin.",
+  "faq_solflare_step_solflare_7_b2": "Chrome: Extensions (pusle) → Pin Solflare.",
+  "faq_solflare_step_solflare_7_b3": "Pärast kinnitamist ava rahakott ikoonile klõpsates.",
+  "faq_solflare_step_solflare_7_alt": "Brauserilaienduste menüü — Solflare kinnitamine",
+
+  "faq_solflare_s2_title": "2) Solflare’i ühendamine vigri.ee-ga",
+  "faq_solflare_s2_desc": "Logi vigri.ee-sse sisse ja ühenda rahakott platvormiga.",
+
+  "faq_solflare_step_vigri_1_title": "Ava vigri.ee",
+  "faq_solflare_step_vigri_1_b1": "Ava veebileht oma brauseris.",
+  "faq_solflare_step_vigri_1_alt": "vigri.ee — veebilehe avamine",
+
+  "faq_solflare_step_vigri_2_title": "Logi sisse (või registreeru)",
+  "faq_solflare_step_vigri_2_b1": "Logi sisse oma kontole või loo uus konto.",
+  "faq_solflare_step_vigri_2_alt": "vigri.ee — sisselogimine / registreerimine",
+
+  "faq_solflare_step_vigri_3_title": "Ava juhtpaneel ja vajuta “Connect wallet”",
+  "faq_solflare_step_vigri_3_b1": "Ava oma juhtpaneel (Dashboard).",
+  "faq_solflare_step_vigri_3_b2": "Vajuta “Connect wallet”.",
+  "faq_solflare_step_vigri_3_alt": "Juhtpaneel — rahakoti ühendamise nupp",
+
+  "faq_solflare_step_vigri_4_title": "Vali rahakottide loendist Solflare",
+  "faq_solflare_step_vigri_4_b1": "Vali rahakottide loendist Solflare.",
+  "faq_solflare_step_vigri_4_alt": "Rahakottide loend — Solflare valimine",
+
+  "faq_solflare_step_vigri_5_title": "Kinnita ühendus Solflare’is",
+  "faq_solflare_step_vigri_5_b1": "Solflare’i hüpikaknas ava lukustus parooliga (Unlock).",
+  "faq_solflare_step_vigri_5_b2": "Kinnita ühendustaotlus.",
+  "faq_solflare_step_vigri_5_b3": "Kui ei ühendu, värskenda lehte ja proovi uuesti.",
+  "faq_solflare_step_vigri_5_alt": "Solflare — ühenduse kinnitamine",
+
+  "faq_solflare_step_vigri_6_title": "Kontrolli ühendatud rahakoti aadressi",
+  "faq_solflare_step_vigri_6_b1": "Pärast ühendamist kuvatakse saidil rahakoti aadress.",
+  "faq_solflare_step_vigri_6_b2": "Veendu, et see kattub sinu Solflare’i aadressiga.",
+  "faq_solflare_step_vigri_6_alt": "Juhtpaneel — rahakoti aadress",
+
+  "faq_solflare_s3_title": "3) NFT ostmine vigri.ee-s Solflare’iga",
+  "faq_solflare_s3_desc": "Lisa SOL, osta NFT ja kontrolli tulemust.",
+
+  "faq_solflare_step_buy_1_title": "Lisa SOL Solflare’i",
+  "faq_solflare_step_buy_1_b1": "Ava Solflare (klõpsa kinnitatud ikoonil).",
+  "faq_solflare_step_buy_1_b2": "Vajuta “Buy” ja osta SOL sobiva teenusepakkuja kaudu.",
+  "faq_solflare_step_buy_1_alt": "Solflare — SOL ostmine (Buy)",
+
+  "faq_solflare_step_buy_2_title": "Lõpeta ost teenusepakkuja juures",
+  "faq_solflare_step_buy_2_b1": "Vali valuuta ja summa.",
+  "faq_solflare_step_buy_2_b2": "Vali saadaval olev platvorm/teenusepakkuja ja makseviis.",
+  "faq_solflare_step_buy_2_b3": "Kontrolli, et saajaks on sinu rahakoti aadress, ja lõpeta ost teenusepakkuja voos.",
+  "faq_solflare_step_buy_2_b4": "Pärast ostu kontrolli SOLi saldot Solflare’is.",
+  "faq_solflare_step_buy_2_alt": "Teenusepakkuja kassas — SOL ost",
+
+  "faq_solflare_step_buy_3_title": "Osta NFT NFT-lehel",
+  "faq_solflare_step_buy_3_b1": "Mine tagasi vigri.ee → Dashboard → NFT.",
+  "faq_solflare_step_buy_3_b2": "Veendu, et rahakott on ühendatud.",
+  "faq_solflare_step_buy_3_b3": "Vali NFT tase → ava Details → (kui on) vali valikud → vajuta Buy.",
+  "faq_solflare_step_buy_3_b4": "Kinnita tehing Solflare’is.",
+  "faq_solflare_step_buy_3_b5": "Oota, kuni Buy nupp muutub jälle aktiivseks.",
+  "faq_solflare_step_buy_3_alt": "NFT-leht — ostuprotsess",
+
+  "faq_solflare_step_buy_4_title": "Kontrolli tehingut ja tulemust",
+  "faq_solflare_step_buy_4_b1": "Pärast tehingut ava Overview / Assets / Rewards ja kontrolli uusi kirjeid.",
+  "faq_solflare_step_buy_4_b2": "Soovi korral ava ka tehingu link (signature), et kinnitada olek ketis.",
+  "faq_solflare_step_buy_4_alt": "Pärast ostu — tulemuse kontroll",
+
   "header.notifications": "Teavitused",
   "header.mail_empty": "Uusi teateid pole",
   "header.mail_open": "Ava postkast",
