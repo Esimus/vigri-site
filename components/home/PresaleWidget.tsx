@@ -188,8 +188,6 @@ export default function PresaleWidget({
           {t('read_litepaper')}
         </Link>
       </div>
-
-      <div className="mt-3 text-[11px] text-zinc-500">{t('numbers_note')}</div>
     </div>
   );
 }
