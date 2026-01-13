@@ -169,6 +169,7 @@ function BuyPanelMobile(props: {
   mintMsg: string | null;
   kycPills: KycUiPill[];
   isBuying: boolean;
+  solEurLoading: boolean;
 }) {
 
   const {
@@ -183,6 +184,7 @@ function BuyPanelMobile(props: {
     mintMsg,
     kycPills,
     isBuying,
+    solEurLoading,
   } = props;
 
   if (!item) return null;
@@ -271,9 +273,18 @@ function BuyPanelMobile(props: {
           <div className="text-2xl font-semibold leading-none" style={{ color: 'var(--brand-400)' }}>
             {hasSol ? `${solPrice} SOL` : ''}
           </div>
-          {hasSol && eurNow !== null && (
-            <div className="text-xs opacity-70 mt-1">
-              ≈ {eurNow.toFixed(0)}€ (CoinGecko)
+          {hasSol && (
+            <div className="text-xs opacity-70 mt-1 flex items-center gap-1">
+              {solEurLoading ? (
+                <>
+                  <InlineLoader className="!text-current" />
+                  <span>{t('nft.price.eur_loading')}</span>
+                </>
+              ) : eurNow !== null ? (
+                <>≈ {eurNow.toFixed(0)}€ (CoinGecko)</>
+              ) : (
+                <span>{t('nft.price.eur_unavailable')}</span>
+              )}
             </div>
           )}
           <button
@@ -529,6 +540,7 @@ export default function NftDetails({ id }: { id: string }) {
   const [presaleAdmin, setPresaleAdmin] = useState<string | null>(null);
 
   const [solEurRate, setSolEurRate] = useState<number | null>(null);
+  const [solEurLoading, setSolEurLoading] = useState<boolean>(false);
 
   const [kycStatus, setKycStatus] = useState<KycStatus>('none');
   const [countryZone, setCountryZone] = useState<CountryZone>(null);
@@ -716,48 +728,79 @@ export default function NftDetails({ id }: { id: string }) {
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchSolEur() {
-
-      // Prefer backend endpoint (caching, no CORS, no key leakage).
+    async function fetchOnce(): Promise<number | null> {
+      // 1) We're trying to take a course from our backend.
       try {
         const r = await fetch(`/api/price/sol-eur?ts=${Date.now()}`, { cache: 'no-store' });
         const j: unknown = await r.json().catch(() => ({}));
-        if (!cancelled && r.ok && isObject(j) && (j as { ok?: unknown }).ok === true) {
+        if (r.ok && isObject(j) && (j as { ok?: unknown }).ok === true) {
           const eur =
             (j as { eur?: unknown }).eur ??
             (j as { rateEur?: unknown }).rateEur ??
             (j as { rate?: unknown }).rate;
           if (typeof eur === 'number' && eur > 0) {
-            setSolEurRate(eur);
-            return;
+            return eur;
           }
         }
       } catch {
-        // Ignore and try direct CoinGecko next.
+        // Ignore it, let's go to CoinGecko
       }
 
-      // Fallback: direct CoinGecko simple price.
+      // 2) Fallback: Direct Query to CoinGecko
       try {
         const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=eur';
         const r = await fetch(url, { cache: 'no-store' });
         const j: unknown = await r.json().catch(() => ({}));
-        const eur = isObject(j) && isObject((j as Record<string, unknown>)['solana'])
-          ? (j as { solana?: { eur?: unknown } }).solana?.eur
-          : undefined;
+        const eur =
+          isObject(j) && isObject((j as Record<string, unknown>)['solana'])
+            ? (j as { solana?: { eur?: unknown } }).solana?.eur
+            : undefined;
 
-        if (!cancelled && typeof eur === 'number' && eur > 0) {
-          setSolEurRate(eur);
+        if (typeof eur === 'number' && eur > 0) {
+          return eur;
+        }
+      } catch {
+        // We also ignore this and return null.
+      }
+
+      return null;
+    }
+
+    async function loadWithRetry() {
+      if (!hasSol) return;
+      setSolEurLoading(true);
+      setSolEurRate(null);
+
+      const maxAttempts = 4;
+      let attempt = 0;
+
+      while (!cancelled && attempt < maxAttempts) {
+        attempt += 1;
+        const eur = await fetchOnce();
+        if (eur && eur > 0) {
+          if (!cancelled) {
+            setSolEurRate(eur);
+            setSolEurLoading(false);
+          }
           return;
         }
 
-        if (!cancelled) return;
-      } catch {
-        if (!cancelled) return;
+        // небольшая пауза перед следующей попыткой
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+
+      if (!cancelled) {
+        setSolEurLoading(false);
       }
     }
 
-    if (hasSol) void fetchSolEur();
-    return () => { cancelled = true; };
+    if (hasSol) {
+      void loadWithRetry();
+    }
+
+    return () => {
+      cancelled = true;
+    };
   }, [hasSol]);
 
   function tierIdFromItemTier(t: Item['tier'] | undefined): number {
@@ -1473,6 +1516,7 @@ export default function NftDetails({ id }: { id: string }) {
           mintMsg={mintMsg}
           isBuying={isBuying}
           kycPills={pills}
+          solEurLoading={solEurLoading}
         />
       </div>
 
@@ -1610,8 +1654,8 @@ export default function NftDetails({ id }: { id: string }) {
                 </div>
               ) : null}
 
-                            <div className="flex items-start gap-4 flex-1">
-                {/* Левая колонка: цена + кнопка */}
+              <div className="flex items-start gap-4 flex-1">
+                {/* Left column: price + button */}
                 <div className="flex flex-col items-start">
                   <div
                     className="text-2xl font-semibold leading-none"
@@ -1620,9 +1664,18 @@ export default function NftDetails({ id }: { id: string }) {
                     {hasSol ? `${solPrice} SOL` : ""}
                   </div>
 
-                  {hasSol && eurNow !== null && (
-                    <div className="text-xs opacity-70 mt-1">
-                      ≈ {eurNow.toFixed(0)}€ (CoinGecko)
+                  {hasSol && (
+                    <div className="text-xs opacity-70 mt-1 flex items-center gap-1">
+                      {solEurLoading ? (
+                        <>
+                          <InlineLoader className="!text-current" />
+                          <span>{t('nft.price.eur_loading')}</span>
+                        </>
+                      ) : eurNow !== null ? (
+                        <>≈ {eurNow.toFixed(0)}€ (CoinGecko)</>
+                      ) : (
+                        <span>{t('nft.price.eur_unavailable')}</span>
+                      )}
                     </div>
                   )}
 
@@ -1676,7 +1729,7 @@ export default function NftDetails({ id }: { id: string }) {
                   )}
                 </div>
 
-                {/* Правая колонка: честный текст про итоговую сумму */}
+                {/* Right column: honest text about the final amount */}
                 {hasSol && (
                   <div className="text-[11px] opacity-70 max-w-[260px] ml-auto">
                     {t('nft.price.final_hint')}

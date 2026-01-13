@@ -832,7 +832,9 @@
 
   "nft.price.final_hint": "⚠️ Pane tähele: rahakotist maha võetav lõplik summa on veidi kõrgem kui kuvatud NFT hind, sest sellele lisanduvad alati 2,5% autoritasu ja Solana võrgu tasud. Täpse summa näitab rahakott alati enne kinnitamist.",
   "nft.price.final_hint_short": "⚠️ Pane tähele: lõplik summa on veidi kõrgem kui NFT hind 2,5% autoritasu ja võrgu tasude tõttu. Täpse summa näitab rahakott enne kinnitamist.",
-  
+  "nft.price.eur_loading": "Laen praegust SOL/EUR kurssi…",
+  "nft.price.eur_unavailable": "SOL/EUR kurss ei ole hetkel saadaval (CoinGecko).",
+
   "nft.summary.tree_0": "Avaneb II kv 2026",
   "nft.summary.tree_1": "Koguarv: 2000",
   "nft.summary.tree_2": "Saad 62 500 VIGRI",

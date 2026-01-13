@@ -832,7 +832,9 @@
   
   "nft.price.final_hint": "⚠️ Please note: the final amount debited from your wallet will be slightly higher than the listed NFT price, because a 2.5% creator royalty and Solana network fees are always added on top. Your wallet will always show the exact total before you approve.",
   "nft.price.final_hint_short": "⚠️ Please note: the final amount will be slightly higher than the NFT price due to the 2.5% royalty and Solana network fees. Your wallet will show the exact total before you confirm.",
-  
+  "nft.price.eur_loading": "Loading current SOL/EUR rate…",
+  "nft.price.eur_unavailable": "SOL/EUR rate is currently unavailable (CoinGecko).",
+
   "nft.summary.tree_0": "Reveals Q2 2026",
   "nft.summary.tree_1": "Total supply: 2000",
   "nft.summary.tree_2": "Claim 62,500 VIGRI",
