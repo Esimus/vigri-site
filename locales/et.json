@@ -830,6 +830,9 @@
   "nft.mint.amlBlocked": "Ost ei ole saadaval teie praeguse profiili ja riigi jaoks.",
   "nft.mint.profileRequired": "Ost ei ole saadaval: palun täitke kõigepealt profiil.",
 
+  "nft.price.final_hint": "⚠️ Pane tähele: rahakotist maha võetav lõplik summa on veidi kõrgem kui kuvatud NFT hind, sest sellele lisanduvad alati 2,5% autoritasu ja Solana võrgu tasud. Täpse summa näitab rahakott alati enne kinnitamist.",
+  "nft.price.final_hint_short": "⚠️ Pane tähele: lõplik summa on veidi kõrgem kui NFT hind 2,5% autoritasu ja võrgu tasude tõttu. Täpse summa näitab rahakott enne kinnitamist.",
+  
   "nft.summary.tree_0": "Avaneb II kv 2026",
   "nft.summary.tree_1": "Koguarv: 2000",
   "nft.summary.tree_2": "Saad 62 500 VIGRI",
@@ -1007,6 +1010,9 @@
   "overview.wallet_manage": "Vaata kõiki varasid",
   "overview.wallet_connect": "Ühenda rahakott",
   "overview.wallet_disconnect": "Lahuta rahakott",
+  "overview.portfolio_value": "Portfelli hinnanguline väärtus",
+  "overview.portfolio_value_hint": "NFT-d ja tulevased VIGRI tokenid praeguste hindade järgi, hinnanguliselt eurodes.",
+  "overview.loading_portfolio": "Laadin portfelli väärtust...",
 
   "rewards.title": "Preemiad",
   "rewards.dev_hint_userid": "Dev: lisa ?userId=... konkreetse kasutaja vaatamiseks",

@@ -33,7 +33,6 @@ export default function StatCarousel({ items }: { items: Item[] }) {
     const dominant =
       Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
 
-    // If there is any wheel movement, prevent the page itself from scrolling
     if (dominant !== 0) {
       e.preventDefault();
       e.stopPropagation();
@@ -42,10 +41,10 @@ export default function StatCarousel({ items }: { items: Item[] }) {
   };
 
   return (
-    <div className="relative md:hidden">
-      {/* Paddles live outside the card content area; extra horizontal padding creates gutters */}
+    <div className="relative">
+      {/* Scroll buttons + slide track */}
       <div className="relative px-8">
-        {/* Left paddle (full height) */}
+        {/* Left paddle */}
         <button
           type="button"
           aria-label="Previous"
@@ -65,7 +64,7 @@ export default function StatCarousel({ items }: { items: Item[] }) {
           </span>
         </button>
 
-        {/* Right paddle (full height) */}
+        {/* Right paddle */}
         <button
           type="button"
           aria-label="Next"
@@ -85,7 +84,7 @@ export default function StatCarousel({ items }: { items: Item[] }) {
           </span>
         </button>
 
-        {/* Track (native swipe + wheel; scrollbar hidden) */}
+        {/* Track */}
         <div
           ref={trackRef}
           onWheelCapture={onWheelCapture}
@@ -103,25 +102,30 @@ export default function StatCarousel({ items }: { items: Item[] }) {
               <div
                 key={i}
                 data-slide
-                className="
-                  snap-start shrink-0
-                  basis-[60%] sm:basis-[41%]
-                  max-w-[420px]
-                "
+                  className="
+                    snap-start shrink-0
+                    basis-[80%]
+                    sm:basis-1/2
+                    md:basis-1/3
+                    lg:basis-1/4
+                    xl:basis-1/5
+                  "
                 tabIndex={0}
                 aria-label={
                   valueText ? `${it.title}: ${valueText}` : it.title
                 }
               >
-                {/* Equal-height card */}
-                <div className="card p-3 min-w-0 h-full min-h-[110px] flex flex-col items-center text-center">
-                  <div className="w-full text-[11px] opacity-70">{it.title}</div>
+                
+                <div className="card p-3 md:p-4 min-w-0 h-full min-h-[110px] flex flex-col items-center text-center">
+                  <div className="w-full text-[11px] md:text-xs opacity-70">
+                    {it.title}
+                  </div>
 
-                  <div className="w-full mt-1 text-base font-semibold leading-snug whitespace-normal break-words">
+                  <div className="w-full mt-1 text-base md:text-lg font-semibold leading-snug whitespace-normal break-words">
                     {it.value}
                   </div>
 
-                  <div className="w-full mt-auto pt-1 text-[11px] opacity-60 min-h-[16px]">
+                  <div className="w-full mt-auto pt-1 text-[11px] md:text-xs opacity-60 min-h-[16px]">
                     {it.hint ?? <span aria-hidden>&nbsp;</span>}
                   </div>
                 </div>

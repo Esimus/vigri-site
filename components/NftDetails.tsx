@@ -1476,6 +1476,13 @@ export default function NftDetails({ id }: { id: string }) {
         />
       </div>
 
+      {/* Mobile: final price explainer */}
+      {hasSol && (
+        <div className="lg:hidden card p-3 text-xs opacity-70">
+          {t('nft.price.final_hint_short')}
+        </div>
+      )}
+
       {/* Mobile: availability bar */}
       {!isWS && (
         <div className="lg:hidden card p-3">
@@ -1603,7 +1610,8 @@ export default function NftDetails({ id }: { id: string }) {
                 </div>
               ) : null}
 
-              <div className="flex items-end gap-4">
+                            <div className="flex items-start gap-4 flex-1">
+                {/* Левая колонка: цена + кнопка */}
                 <div className="flex flex-col items-start">
                   <div
                     className="text-2xl font-semibold leading-none"
@@ -1611,11 +1619,13 @@ export default function NftDetails({ id }: { id: string }) {
                   >
                     {hasSol ? `${solPrice} SOL` : ""}
                   </div>
+
                   {hasSol && eurNow !== null && (
                     <div className="text-xs opacity-70 mt-1">
                       ≈ {eurNow.toFixed(0)}€ (CoinGecko)
                     </div>
                   )}
+
                   <button
                     className={
                       "btn btn-outline mt-2 transition-transform duration-150 " +
@@ -1640,6 +1650,7 @@ export default function NftDetails({ id }: { id: string }) {
                       </span>
                     </span>
                   </button>
+
                   {mintMsg ? (
                     <div className="text-xs opacity-80 mt-2">{mintMsg}</div>
                   ) : null}
@@ -1664,6 +1675,13 @@ export default function NftDetails({ id }: { id: string }) {
                     </div>
                   )}
                 </div>
+
+                {/* Правая колонка: честный текст про итоговую сумму */}
+                {hasSol && (
+                  <div className="text-[11px] opacity-70 max-w-[260px] ml-auto">
+                    {t('nft.price.final_hint')}
+                  </div>
+                )}
               </div>
             </div>
           )}
