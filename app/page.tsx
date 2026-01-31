@@ -9,16 +9,14 @@ import Image from 'next/image';
 import BeyondDigital from '@/components/BeyondDigital';
 import HashDropdown from '@/components/HashDropdown';
 import AuthModal from '@/components/AuthModal';
-import { LanguageSwitcher, ProfileMenu } from '@/components/nav';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import { NotificationsBell } from '@/components/notifications';
 import VerifyBanner from '@/components/VerifyBanner';
-import VigriLogo from "@/components/VigriLogo";
+import PublicHeader from '@/components/layout/PublicHeader';
 import { ProgressDot } from '@/components/ui/ProgressDot';
 import PresaleWidget from '@/components/home/PresaleWidget';
 
 export default function Home() {
-  const { lang, setLang, t } = useI18n();
+  const { t } = useI18n();
   const [copied, setCopied] = useState<string>('');
   const [me, setMe] = useState<{ email: string } | null>(null);
   useEffect(() => {
@@ -105,80 +103,7 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-zinc-200">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <a href="#home" className="flex items-center gap-3">
-            <div className="h-11 w-11 overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white">
-              <VigriLogo className="shrink-0 size-11" />             {/* 44px */}
-            </div>
-            <div>
-              <div className="font-semibold tracking-tight">VIGRI</div>
-              <div className="text-xs text-zinc-500">Solana Utility Token</div>
-            </div>
-          </a>
-
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#utility" className="hover:text-black">{t('nav_why')}</a>
-            <a href="#tokenomics" className="hover:text-black">{t('nav_tokenomics')}</a>
-            <a href="#roadmap" className="hover:text-black">{t('nav_roadmap')}</a>
-            <a href="#how" className="hover:text-black">{t('nav_how')}</a>
-            <a href="#contract" className="btn btn-primary">{t('nav_contract')}</a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            {me ? (
-              // logged-in: Profile → Bell → Language → Dashboard
-              <div className="flex items-center gap-2">
-                <ProfileMenu />
-                <NotificationsBell />
-                <LanguageSwitcher lang={lang} onChange={setLang} />
-
-                <a
-                  href="/dashboard"
-                  className="
-                    btn btn-primary
-                    flex items-center justify-center gap-1.5
-                    h-8 w-8 p-0 rounded-2xl
-                    sm:w-auto sm:px-3
-                    whitespace-nowrap
-                  "
-                  aria-label={t('common.go_dashboard') || 'Go to Dashboard'}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="3" width="8" height="8" rx="2" />
-                    <rect x="13" y="3" width="8" height="5" rx="2" />
-                    <rect x="13" y="10" width="8" height="11" rx="2" />
-                    <rect x="3" y="13" width="8" height="8" rx="2" />
-                  </svg>
-
-                  <span className="hidden sm:inline text-xs font-medium">
-                    {t('common.go_dashboard') || 'Go to Dashboard'}
-                  </span>
-                </a>
-              </div>
-            ) : (
-              <>
-                <LanguageSwitcher lang={lang} onChange={setLang} />
-                <button className="btn btn-outline" onClick={() => openAuth('login')}>
-                  {t('common.sign_in') || 'Sign in'}
-                </button>
-              </>
-            )}
-          </div>
-
-        </div>
-      </header>
+      <PublicHeader />
 
       <AuthModal />
 
@@ -496,6 +421,11 @@ export default function Home() {
                     </a>
                   </li>
                   <li>
+                    <a className="hover:underline" href={CONFIG.DISCORD_URL} target="_blank" rel="noreferrer">
+                      Discord
+                    </a>
+                  </li>
+                  <li>
                     <a className="hover:underline" href={CONFIG.GITHUB_URL} target="_blank" rel="noreferrer">
                       GitHub
                     </a>
@@ -536,8 +466,8 @@ export default function Home() {
                     </a>
                   </li>
                   <li>
-                    <a className="hover:underline" href="/contact" rel="noreferrer">
-                      {t('footer_contact')}
+                    <a className="hover:underline" href="/compliance" rel="noreferrer">
+                      {t('footer_compliance')}
                     </a>
                   </li>
                 </ul>

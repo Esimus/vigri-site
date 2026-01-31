@@ -1,4 +1,26 @@
 {
+  "aml_badge": "Compliance",
+  "aml_title": "AML / KYC / GDPR and data protection",
+  "aml_intro": "VIGRI follows a risk-based approach to anti-money laundering (AML), customer verification (KYC) and personal data protection. This page gives a short, human-readable overview of how it works in practice.",
+  "aml_block_aml_label": "AML",
+  "aml_block_aml_title": "Anti-money laundering",
+  "aml_block_aml_text": "We do not allow VIGRI NFT to be used for money laundering, terrorist financing or sanctions evasion. The depth of checks depends on the total volume of operations, the client’s country and behaviour on the platform.",
+  "aml_block_kyc_label": "KYC",
+  "aml_block_kyc_title": "Know Your Customer",
+  "aml_block_kyc_text": "Before activating rights linked to NFT, we may need to verify your identity. For small amounts a completed profile can be enough; for higher volumes we request identity documents and, if needed, proof of address.",
+  "aml_block_gdpr_label": "GDPR",
+  "aml_block_gdpr_title": "Data and privacy",
+  "aml_block_gdpr_text": "Personal data and KYC documents are stored separately, with limited access and only for the period required by law and our AML obligations. We do not sell your data and share it only when we are legally obliged to.",
+  "aml_section_profile_title": "What we ask in your profile",
+  "aml_section_profile_text": "For all participants we ask for basic data: first and last name, date of birth, country of residence, city and preferred language. For Estonian residents we may additionally request the personal ID code (isikukood). Address details and phone number help us to complete the risk assessment and contact you when needed.",
+  "aml_section_documents_title": "When we request documents",
+  "aml_section_documents_text": "The need for documents depends on your total purchase volume and the risk level of your country. For low volumes, users from low-risk countries can usually participate with only a completed profile. From certain thresholds or if you are from a higher-risk country, we will ask for an identity document and, if needed, a proof of address before activating full rights on your NFT.",
+  "aml_section_countries_title": "Countries and restrictions",
+  "aml_section_countries_text": "Internally we classify countries into three risk zones: green (lower risk), grey (higher risk, allowed only with full KYC and limits) and red (service not available). For example, EU/EEA countries and other developed jurisdictions are typically in the green zone; some countries, such as Russia or the United States, are treated as grey; and a small number of jurisdictions under strict sanctions are in the red zone and cannot use the service.",
+  "aml_section_storage_title": "How we store your data",
+  "aml_section_storage_text": "Profile data and uploaded documents are stored in protected systems with strict access control. Only the project owner and, in the future, a very limited group of authorised staff can view KYC documents, and every status change is logged. We keep data for the minimum period required for AML and legal obligations, after which it is deleted or anonymised.",
+  "aml_note_dynamic": "This page is a simplified overview. The full legal wording is always given in the Terms of Use and Privacy Policy.",
+
   "auth.login_title": "Sign in",
   "auth.signup_title": "Create account",
   "auth.login_submit": "Continue",
@@ -95,12 +117,6 @@
   "assets.positions.empty": "You don't have any assets here yet.",
   "assets.vigri.from_nft": "Accrued from NFTs (future VIGRI)",
 
-  "nav_why": "Why",
-  "nav_tokenomics": "Tokenomics",
-  "nav_roadmap": "Roadmap",
-  "nav_how": "How to Buy",
-  "nav_contract": "Contract",
-
   "btn_telegram": "Telegram",
   "btn_trade": "Coming soon to DEX",
   "btn_buy_on_dex": "Coming soon to DEX",
@@ -109,14 +125,31 @@
 
   "back_home": "Back to home",
 
-  "dashboard.header.title": "VIGRI — Dashboard",
-  "dashboard.nav.overview": "Overview",
-  "dashboard.nav.assets": "Assets",
-  "dashboard.nav.nft": "NFT",
-  "dashboard.nav.rewards": "Rewards",
-  "dashboard.nav.profile": "Profile",
-  "dashboard.nav.contact": "Contact",
+  "channels_badge": "Official links",
+  "channels_title": "Official VIGRI channels",
+  "channels_intro": "Below are all official communication channels of the VIGRI project and how we use them. Any other links or “collections in our name” that do not match these sources should be treated as suspicious.",
 
+  "channels_website_title": "Website",
+  "channels_website_desc": "Main “home” of the project. Full description of the idea, token and NFT presale, documents, participation terms and links to all official platforms.",
+
+  "channels_x_title": "X / Twitter (EN + sometimes RU)",
+  "channels_x_desc": "Main external channel. Short posts, experiments with formats, memes and news. The highest daily activity and promo materials.",
+
+  "channels_vigri_telegram_title": "Telegram $VIGRI (EN, sometimes RU)",
+  "channels_vigri_telegram_desc": "Main news channel. Only the most important and successful content from X, not the whole stream. Updates on the presale, links to key threads and steps of the project. No ad spam.",
+
+  "channels_lumiros_telegram_title": "Telegram Lumiros (RU)",
+  "channels_lumiros_telegram_desc": "Lumiros community chat. Short news about VIGRI, links to the site and X. No advertising spam.",
+
+  "channels_discord_title": "Discord (RU / EN)",
+  "channels_discord_desc": "Discussions, questions and ideas about $VIGRI, the NFT presale and the Lumiros ecosystem. Separate channels for Russian and English.",
+
+  "channels_marketplaces_title": "NFT marketplaces",
+  "channels_marketplaces_desc": "Tensor: collection “VIGRI Presale Collection” — official listing, the first NFTs are already on sale. Magic Eden and other marketplaces will be added later. Official marketplace links should always be taken only from vigri.ee and from pinned posts in X and Telegram.",
+  
+  "channels_other_title": "Other platforms",
+  "channels_other_desc": "As the project grows there may be one-off articles, campaigns and ads on other platforms (Facebook, media, blogs, etc.). They help to expand the audience but are not primary channels. The official entry point and source of truth are always the site vigri.ee and pinned posts in X and Telegram.",
+  
   "common.sign_in": "Sign in",
   "common.sign_up": "Create account",
   "common.go_dashboard": "Go to Dashboard",
@@ -162,6 +195,14 @@
   "contact.email.support.label": "Support",
   "contact.email.support.hint": "For platform support and user questions. Subject: GDPR request (for data deletion/correction).",
 
+  "dashboard.header.title": "VIGRI — Dashboard",
+  "dashboard.nav.overview": "Overview",
+  "dashboard.nav.assets": "Assets",
+  "dashboard.nav.nft": "NFT",
+  "dashboard.nav.rewards": "Rewards",
+  "dashboard.nav.profile": "Profile",
+  "dashboard.nav.contact": "Contact",
+
   "emails.verify.subject": "Verify your email for VIGRI",
   "emails.verify.text": "To verify your email, open this link: {link}\nIf you didn't request this, ignore this email.",
   "emails.verify.html": "<p>To verify your email, click the link below:</p><p><a href=\"{link}\">{link}</a></p><p>If you didn’t request this, you can ignore this email.</p>",
@@ -171,20 +212,73 @@
   "emails.reset.html": "<p>To reset your password, click the link below:</p><p><a href=\"{link}\">{link}</a></p><p>The link is valid for 1 hour. If you didn't request this, you can ignore this email.</p>",
 
   "faq_menu_title": "FAQ",
-  "faq_solflare_menu_title": "Purchase NFT via Solflare",
+
+  "faq_phantom_page_title": "Buying NFTs with Phantom",
+  "faq_phantom_page_intro": "Follow these steps to install Phantom, connect your wallet to vigri.ee, and safely buy your presale NFTs.",
+
+  "faq_phantom_s1_title": "Step 1. Install Phantom and create a wallet",
+  "faq_phantom_s1_desc": "Install the official Phantom extension and create a new wallet or restore an existing one.",
+
+  "faq_phantom_step_install_1_title": "Install the Phantom extension",
+  "faq_phantom_step_install_1_b1": "Open your browser extension store (Chrome Web Store, Edge Add-ons, Firefox Add-ons).",
+  "faq_phantom_step_install_1_b2": "Search for “Phantom Wallet” and make sure the publisher is the official phantom.app.",
+  "faq_phantom_step_install_1_b3": "Click “Install” and wait until the Phantom icon appears in the browser toolbar.",
+
+  "faq_phantom_step_install_2_title": "Create or restore your wallet",
+  "faq_phantom_step_install_2_b1": "Open Phantom and choose whether to create a new wallet or restore an existing one.",
+  "faq_phantom_step_install_2_b2": "Write down your seed phrase on paper and store it away from your computer and phone.",
+  "faq_phantom_step_install_2_b3": "Set a strong password and never share your seed phrase with anyone, even “support”.",
+
+  "faq_phantom_s2_title": "Step 2. Connect Phantom to vigri.ee",
+  "faq_phantom_s2_desc": "Open the site, select Phantom, and give the wallet only the permissions you really need.",
+
+  "faq_phantom_step_connect_1_title": "Open the site and choose the wallet",
+  "faq_phantom_step_connect_1_b1": "Go to vigri.ee and open your dashboard or the presale page.",
+  "faq_phantom_step_connect_1_b2": "Click the connect-wallet button and choose Phantom.",
+
+  "faq_phantom_step_connect_2_title": "Approve the connection in Phantom",
+  "faq_phantom_step_connect_2_b1": "In the Phantom popup, check which site is requesting access (vigri.ee).",
+  "faq_phantom_step_connect_2_b2": "Click “Connect” to allow the site to see your address and request transaction signatures.",
+
+  "faq_phantom_step_connect_3_title": "Check network and address",
+  "faq_phantom_step_connect_3_b1": "Make sure Phantom is set to Solana Mainnet (network icon at the top of the wallet).",
+  "faq_phantom_step_connect_3_b2": "Verify that the wallet address shown on the site matches the one in Phantom.",
+
+  "faq_phantom_s3_title": "Step 3. Buy presale NFTs with Phantom",
+  "faq_phantom_s3_desc": "Choose the tier, double-check the amount, and approve the transaction in Phantom.",
+
+  "faq_phantom_step_buy_1_title": "Choose NFTs and verify the amount",
+  "faq_phantom_step_buy_1_b1": "On vigri.ee, select the tier and the number of NFTs you want to buy.",
+  "faq_phantom_step_buy_1_b2": "Check the total amount in SOL and the approximate price in EUR on the purchase screen.",
+
+  "faq_phantom_step_buy_2_title": "Approve the transaction in Phantom",
+  "faq_phantom_step_buy_2_b1": "After clicking the buy button, wait for the Phantom popup with transaction details.",
+  "faq_phantom_step_buy_2_b2": "Verify the recipient address and SOL amount. If everything looks correct, click “Approve”.",
+  "faq_phantom_step_buy_2_b3": "Do not approve transactions if the address or amount looks suspicious.",
+
+  "faq_phantom_step_buy_3_title": "Check the result and common issues",
+  "faq_phantom_step_buy_3_b1": "After approval, wait a few seconds for the transaction to be confirmed on-chain.",
+  "faq_phantom_step_buy_3_b2": "Your NFT will appear in the assets section on vigri.ee and in Phantom (Collectibles tab).",
+  "faq_phantom_step_buy_3_b3": "If a transaction fails or hangs, check your SOL balance, network fees, and history in Phantom.",
+
+  "faq_phantom_link_official_download": "Official Phantom download page",
+  "faq_phantom_link_chrome_store": "Phantom in Chrome Web Store",
+  "faq_phantom_link_firefox_addons": "Phantom in Firefox Add-ons",
+  "faq_phantom_link_edge_addons_home": "Edge (install via Chrome Web Store)",
 
   "faq_tag_edge": "Edge",
   "faq_tag_chrome": "Chrome",
+  "faq_tag_firefox": "Firefox",
   "faq_tag_security": "Security",
   "faq_tag_tip": "Tip",
-  "faq_tag_troubleshooting": "Troubleshooting",
+  "faq_tag_troubleshooting": "If something goes wrong",
 
   "faq_solflare_page_title": "Purchase NFT via Solflare",
   "faq_solflare_page_intro": "Follow the steps below. Screenshots are optional — open them only when you need a visual reference.",
   "faq_solflare_ui_screenshot_label": "Screenshot (click to zoom)",
   "faq_solflare_ui_zoom_hint": "Tip: click the screenshot to zoom.",
 
-  "faq_solflare_s1_title": "1) Install Solflare",
+  "faq_solflare_s1_title": "Step 1. Install Solflare and create a wallet",
   "faq_solflare_s1_desc": "Install the Solflare browser extension, create a wallet, and pin the icon.",
 
   "faq_solflare_step_solflare_1_title": "Open the official Solflare download page",
@@ -226,7 +320,7 @@
   "faq_solflare_step_solflare_7_b3": "After pinning, click the icon to open the wallet popup.",
   "faq_solflare_step_solflare_7_alt": "Browser extensions menu — pin Solflare",
 
-  "faq_solflare_s2_title": "2) Connect Solflare to vigri.ee",
+  "faq_solflare_s2_title": "Step 2. Connect Solflare to vigri.ee",
   "faq_solflare_s2_desc": "Log in to your account and connect the wallet to the platform.",
 
   "faq_solflare_step_vigri_1_title": "Open vigri.ee",
@@ -257,7 +351,7 @@
   "faq_solflare_step_vigri_6_b2": "Make sure it matches your Solflare wallet.",
   "faq_solflare_step_vigri_6_alt": "Dashboard — connected wallet address",
 
-  "faq_solflare_s3_title": "3) Buy NFT on vigri.ee using Solflare",
+  "faq_solflare_s3_title": "Step 3. Buy NFT on vigri.ee using Solflare",
   "faq_solflare_s3_desc": "Top up SOL, buy an NFT, and verify the result.",
 
   "faq_solflare_step_buy_1_title": "Top up SOL in Solflare",
@@ -603,6 +697,20 @@
   "litepaper.download_et": "ET · Laadi alla litepaper (PDF)",
   "litepaper.note": "Note: this is version v0.2. As the project evolves and regulations change, tokenomics, timelines and legal details may be updated. All significant changes will be published openly.",
 
+  "nav_why": "Why",
+  "nav_tokenomics": "Tokenomics",
+  "nav_roadmap": "Roadmap",
+  "nav_how": "How to Buy",
+  "nav_contract": "Contract",
+  "nav_channels": "Channels",
+  "nav_compliance": "AML / KYC / GDPR",
+  "nav_legal": "Legal",
+
+  "nav_faq": "FAQ",
+  "nav_faq_qna": "Q&A",
+  "nav_faq_solflare": "Solflare guide",
+  "nav_faq_phantom": "Phantom guide",
+
   "tokenomics_network": "Network",
   "tokenomics_total_supply": "Total supply",
   "tokenomics_tax": "Transaction tax",
@@ -653,6 +761,7 @@
   "footer_tech": "Technical",
   "footer_hash_label": "Token JSON hash (SHA-256)",
   "footer_contact": "Contact",
+  "footer_compliance": "AML / KYC / GDPR",
 
   "center.title": "International Training & Rehabilitation Center",
   "center.image_caption": "International Training and Rehabilitation Center for Sports and Dance — concept image",

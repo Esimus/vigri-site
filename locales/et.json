@@ -1,4 +1,26 @@
 {
+  "aml_badge": "Nõuetele vastavus",
+  "aml_title": "AML / KYC / GDPR ja andmekaitse",
+  "aml_intro": "VIGRI kasutab riskipõhist lähenemist rahapesu tõkestamisele (AML), klientide tuvastamisele (KYC) ja isikuandmete kaitsele. Siin on lühike ja arusaadav ülevaade, kuidas see praktikas töötab.",
+  "aml_block_aml_label": "AML",
+  "aml_block_aml_title": "Rahapesu tõkestamine",
+  "aml_block_aml_text": "VIGRI NFT ei tohi kasutada rahapesuks, terrorismi rahastamiseks ega sanktsioonide vältimiseks. Kontrolli ulatus sõltub tehingute kogumahust, kliendi riigist ja käitumisest platvormil.",
+  "aml_block_kyc_label": "KYC",
+  "aml_block_kyc_title": "Tunne oma klienti",
+  "aml_block_kyc_text": "Enne NFT-ga seotud õiguste aktiveerimist peame mõnikord isikut tuvastama. Väiksemate summade puhul võib piisata täidetud profiilist, suuremate mahtude korral küsime isikut tõendavat dokumenti ja vajadusel aadressi kinnitust.",
+  "aml_block_gdpr_label": "GDPR",
+  "aml_block_gdpr_title": "Andmed ja privaatsus",
+  "aml_block_gdpr_text": "Isikuandmeid ja KYC dokumente hoitakse eraldi, piiratud ligipääsuga ja ainult nii kaua, kui seadus ja meie AML kohustused seda nõuavad. Me ei müü andmeid ega jaga neid ilma õigusliku aluseta.",
+  "aml_section_profile_title": "Millist profiili infot me küsime",
+  "aml_section_profile_text": "Kõigilt osalejatelt küsime põhiandmeid: ees- ja perekonnanimi, sünniaeg, elukohariik, linn ja eelistatud keel. Eesti residentidelt võime lisaks küsida isikukoodi (isikukood). Aadress ja telefon aitavad riskihindamist lõpetada ja vajadusel teiega ühendust võtta.",
+  "aml_section_documents_title": "Millal küsime dokumente",
+  "aml_section_documents_text": "Dokumentide vajadus sõltub teie ostude kogumahust ja riigi riskitasemest. Väikeste summade puhul võivad madalama riskiga riikide kasutajad osaleda ainult profiili alusel. Alates teatud piiridest või kõrgema riskiga riikidest pärit klientide puhul küsime isikut tõendavat dokumenti ja vajadusel aadressi kinnitust enne, kui täisõigused NFT-le aktiveeritakse.",
+  "aml_section_countries_title": "Riigid ja piirangud",
+  "aml_section_countries_text": "Sisemiselt jagame riigid tinglikult kolmeks riskitsooniks: roheline (madalam risk), hall (kõrgem risk, osalemine ainult täieliku KYC ja limiitidega) ja punane (teenus ei ole saadaval). EL/EMP riigid ja teised arenenud jurisdiktsioonid on tavaliselt rohelises tsoonis; osa riike on hallis tsoonis; vähesed tugeva sanktsioonirežiimiga riigid on punases tsoonis.",
+  "aml_section_storage_title": "Kuidas me andmeid hoiame",
+  "aml_section_storage_text": "Profiiliandmeid ja üleslaetud dokumente hoitakse kaitstud süsteemides, kus ligipääs on rangelt piiratud. KYC dokumente näeb ainult projekti omanik ja tulevikus väike hulk volitatud isikuid; kõik staatuse muudatused logitakse. Andmeid hoitakse minimaalse aja, mis on vajalik AML ja juriidiliste kohustuste täitmiseks, seejärel need kustutatakse või anonüümistatakse.",
+  "aml_note_dynamic": "See leht on lihtsustatud ülevaade. Täpne juriidiline tekst on alati Tingimustes ja Privaatsuspoliitikas.",
+
   "auth.login_title": "Logi sisse",
   "auth.signup_title": "Loo konto",
   "auth.login_submit": "Jätka",
@@ -95,12 +117,6 @@
   "assets.positions.empty": "Sul ei ole veel platvormil varasid.",
   "assets.vigri.from_nft": "NFT-de pealt arvestatud (tulevased VIGRI)",
 
-  "nav_why": "Miks",
-  "nav_tokenomics": "Tokenoomika",
-  "nav_roadmap": "Teekaart",
-  "nav_how": "Kuidas osta",
-  "nav_contract": "Leping",
-
   "btn_telegram": "Telegram",
   "btn_trade": "Varsti DEX-is",
   "btn_buy_on_dex": "Varsti DEX-is",
@@ -109,14 +125,31 @@
 
   "back_home": "Tagasi avalehele",
 
-  "dashboard.header.title": "VIGRI — Töölaud",
-  "dashboard.nav.overview": "Ülevaade",
-  "dashboard.nav.assets": "Varad",
-  "dashboard.nav.nft": "NFT",
-  "dashboard.nav.rewards": "Preemiad",
-  "dashboard.nav.profile": "Profiil",
-  "dashboard.nav.contact": "Kontakt",
+  "channels_badge": "Ametlikud lingid",
+  "channels_title": "VIGRI ametlikud kanalid",
+  "channels_intro": "All on toodud kõik VIGRI projekti ametlikud suhtluskanalid ja lühidalt, kuidas me neid kasutame. Teised lingid või „kollektsioonid meie nime all”, mis ei kattu nende allikatega, tuleks käsitleda kahtlastena.",
 
+  "channels_website_title": "Veebileht",
+  "channels_website_desc": "Projekti põhiline „kodu”. Idee, tokeni ja NFT-eelmüügi kirjeldus, dokumendid, osalemise tingimused ja lingid kõigile ametlikele platvormidele.",
+
+  "channels_x_title": "X / Twitter (EN + vahel RU)",
+  "channels_x_desc": "Peamine väline kanal. Lühikesed postitused, formaadikatsetused, meemid ja uudised. Suurim igapäevane aktiivsus ja promo-materjalid.",
+
+  "channels_vigri_telegram_title": "Telegram $VIGRI (EN, vahel RU)",
+  "channels_vigri_telegram_desc": "Põhiline uudistekanal. Siia jõuab ainult kõige olulisem ja edukam sisu X-ist, mitte kogu voog. Uuendused eelmüügi kohta, lingid võtmeteemadele ja projekti sammudele. Ilma reklaamspämmita.",
+
+  "channels_lumiros_telegram_title": "Telegram Lumiros (RU)",
+  "channels_lumiros_telegram_desc": "Lumirosi kogukonna vestlus. Lühikesed uudised VIGRI kohta, lingid lehele ja X-i. Ilma reklaamspämmita.",
+
+  "channels_discord_title": "Discord (RU / EN)",
+  "channels_discord_desc": "Arutelud, küsimused ja ideed $VIGRI, NFT-eelmüügi ja Lumiros ökosüsteemi kohta. Eraldi kanalid vene ja inglise keele jaoks.",
+
+  "channels_marketplaces_title": "NFT-turud",
+  "channels_marketplaces_desc": "Tensor: kollektsioon „VIGRI Presale Collection“ — ametlik listing, esimesed NFT-d on juba müügis. Magic Eden ja teised platvormid lisanduvad hiljem. Ametlikud lingid turgudele tuleks alati võtta ainult saidilt vigri.ee ja kinnitatud postitustest X-is ja Telegramis.",
+
+  "channels_other_title": "Muud platvormid",
+  "channels_other_desc": "Projekti kasvades võivad ilmuda üksikud artiklid, kampaaniad ja reklaam teistel platvormidel (Facebook, meedia, blogid jne). Need aitavad publikut laiendada, kuid ei ole põhikanalid. Ametlik sisenemispunkt ja tõese info allikas on alati vigri.ee ja kinnitatud postitused X-is ja Telegramis.",
+  
   "common.sign_in": "Logi sisse",
   "common.sign_up": "Loo konto",
   "common.go_dashboard": "Ava juhtpaneel",
@@ -162,6 +195,14 @@
   "contact.email.support.label": "Tugi",
   "contact.email.support.hint": "Platvormi toe ja kasutajaküsimuste jaoks. Teema: GDPR request (andmete kustutamine/parandamine).",
 
+  "dashboard.header.title": "VIGRI — Töölaud",
+  "dashboard.nav.overview": "Ülevaade",
+  "dashboard.nav.assets": "Varad",
+  "dashboard.nav.nft": "NFT",
+  "dashboard.nav.rewards": "Preemiad",
+  "dashboard.nav.profile": "Profiil",
+  "dashboard.nav.contact": "Kontakt",
+
   "emails.verify.subject": "Kinnita oma e-posti aadress VIGRI jaoks",
   "emails.verify.text": "Oma e-posti aadressi kinnitamiseks ava see link: {link}\nKui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.",
   "emails.verify.html": "<p>Oma e-posti aadressi kinnitamiseks klõpsa alloleval lingil:</p><p><a href=\"{link}\">{link}</a></p><p>Kui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.</p>",
@@ -171,20 +212,73 @@
   "emails.reset.html": "<p>Parooli lähtestamiseks klõpsa alloleval lingil:</p><p><a href=\"{link}\">{link}</a></p><p>Link kehtib 1 tund. Kui sa ei taotlenud parooli lähtestamist, võid selle kirja ignoreerida.</p>",
 
   "faq_menu_title": "KKK",
-  "faq_solflare_menu_title": "NFT ostmine Solflare’iga",
+
+  "faq_phantom_page_title": "NFT ostmine Phantomiga",
+  "faq_phantom_page_intro": "Järgi neid samme, et paigaldada Phantom, ühendada rahakott vigri.ee-ga ja osta turvaliselt eelmüügi NFT-sid.",
+
+  "faq_phantom_s1_title": "1. samm. Phantom ja rahakoti loomine",
+  "faq_phantom_s1_desc": "Paigalda ametlik Phantom laiendus ja loo uus rahakott või taasta olemasolev.",
+
+  "faq_phantom_step_install_1_title": "Phantom laienduse paigaldamine",
+  "faq_phantom_step_install_1_b1": "Ava oma brauseri laienduste pood (Chrome Web Store, Edge Add-ons, Firefox Add-ons).",
+  "faq_phantom_step_install_1_b2": "Otsi „Phantom Wallet“ ja veendu, et väljaandja on ametlik phantom.app.",
+  "faq_phantom_step_install_1_b3": "Vajuta „Install“ ja oota, kuni Phantom ikoon ilmub brauseri tööriistaribale.",
+
+  "faq_phantom_step_install_2_title": "Rahakoti loomine või taastamine",
+  "faq_phantom_step_install_2_b1": "Ava Phantom ja vali, kas luua uus rahakott või taastada olemasolev.",
+  "faq_phantom_step_install_2_b2": "Kirjuta seemnefraas paberile ja hoia seda eraldi arvutist ja telefonist.",
+  "faq_phantom_step_install_2_b3": "Sea tugev parool ja ära jaga seemnefraasi mitte kellegagi, isegi mitte „toega“.",
+
+  "faq_phantom_s2_title": "2. samm. Phantom ühendamine vigri.ee-ga",
+  "faq_phantom_s2_desc": "Ava leht, vali Phantom ja anna rahakotile ainult vajalikud õigused.",
+
+  "faq_phantom_step_connect_1_title": "Lehe avamine ja rahakoti valik",
+  "faq_phantom_step_connect_1_b1": "Ava vigri.ee ja ava oma kabinet või eelmüügi leht.",
+  "faq_phantom_step_connect_1_b2": "Vajuta rahakoti ühendamise nuppu ja vali Phantom.",
+
+  "faq_phantom_step_connect_2_title": "Ühenduse kinnitamine Phantomis",
+  "faq_phantom_step_connect_2_b1": "Kontrolli Phantom hüpikaknas, milline sait küsib ligipääsu (vigri.ee).",
+  "faq_phantom_step_connect_2_b2": "Vajuta „Connect“, et lubada saidil näha sinu aadressi ja küsida tehingute allkirju.",
+
+  "faq_phantom_step_connect_3_title": "Võrgu ja aadressi kontroll",
+  "faq_phantom_step_connect_3_b1": "Veendu, et Phantom kasutab Solana Mainnet võrku (võrgu ikoon rahakoti ülaosas).",
+  "faq_phantom_step_connect_3_b2": "Võrdle rahakoti aadressi saidil ja Phantomis — need peavad kokku langema.",
+
+  "faq_phantom_s3_title": "3. samm. Eelmüügi NFT ostmine Phantomiga",
+  "faq_phantom_s3_desc": "Vali tier, kontrolli summat ja kinnita tehing Phantomis.",
+
+  "faq_phantom_step_buy_1_title": "NFT valik ja summa kontroll",
+  "faq_phantom_step_buy_1_b1": "Vali vigri.ee lehel soovitud tier ja NFT-de arv.",
+  "faq_phantom_step_buy_1_b2": "Kontrolli kogusummat SOL-is ja ligikaudset hinda eurodes ostu ekraanil.",
+
+  "faq_phantom_step_buy_2_title": "Tehingu kinnitamine Phantomis",
+  "faq_phantom_step_buy_2_b1": "Pärast ostunupu vajutamist oota Phantom hüpikakent tehingu detailidega.",
+  "faq_phantom_step_buy_2_b2": "Kontrolli saaja aadressi ja SOL summat. Kui kõik on korras, vajuta „Approve“. ",
+  "faq_phantom_step_buy_2_b3": "Ära kinnita tehinguid, kui aadress või summa tundub kahtlane.",
+
+  "faq_phantom_step_buy_3_title": "Tulemuse kontroll ja sagedased probleemid",
+  "faq_phantom_step_buy_3_b1": "Pärast kinnitamist oota mõned sekundid, kuni tehing kinnitatakse plokiahelas.",
+  "faq_phantom_step_buy_3_b2": "NFT ilmub vigri.ee varade jaotisesse ja Phantomi (Collectibles sakk).",
+  "faq_phantom_step_buy_3_b3": "Kui tehing ebaõnnestub või jääb kinni, kontrolli SOL jääki, võrgutasusid ja ajalugu Phantomis.",
+
+  "faq_phantom_link_official_download": "Phantomi ametlik allalaadimisleht",
+  "faq_phantom_link_chrome_store": "Phantom Chrome Web Store’is",
+  "faq_phantom_link_firefox_addons": "Phantom Firefox Add-ons’is",
+  "faq_phantom_link_edge_addons_home": "Edge (paigaldus Chrome Web Store’i kaudu)",
 
   "faq_tag_edge": "Edge",
   "faq_tag_chrome": "Chrome",
+  "faq_tag_firefox": "Firefox",
   "faq_tag_security": "Turvalisus",
   "faq_tag_tip": "Nipp",
-  "faq_tag_troubleshooting": "Kui ei tööta",
+  "faq_tag_troubleshooting": "Kui miski läheb valesti",
 
   "faq_solflare_page_title": "NFT ostmine Solflare’iga",
   "faq_solflare_page_intro": "Järgi allolevaid samme. Ekraanipildid on valikulised — ava need ainult siis, kui vajad visuaalset abi.",
   "faq_solflare_ui_screenshot_label": "Ekraanipilt (klõps — suurenda)",
   "faq_solflare_ui_zoom_hint": "Nipp: klõpsa ekraanipildil, et seda suurendada.",
 
-  "faq_solflare_s1_title": "1) Solflare’i paigaldamine",
+  "faq_solflare_s1_title": "1. samm. Solflare’i ja rahakoti loomine",
   "faq_solflare_s1_desc": "Paigalda Solflare’i brauserilaiendus, loo rahakott ja kinnita ikoon tööriistaribale.",
 
   "faq_solflare_step_solflare_1_title": "Ava ametlik Solflare’i allalaadimisleht",
@@ -226,7 +320,7 @@
   "faq_solflare_step_solflare_7_b3": "Pärast kinnitamist ava rahakott ikoonile klõpsates.",
   "faq_solflare_step_solflare_7_alt": "Brauserilaienduste menüü — Solflare kinnitamine",
 
-  "faq_solflare_s2_title": "2) Solflare’i ühendamine vigri.ee-ga",
+  "faq_solflare_s2_title": "2. samm. Solflare’i ühendamine vigri.ee-ga",
   "faq_solflare_s2_desc": "Logi vigri.ee-sse sisse ja ühenda rahakott platvormiga.",
 
   "faq_solflare_step_vigri_1_title": "Ava vigri.ee",
@@ -257,7 +351,7 @@
   "faq_solflare_step_vigri_6_b2": "Veendu, et see kattub sinu Solflare’i aadressiga.",
   "faq_solflare_step_vigri_6_alt": "Juhtpaneel — rahakoti aadress",
 
-  "faq_solflare_s3_title": "3) NFT ostmine vigri.ee-s Solflare’iga",
+  "faq_solflare_s3_title": "3. samm. NFT ostmine vigri.ee-s Solflare’iga",
   "faq_solflare_s3_desc": "Lisa SOL, osta NFT ja kontrolli tulemust.",
 
   "faq_solflare_step_buy_1_title": "Lisa SOL Solflare’i",
@@ -603,6 +697,20 @@
   "litepaper.download_et": "ET · Laadi alla litepaper (PDF)",
   "litepaper.note": "Märkus: tegemist on versiooniga v0.2. Projekti arengu ja regulatiivsete nõuete muutumise käigus võivad tokenoomika, ajakava ja juriidilised detailid muutuda. Kõik olulised muudatused avaldatakse avatult.",
 
+  "nav_why": "Miks",
+  "nav_tokenomics": "Tokenoomika",
+  "nav_roadmap": "Teekaart",
+  "nav_how": "Kuidas osta",
+  "nav_contract": "Leping",
+  "nav_channels": "Kanalid",
+  "nav_compliance": "AML / KYC / GDPR",
+  "nav_legal": "Õigus",
+
+  "nav_faq": "KKK",
+  "nav_faq_qna": "Korduma kippuvad küsimused",
+  "nav_faq_solflare": "Solflare juhend",
+  "nav_faq_phantom": "Phantom juhend",
+
   "tokenomics_network": "Võrk",
   "tokenomics_total_supply": "Kogupakkumine",
   "tokenomics_tax": "Tehingumaks",
@@ -653,6 +761,7 @@
   "footer_tech": "Tehniline",
   "footer_hash_label": "Token JSON räsi (SHA-256)",
   "footer_contact": "Kontakt",
+  "footer_compliance": "AML / KYC / GDPR",
 
   "center.title": "Rahvusvaheline spordi- ja tantsu treening- ja rehabilitatsioonikeskus",
   "center.image_caption": "Rahvusvaheline spordi- ja tantsu treening- ja rehabilitatsioonikeskus — kontseptsioon",

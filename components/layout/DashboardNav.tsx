@@ -16,7 +16,10 @@ const mainItems = [
 const contactItem = { href: '/contact', key: 'dashboard.nav.contact' };
 
 const faqRoot = '/dashboard/faq';
-const faqItems = [{ href: '/dashboard/faq/solflare', key: 'faq_solflare_menu_title' }];
+const faqItems = [
+  { href: '/dashboard/faq/solflare', key: 'faq_solflare_page_title' },
+  { href: '/dashboard/faq/phantom', key: 'faq_phantom_page_title' },
+];
 
 const normalize = (p: string) => p.replace(/\/+$/, '');
 const isActive = (href: string, pathname: string) => {

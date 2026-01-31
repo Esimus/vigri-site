@@ -27,6 +27,7 @@ const EnvSchema = z.object({
 
   NEXT_PUBLIC_TELEGRAM_URL: z.string().url().default("https://t.me/cryptovigri"),
   NEXT_PUBLIC_X_URL: z.string().url().default("https://x.com/"),
+  NEXT_PUBLIC_DISCORD_URL: z.string().url().default("https://discord.gg/6YHJwsdE92"),
   NEXT_PUBLIC_GITHUB_URL: z.string().url().default("https://github.com/Esimus/vigri"),
   NEXT_PUBLIC_DEX_URL: z.string().default("#"),
 });
@@ -39,6 +40,7 @@ const cfg = EnvSchema.safeParse({
   NEXT_PUBLIC_ARWEAVE_URI: process.env.NEXT_PUBLIC_ARWEAVE_URI,
   NEXT_PUBLIC_TELEGRAM_URL: process.env.NEXT_PUBLIC_TELEGRAM_URL,
   NEXT_PUBLIC_X_URL: process.env.NEXT_PUBLIC_X_URL,
+  NEXT_PUBLIC_DISCORD_URL: process.env.NEXT_PUBLIC_DISCORD_URL,
   NEXT_PUBLIC_GITHUB_URL: process.env.NEXT_PUBLIC_GITHUB_URL,
   NEXT_PUBLIC_DEX_URL: process.env.NEXT_PUBLIC_DEX_URL,
 });
@@ -61,6 +63,7 @@ export const CONFIG = {
 
   TELEGRAM_URL: cfg.data.NEXT_PUBLIC_TELEGRAM_URL,
   X_URL: cfg.data.NEXT_PUBLIC_X_URL,
+  DISCORD_URL: cfg.data.NEXT_PUBLIC_DISCORD_URL,
   GITHUB_URL: cfg.data.NEXT_PUBLIC_GITHUB_URL,
   DEX_URL: cfg.data.NEXT_PUBLIC_DEX_URL,
 } as const;
