@@ -1,9 +1,9 @@
-// middleware.ts
+// proxy.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Captures ?ref=<code> on non-API routes and stores it in a cookie.
-export function middleware(req: NextRequest) {
+// Capture ?ref=<code> on non-API routes and store it in a cookie.
+export function proxy(req: NextRequest) {
   const url = new URL(req.url);
 
   // Never touch API / Next internals
@@ -25,6 +25,7 @@ export function middleware(req: NextRequest) {
     httpOnly: false,
     maxAge: 60 * 60 * 24 * 90,
   });
+
   return res;
 }
 

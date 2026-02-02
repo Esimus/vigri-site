@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import useSWR from 'swr';
 import { api } from '@/lib/api';
 import { useI18n } from '@/hooks/useI18n';
 import Link from 'next/link';
@@ -89,10 +90,12 @@ function asCountryCode(v: unknown): string | null {
 function usePresaleCountdown() {
   const [tick, setTick] = useState(() => formatElapsed(presaleElapsedMs()));
 
+  // Timer: update counter every second (state changes only inside interval callback)
   useEffect(() => {
     const id = setInterval(() => {
       setTick(formatElapsed(presaleElapsedMs()));
     }, 1000);
+
     return () => clearInterval(id);
   }, []);
 
@@ -108,153 +111,158 @@ function usePresaleCountdown() {
   };
 }
 
-export default function NftList() {
-  const { t } = useI18n();
-  const [items, setItems] = useState<Item[] | null>(null);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+// ---- AML / KYC snapshot from /api/me ----
 
-  // AML / KYC snapshot from /api/me (fallback: compute zone from profile countries)
-  const [zone, setZone] = useState<CountryZone>(null);
-  const [isEe, setIsEe] = useState(false);
-  const [kycStatus, setKycStatus] = useState<KycStatus>('none');
-  const [solEurRate, setSolEurRate] = useState<number | null>(null);
+type MeRaw = Record<string, unknown> & { ok?: unknown };
 
-  // small i18n helper with fallback
-  const tr = (key: string, fallback: string) => {
-    const v = t(key);
-    return v && v !== key ? v : fallback;
-  };
-
-  // Two-stage load: fast catalog, then slower summary/indicators
-  const load = async () => {
-    // also read /api/me once (cheap)
-    void (async () => {
+function useAmlSnapshot() {
+  const { data } = useSWR<MeRaw | null>(
+    'me-aml',
+    async () => {
       try {
         const res = await fetch('/api/me', { cache: 'no-store' });
         const raw: unknown = await res.json().catch(() => ({}));
-        if (!isObject(raw) || (raw as { ok?: unknown }).ok !== true) return;
+        if (!isObject(raw) || (raw as { ok?: unknown }).ok !== true) return null;
+        return raw as MeRaw;
+      } catch {
+        return null;
+      }
+    },
+    { revalidateOnFocus: false }
+  );
 
-        const root = raw as Record<string, unknown>;
+  let zone: CountryZone = null;
+  let isEe = false;
+  let kycStatus: KycStatus = 'none';
 
-        // KYC status for badge visibility (hide lock if already approved)
-        setKycStatus(normalizeKycStatus(root['kycStatus']));
+  if (data) {
+    // KYC status for badge visibility (hide lock if already approved)
+    kycStatus = normalizeKycStatus(data['kycStatus']);
 
-        // 1) Prefer server-calculated zone (only if non-null)
-        const zRaw = root['kycCountryZone'];
-        if (isCountryZone(zRaw) && zRaw !== null) {
-          setZone(zRaw);
+    // 1) Prefer server-calculated zone (only if non-null)
+    const zRaw = data['kycCountryZone'];
+    if (isCountryZone(zRaw) && zRaw !== null) {
+      zone = zRaw;
 
-          const pRaw = root['profile'];
-          if (isObject(pRaw)) {
-            const p = pRaw as Record<string, unknown>;
-            const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
-            const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
-            const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
-            setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
-          }
-
-          return;
-        }
-
-        // 2) Fallback: compute zone from profile
-        const pRaw = root['profile'];
-        if (!isObject(pRaw)) return;
-
+      const pRaw = data['profile'];
+      if (isObject(pRaw)) {
+        const p = pRaw as Record<string, unknown>;
+        const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
+        const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
+        const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
+        isEe = r === 'EE' && c === 'EE' && tx === 'EE';
+      }
+    } else {
+      // 2) Fallback: compute zone from profile
+      const pRaw = data['profile'];
+      if (isObject(pRaw)) {
         const p = pRaw as Record<string, unknown>;
         const r = asCountryCode(p['countryResidence'])?.toUpperCase() ?? null;
         const c = asCountryCode(p['countryCitizenship'])?.toUpperCase() ?? null;
         const tx = asCountryCode(p['countryTax'])?.toUpperCase() ?? null;
 
-        setIsEe(r === 'EE' && c === 'EE' && tx === 'EE');
+        isEe = r === 'EE' && c === 'EE' && tx === 'EE';
 
-        // IMPORTANT: do NOT pass '' into AML resolver; use null
         const zones = [r, c, tx].map((code) => resolveAmlZone(typeof code === 'string' ? code : null));
         const z2: CountryZone =
           zones.includes('red') ? 'red' :
           zones.includes('grey') ? 'grey' :
           zones.includes('green') ? 'green' : null;
 
-        setZone(z2);
-      } catch {
-        // ignore
+        zone = z2;
       }
-    })();
-
-    // 1) Fast stage: base catalog from API
-    const r = await api.nft.list();
-    if (!r.ok) {
-      setItems([]);
-      return;
     }
+  }
 
-    const baseItems = (r.items as Item[]) ?? [];
+  return { zone, isEe, kycStatus };
+}
 
-    // Draw full cards immediately with base data
-    setItems(baseItems);
+// ---- NFT list + summary (двухступенчатая загрузка) ----
 
-    // 2) Slow stage: on-chain / summary for availability indicators
-    const sRes = await fetch(`/api/nft/summary?ts=${Date.now()}`, {
-      cache: 'no-store',
-    }).catch(() => null);
+type NftListApiResp = { ok: boolean; items: Item[] };
 
-    if (!sRes || !sRes.ok) {
-      // keep baseItems as-is; indicators will stay at base values
-      return;
-    }
+export default function NftList() {
+  const { t } = useI18n();
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-    const raw: unknown = await sRes.json().catch(() => null);
-    if (!isSummaryResp(raw)) {
-      return;
-    }
+  const { zone, isEe, kycStatus } = useAmlSnapshot();
+
+  // 1) базовый список
+  const { data: listData } = useSWR<NftListApiResp | null>(
+    'nft-list',
+    async () => {
+      const r = await api.nft.list();
+      if (!r.ok) return null;
+      return { ok: true, items: (r.items as Item[]) ?? [] };
+    },
+    { revalidateOnFocus: false }
+  );
+
+  // 2) summary / on-chain индикаторы
+  const { data: summaryData } = useSWR<SummaryResp | null>(
+    'nft-summary',
+    async () => {
+      try {
+        const sRes = await fetch(`/api/nft/summary?ts=${Date.now()}`, {
+          cache: 'no-store',
+        });
+        const raw: unknown = await sRes.json().catch(() => null);
+        if (!sRes.ok || !isSummaryResp(raw)) return null;
+        return raw;
+      } catch {
+        return null;
+      }
+    },
+    { revalidateOnFocus: false }
+  );
+
+  // объединённый список: сначала чистый каталог, потом поверх данные summary
+  const items: Item[] | null = useMemo(() => {
+    if (!listData) return null; // ещё грузится
+    if (!listData.ok) return []; // ошибка
+    const baseItems = listData.items ?? [];
+
+    if (!summaryData) return baseItems;
 
     const byId = new Map<string, SummaryItem>();
-    for (const it of raw.items) {
+    for (const it of summaryData.items) {
       byId.set(it.id, it);
     }
 
-    // Update only indicators (total/sold/minted), keep everything else
-    setItems((prev) => {
-      const src = Array.isArray(prev) && prev.length ? prev : baseItems;
-
-      return src.map((i) => {
-        const s = byId.get(i.id);
-        return s ? { ...i, _sum: { total: s.total, sold: s.sold }, minted: s.sold } : i;
-      });
+    return baseItems.map((i) => {
+      const s = byId.get(i.id);
+      return s ? { ...i, _sum: { total: s.total, sold: s.sold }, minted: s.sold } : i;
     });
-  };
+  }, [listData, summaryData]);
 
-  useEffect(() => {
-    void load();
-  }, []);
-
+  // есть ли вообще хоть один SOL-прайс — чтобы не дёргать курс лишний раз
   const hasAnySol = useMemo(() => {
-  if (!Array.isArray(items)) return false;
-  return items.some((i) => typeof i.onchain?.priceSol === 'number' && i.onchain.priceSol > 0);
-}, [items]);
+    if (!Array.isArray(items)) return false;
+    return items.some(
+      (i) => typeof i.onchain?.priceSol === 'number' && i.onchain.priceSol > 0
+    );
+  }, [items]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchSolEur() {
-      // Prefer backend endpoint (caching, no CORS, no key leakage).
+  // курс SOL/EUR через SWR (вместо useEffect)
+  const { data: solEurRate } = useSWR<number | null>(
+    hasAnySol ? 'sol-eur' : null,
+    async () => {
+      // 1) бэкенд-эндпоинт
       try {
         const r = await fetch(`/api/price/sol-eur?ts=${Date.now()}`, { cache: 'no-store' });
         const j: unknown = await r.json().catch(() => ({}));
-        if (!cancelled && r.ok && isObject(j) && (j as { ok?: unknown }).ok === true) {
+        if (r.ok && isObject(j) && (j as { ok?: unknown }).ok === true) {
           const eur =
             (j as { eur?: unknown }).eur ??
             (j as { rateEur?: unknown }).rateEur ??
             (j as { rate?: unknown }).rate;
-          if (typeof eur === 'number' && eur > 0) {
-            setSolEurRate(eur);
-            return;
-          }
+          if (typeof eur === 'number' && eur > 0) return eur;
         }
       } catch {
-        // Ignore and try direct CoinGecko next.
+        // пойдём на CoinGecko
       }
 
-      // Fallback: direct CoinGecko simple price.
+      // 2) CoinGecko
       try {
         const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=eur';
         const r = await fetch(url, { cache: 'no-store' });
@@ -263,21 +271,24 @@ export default function NftList() {
           ? (j as { solana?: { eur?: unknown } }).solana?.eur
           : undefined;
 
-        if (!cancelled && typeof eur === 'number' && eur > 0) {
-          setSolEurRate(eur);
-        }
+        if (typeof eur === 'number' && eur > 0) return eur;
       } catch {
         // ignore
       }
-    }
-
-    if (hasAnySol) void fetchSolEur();
-    return () => { cancelled = true; };
-  }, [hasAnySol]);
+      return null;
+    },
+    { revalidateOnFocus: false }
+  );
 
   const presale = usePresaleCountdown();
 
   const hasItems = Array.isArray(items) && items.length > 0;
+
+  // small i18n helper with fallback
+  const tr = (key: string, fallback: string) => {
+    const v = t(key);
+    return v && v !== key ? v : fallback;
+  };
 
   const skeletonCards = (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
@@ -455,7 +466,6 @@ export default function NftList() {
                             ≈ {eurNow.toFixed(0)}€ (CoinGecko)
                           </span>
                         )}
-
                       </div>
                       {hasSol && <span className="chip">{t('nft.after')}</span>}
                     </div>

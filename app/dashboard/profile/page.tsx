@@ -1,7 +1,8 @@
 // app/dashboard/profile/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
+import useSWR from 'swr';
 import { api } from '@/lib/api';
 import { useI18n } from '@/hooks/useI18n';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -30,27 +31,32 @@ function isMeOk(r: unknown): r is MeOk {
   return typeof r === 'object' && r !== null && (r as { ok?: unknown }).ok === true;
 }
 
+const fetchMe = async (): Promise<MeOk | null> => {
+  const r = (await api.me()) as MeResp;
+  return isMeOk(r) ? r : null;
+};
+
 export default function ProfilePage() {
   const { t } = useI18n();
 
-  const [kyc, setKyc] = useState<KycState>('none');
+  const { data: me, isLoading } = useSWR<MeOk | null>('me', fetchMe, {
+    revalidateOnFocus: false,
+  });
 
-  const reloadMe = async () => {
-    const r = (await api.me()) as MeResp;
-    if (isMeOk(r)) {
-      const status = r.kyc;
-      const mapped: KycState =
-        status === 'approved' ? 'approved' : status === 'pending' || status === 'rejected' ? 'pending' : 'none';
-      setKyc(mapped);
-    }
-  };
-
-  useEffect(() => {
-    void reloadMe();
-  }, []);
+  const kyc: KycState = useMemo(() => {
+    const status = me?.kyc ?? 'none';
+    return status === 'approved'
+      ? 'approved'
+      : status === 'pending' || status === 'rejected'
+        ? 'pending'
+        : 'none';
+  }, [me]);
 
   const progressCurrent = kyc === 'approved' ? 3 : kyc === 'pending' ? 2 : 0;
   const stepLabels = [t('kyc.step.start'), t('kyc.step.submit'), t('kyc.step.review')];
+
+  // Пока грузим /api/me: показываем "none" (и UI не прыгает), либо можно добавить небольшую подсказку
+  const statusLabel = isLoading ? (t('loading') || 'Loading…') : t(`kyc.status.${kyc}`);
 
   return (
     <div className="space-y-4">
@@ -58,7 +64,7 @@ export default function ProfilePage() {
         <div className="flex flex-wrap items-center gap-2">
           <div>
             {t('kyc.status')}:&nbsp;&nbsp;
-            <StatusBadge status={kyc}>{t(`kyc.status.${kyc}`)}</StatusBadge>
+            <StatusBadge status={kyc}>{statusLabel}</StatusBadge>
           </div>
         </div>
 
@@ -71,9 +77,7 @@ export default function ProfilePage() {
               <div
                 className={
                   'h-6 w-6 rounded-full grid place-items-center text-[11px] font-semibold ' +
-                  (progressCurrent >= 1
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-zinc-500/40 text-zinc-200')
+                  (progressCurrent >= 1 ? 'bg-emerald-600 text-white' : 'bg-zinc-500/40 text-zinc-200')
                 }
               >
                 1
@@ -92,9 +96,7 @@ export default function ProfilePage() {
               <div
                 className={
                   'h-6 w-6 rounded-full grid place-items-center text-[11px] font-semibold ' +
-                  (progressCurrent >= 2
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-zinc-500/40 text-zinc-200')
+                  (progressCurrent >= 2 ? 'bg-emerald-600 text-white' : 'bg-zinc-500/40 text-zinc-200')
                 }
               >
                 2
@@ -113,9 +115,7 @@ export default function ProfilePage() {
               <div
                 className={
                   'h-6 w-6 rounded-full grid place-items-center text-[11px] font-semibold ' +
-                  (progressCurrent >= 3
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-zinc-500/40 text-zinc-200')
+                  (progressCurrent >= 3 ? 'bg-emerald-600 text-white' : 'bg-zinc-500/40 text-zinc-200')
                 }
               >
                 3
@@ -140,13 +140,11 @@ export default function ProfilePage() {
 
           {/* Desktop: full labels */}
           <div className="hidden md:block">
-            <StepBar
-              steps={[t('kyc.step.start'), t('kyc.step.submit'), t('kyc.step.review')]}
-              current={progressCurrent}
-            />
+            <StepBar steps={stepLabels} current={progressCurrent} />
           </div>
         </div>
       </div>
+
       <ProfileForm />
     </div>
   );

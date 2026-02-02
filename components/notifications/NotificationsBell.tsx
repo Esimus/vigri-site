@@ -1,3 +1,4 @@
+// components/notifications/NotificationsBell.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -11,15 +12,10 @@ export default function NotificationsBell() {
   const { t } = useI18n();
 
   const [open, setOpen] = useState(false);
-  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const iconRef = useRef<HTMLSpanElement | null>(null);
 
   // panel position
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-
-  useEffect(() => {
-    setPortalRoot(document.body);
-  }, []);
 
   const toggle = () => {
     if (!open && iconRef.current) {
@@ -36,8 +32,14 @@ export default function NotificationsBell() {
   // close on Esc/resize
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+      }
+    };
     const onResize = () => setOpen(false);
+
     window.addEventListener('keydown', onKey);
     window.addEventListener('resize', onResize);
     return () => {
@@ -47,7 +49,9 @@ export default function NotificationsBell() {
   }, [open]);
 
   const panel =
-    open && (
+    open &&
+    typeof document !== 'undefined' &&
+    createPortal(
       <div className="fixed inset-0 z-[55]" onClick={() => setOpen(false)} aria-hidden>
         <div
           onClick={(e) => e.stopPropagation()}
@@ -64,7 +68,8 @@ export default function NotificationsBell() {
             {t('header.mail_open') || 'Open inbox'}
           </Link>
         </div>
-      </div>
+      </div>,
+      document.body,
     );
 
   return (
@@ -76,7 +81,12 @@ export default function NotificationsBell() {
         aria-label="Notifications"
         tabIndex={0}
         onClick={toggle}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggle())}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+          }
+        }}
         className="inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-zinc-100 cursor-pointer text-zinc-700"
       >
         {/* bell icon, visible via stroke-current */}
@@ -92,7 +102,7 @@ export default function NotificationsBell() {
         </svg>
       </span>
 
-      {open && portalRoot ? createPortal(panel, portalRoot) : null}
+      {panel}
     </div>
   );
 }

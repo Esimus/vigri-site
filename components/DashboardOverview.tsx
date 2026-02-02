@@ -1,7 +1,8 @@
 // components/DashboardOverview.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/useI18n';
 import StatCarousel from '@/components/ui/StatCarousel';
@@ -21,7 +22,6 @@ type Rights = {
 };
 type RightsResp = { ok: boolean; items: Rights[]; tgePriceEur: number };
 
-// unified "me"
 type MeResp = {
   ok: boolean;
   signedIn: boolean;
@@ -31,7 +31,7 @@ type MeResp = {
 };
 
 type NftPortfolioItem = {
-  tierId: string; // "tree_steel", "bronze", ...
+  tierId: string;
   label: string;
   count: number;
   paidSol: number;
@@ -61,7 +61,6 @@ type AssetsResp = {
   positions?: Position[];
 };
 
-// Claim per 1 NFT (100%) by tier
 const CLAIM_PER_NFT: Record<string, number> = {
   tree_steel: 62500,
   bronze: 187500,
@@ -71,7 +70,6 @@ const CLAIM_PER_NFT: Record<string, number> = {
   ws20: 625000,
 };
 
-// TGE price (EUR) – как на странице "Активы"
 const VIGRI_TGE_PRICE_EUR = 0.0008;
 
 function calcClaimFromNft(portfolio?: NftPortfolioItem[]): number {
@@ -91,7 +89,6 @@ const ACTIVITY_KEYS: Record<string, string> = {
   withdraw: 'activity.withdraw',
   buy_nft: 'activity.buy_nft',
   reward: 'activity.reward',
-
   'nft-mint': 'activity.buy_nft',
 };
 
@@ -102,7 +99,6 @@ const ACTIVITY_ICONS: Record<string, string> = {
   withdraw: '⬆️',
   buy_nft: '🧾',
   reward: '🎁',
-
   'nft-mint': '🧾',
 };
 
@@ -119,22 +115,82 @@ const amountText = (h: AssetsResp['history'][number]) => {
   return `${h.symbol} ${sign}${h.amount}`;
 };
 
+// ----- fetchers -----
+
+const fetchMe = async (): Promise<MeResp | null> => {
+  try {
+    const mr = await fetch('/api/me', { cache: 'no-store' });
+    const mj: MeResp | null = await mr.json().catch(() => null);
+    if (mr.ok && mj?.ok) return mj;
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const buildAssetsUrl = (wallet?: string | null) => {
+  const params = new URLSearchParams();
+  if (wallet) {
+    params.set('wallet', wallet);
+    params.set('network', 'mainnet');
+  }
+  const qs = params.toString();
+  return `/api/assets${qs ? `?${qs}` : ''}`;
+};
+
+const fetchAssets = async (url: string): Promise<AssetsResp | null> => {
+  try {
+    const ar = await fetch(url, { cache: 'no-store' });
+    const aj: AssetsResp | null = await ar.json().catch(() => null);
+    if (!ar.ok || !aj?.ok) return null;
+    return aj;
+  } catch {
+    return null;
+  }
+};
+
+const fetchRights = async (): Promise<RightsResp | null> => {
+  try {
+    const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
+    const rj: RightsResp | null = await rr.json().catch(() => null);
+    if (!rr.ok || !rj?.ok) return null;
+    return rj;
+  } catch {
+    return null;
+  }
+};
+
 export default function DashboardOverview() {
   const { t } = useI18n();
   const phantom = usePhantomWallet();
   const solflare = useSolflareWallet();
   const address = phantom.address || solflare.address;
-  const [me, setMe] = useState<MeResp | null>(null);
-  const [rights, setRights] = useState<Rights[]>([]);
-  const [history, setHistory] = useState<AssetsResp['history'] | null>(null);
-  const [nftPortfolio, setNftPortfolio] = useState<NftPortfolioItem[]>([]);
-  const [portfolioLoaded, setPortfolioLoaded] = useState(false);
-  const [nftValueSol, setNftValueSol] = useState<number | null>(null);
-  const [portfolioValueEur, setPortfolioValueEur] = useState<number | null>(
-    null
+
+  const [now] = useState(() => Date.now());
+
+  const { data: me } = useSWR<MeResp | null>('me', fetchMe, {
+    revalidateOnFocus: false,
+  });
+
+  const assetsUrl = buildAssetsUrl(address);
+  const { data: assets } = useSWR<AssetsResp | null>(assetsUrl, fetchAssets, {
+    revalidateOnFocus: false,
+  });
+
+  const { data: rightsResp } = useSWR<RightsResp | null>(
+    '/api/nft/rights',
+    fetchRights,
+    { revalidateOnFocus: false }
   );
+
+  const rights: Rights[] = rightsResp?.items ?? [];
+
   const HISTORY_PAGE_SIZE = 6;
   const [historyPage, setHistoryPage] = useState(0);
+
+  const nftPortfolio: NftPortfolioItem[] = assets?.nftPortfolio ?? [];
+  const positions: Position[] = assets?.positions ?? [];
+  const history = assets ? assets.history ?? [] : null;
 
   const cf = useMemo(
     () =>
@@ -146,148 +202,77 @@ export default function DashboardOverview() {
     []
   );
 
-  useEffect(() => {
-    let alive = true;
-    setPortfolioLoaded(false);
+  const totalClaim =
+    assets != null ? Math.floor(calcClaimFromNft(nftPortfolio)) : null;
 
-    // Fast layer: /api/me + /api/assets (with optional wallet)
-    const loadFast = async () => {
-      try {
-        // /api/me does not depend on wallet
-        const mr = await fetch('/api/me', { cache: 'no-store' });
-        const mj: MeResp | null = await mr.json().catch(() => null);
-        if (alive && mr.ok && mj?.ok) {
-          setMe(mj);
-        }
-      } catch {
-        // ignore
-      }
+  const nftValueSol =
+    assets != null
+      ? nftPortfolio.reduce(
+          (sum, item) => sum + (item.currentValueSol ?? 0),
+          0
+        )
+      : null;
 
-      try {
-        const params = new URLSearchParams();
-        if (address) {
-          params.set('wallet', address);
-          params.set('network', 'mainnet');
-        }
-        const qs = params.toString();
-
-        const ar = await fetch(`/api/assets${qs ? `?${qs}` : ''}`, {
-          cache: 'no-store',
-        });
-        const aj: AssetsResp = await ar
-          .json()
-          .catch(() => ({ ok: false, history: [] } as AssetsResp));
-
-        if (!alive) return;
-
-        if (ar.ok && aj.ok) {
-          const history = aj.history || [];
-          const portfolio = aj.nftPortfolio || [];
-          const positions = aj.positions || [];
-
-          setHistory(history);
-          setNftPortfolio(portfolio);
-
-          const totalSol = portfolio.reduce(
-            (sum, item) => sum + (item.currentValueSol ?? 0),
-            0
-          );
-          setNftValueSol(totalSol);
-
-          // Общая стоимость портфеля в EUR — логика как на странице "Активы":
-          // сумма всех активов (кроме VIGRI) + будущие VIGRI из NFT по цене TGE.
+  const portfolioValueEur =
+    assets != null
+      ? (() => {
           const nonVigriPositions = positions.filter(
             (p) => p.symbol !== 'VIGRI'
           );
-          let displayTotalEur = 0;
+          let total = 0;
           for (const p of nonVigriPositions) {
-            displayTotalEur += p.valueEUR;
+            total += p.valueEUR;
           }
 
-          const claimFromNft = calcClaimFromNft(portfolio);
+          const claimFromNft = calcClaimFromNft(nftPortfolio);
           if (claimFromNft > 0) {
-            displayTotalEur += claimFromNft * VIGRI_TGE_PRICE_EUR;
+            total += claimFromNft * VIGRI_TGE_PRICE_EUR;
           }
 
-          setPortfolioValueEur(displayTotalEur);
-        } else {
-          setNftValueSol(null);
-          setPortfolioValueEur(null);
-        }
+          return total;
+        })()
+      : null;
 
-        setPortfolioLoaded(true);
-      } catch {
-        if (!alive) return;
-        setNftValueSol(null);
-        setPortfolioValueEur(null);
-        setPortfolioLoaded(true);
-      }
-    };
+  const daysLeftMin = (() => {
+    if (!rights.length) return null;
 
-    // Slow layer: /api/nft/rights
-    const loadRights = async () => {
-      try {
-        const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
-        const rj: RightsResp = await rr
-          .json()
-          .catch(() => ({ ok: false, items: [], tgePriceEur: 0 }));
-        if (!alive) return;
-        if (rr.ok && rj.ok) setRights(rj.items || []);
-      } catch {
-        // ignore
-      }
-    };
-
-    loadFast();
-    loadRights();
-
-    return () => {
-      alive = false;
-    };
-  }, [address]);
-
-  useEffect(() => {
-    setHistoryPage(0);
-  }, [history]);
-
-  const totalClaim = useMemo(() => {
-    if (!portfolioLoaded) return null;
-    return Math.floor(calcClaimFromNft(nftPortfolio));
-  }, [portfolioLoaded, nftPortfolio]);
-
-  const daysLeftMin = useMemo(() => {
+    const msPerDay = 24 * 60 * 60 * 1000;
     const lefts = rights
       .map((r) =>
         r.expiresAt
           ? Math.ceil(
-              (new Date(r.expiresAt).getTime() - Date.now()) /
-                (24 * 60 * 60 * 1000)
+              (new Date(r.expiresAt).getTime() - now) / msPerDay
             )
           : null
       )
       .filter((x): x is number => x !== null && x >= 0);
-    if (!lefts.length) return null;
-    return Math.min(...lefts);
-  }, [rights]);
 
-  const historyPageCount = useMemo(() => {
-    if (!history?.length) return 0;
-    return Math.ceil(history.length / HISTORY_PAGE_SIZE);
-  }, [history, HISTORY_PAGE_SIZE]);
+    return lefts.length ? Math.min(...lefts) : null;
+  })();
 
-  const historyPageItems = useMemo(() => {
-    if (!history?.length) return [];
-    const start = historyPage * HISTORY_PAGE_SIZE;
-    return history.slice(start, start + HISTORY_PAGE_SIZE);
-  }, [history, historyPage, HISTORY_PAGE_SIZE]);
+  const historyArray = history ?? [];
+  const historyPageCount =
+    historyArray.length > 0
+      ? Math.ceil(historyArray.length / HISTORY_PAGE_SIZE)
+      : 0;
 
-  // Map KYC status to label directly
+  const effectiveHistoryPage =
+    historyPageCount > 0 ? Math.min(historyPage, historyPageCount - 1) : 0;
+
+  const historyPageItems =
+    historyArray.length > 0
+      ? (() => {
+          const start = effectiveHistoryPage * HISTORY_PAGE_SIZE;
+          return historyArray.slice(start, start + HISTORY_PAGE_SIZE);
+        })()
+      : [];
+
   type KycKey = 'approved' | 'pending' | 'none';
 
   function normalizeKyc(v: unknown): KycKey {
     if (v === 'approved' || v === 'pending' || v === 'none') return v;
     if (v === true) return 'approved';
-    return 'none'; // false, null, undefined, любые другие значения
+    return 'none';
   }
 
   const kycKey = normalizeKyc(me?.kyc);
@@ -297,7 +282,7 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       <WalletBannerMain />
 
-      {/* Одна карусель KPI для всех экранов */}
+      {/* KPI carousel */}
       <StatCarousel
         items={[
           {
@@ -348,7 +333,7 @@ export default function DashboardOverview() {
               ),
             hint:
               t('overview.portfolio_value_hint') ||
-              'NFT + будущие VIGRI по текущим ценам, оценка в EUR.',
+              'NFT + future VIGRI at TGE price, estimated in EUR.',
           },
           {
             title: t('kyc.status'),
@@ -385,7 +370,6 @@ export default function DashboardOverview() {
         </div>
 
         {history === null ? (
-          // We don't know yet whether there are operations or not - we're just loading
           <InlineLoader label={t('overview.loading_history')} />
         ) : history.length ? (
           <>
@@ -412,7 +396,7 @@ export default function DashboardOverview() {
                     </div>
                   </div>
 
-                  {/* Desktop: keep current layout */}
+                  {/* Desktop: multi-column layout */}
                   <div className="hidden md:flex items-center justify-between">
                     <span>{new Date(h.ts).toLocaleString()}</span>
                     <span className="opacity-70">
@@ -438,14 +422,14 @@ export default function DashboardOverview() {
                   onClick={() =>
                     setHistoryPage((p) => Math.max(0, p - 1))
                   }
-                  disabled={historyPage <= 0}
+                  disabled={effectiveHistoryPage <= 0}
                   aria-label="Previous page"
                 >
                   ‹
                 </button>
 
                 <span className="text-sm opacity-70 tabular-nums">
-                  {historyPage + 1} / {historyPageCount}
+                  {effectiveHistoryPage + 1} / {historyPageCount}
                 </span>
 
                 <button
@@ -456,7 +440,7 @@ export default function DashboardOverview() {
                       Math.min(historyPageCount - 1, p + 1)
                     )
                   }
-                  disabled={historyPage >= historyPageCount - 1}
+                  disabled={effectiveHistoryPage >= historyPageCount - 1}
                   aria-label="Next page"
                 >
                   ›

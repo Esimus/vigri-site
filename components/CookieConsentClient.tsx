@@ -1,14 +1,10 @@
 // components/CookieConsentClient.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
 import CookieConsent from '@/components/CookieConsent';
 
 export default function CookieConsentClient({ show }: { show: boolean }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted || !show) return null;
+  if (!show) return null;
 
   return <CookieConsent />;
 }

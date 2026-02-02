@@ -11,7 +11,7 @@ import { CONFIG } from '@/lib/config';
 import Link from 'next/link';
 import ProfileMenu from '@/components/nav/ProfileMenu';
 import { NotificationsBell } from '@/components/notifications';
-import VigriLogo from "@/components/VigriLogo";
+import VigriLogo from '@/components/VigriLogo';
 
 const Sep = () => <span aria-hidden className="mx-1 select-none">—</span>;
 
@@ -38,7 +38,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // Mounted flag to avoid hydration mismatches on mobile-only UI
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
 
   // --- mobile sidebar state ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -64,7 +69,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // Close sidebar on route change
   useEffect(() => {
-    setIsSidebarOpen(false);
+    const id = setTimeout(() => {
+      setIsSidebarOpen(false);
+    }, 0);
+    return () => clearTimeout(id);
   }, [pathname]);
 
   // Prevent page scroll when mobile sidebar is open

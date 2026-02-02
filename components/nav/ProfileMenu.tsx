@@ -1,10 +1,9 @@
-// app/components/nav/ProfileMenu.tsx
+// components/nav/ProfileMenu.tsx
 'use client';
-
-/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/hooks/useI18n';
 
@@ -104,10 +103,11 @@ function applyTheme(pref: ThemePref) {
       typeof window !== 'undefined' &&
       window.matchMedia &&
       window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const root = document.documentElement;
 
+  const root = document.documentElement;
   root.setAttribute('data-theme', isDark ? 'dark' : 'light');
   root.classList.toggle('dark', isDark);
+
   try {
     const maxAge = 365 * 24 * 60 * 60;
     document.cookie = `vigri_theme_resolved=${isDark ? 'dark' : 'light'}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
@@ -118,7 +118,6 @@ export default function ProfileMenu() {
   const { t } = useI18n();
 
   const [open, setOpen] = useState(false);
-  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
 
   // avatar (photo) + initials fallback
@@ -159,8 +158,6 @@ export default function ProfileMenu() {
   const labelLogout = tr(t, 'common.logout', 'Logout');
 
   useEffect(() => {
-    setPortalRoot(document.body);
-
     // read user from /api/me to build initials + avatar url
     (async () => {
       try {
@@ -217,9 +214,9 @@ export default function ProfileMenu() {
       const top = r.bottom + GAP;
       let left = r.right - PANEL_W;
 
-      const maxLeft = viewportW - PANEL_W - 8; // keep 8px margin on the right
+      const maxLeft = viewportW - PANEL_W - 8;
       left = Math.min(left, maxLeft);
-      left = Math.max(8, left); // keep 8px margin on the left
+      left = Math.max(8, left);
 
       setPos({ top, left });
     }
@@ -343,6 +340,9 @@ export default function ProfileMenu() {
       </div>
     );
 
+  const canUseDOM = typeof document !== 'undefined';
+  const shouldRenderPortal = open && canUseDOM;
+
   return (
     <div className="relative">
       <button
@@ -355,12 +355,12 @@ export default function ProfileMenu() {
         aria-label="Open profile menu"
       >
         {avatarUrl ? (
-          <img
+          <Image
             src={avatarUrl}
             alt="Profile"
+            width={24}
+            height={24}
             className="h-5 w-5 md:h-6 md:w-6 rounded-full object-cover border border-white/30"
-            onError={() => setAvatarUrl(null)}
-            referrerPolicy="no-referrer"
           />
         ) : (
           <span className="grid h-5 w-5 md:h-6 md:w-6 place-items-center rounded-full bg-blue-100 text-[10px] md:text-[11px] font-semibold text-blue-700">
@@ -377,7 +377,7 @@ export default function ProfileMenu() {
         </span>
       </button>
 
-      {open && portalRoot ? createPortal(panel, portalRoot) : null}
+      {shouldRenderPortal ? createPortal(panel, document.body) : null}
     </div>
   );
 }
