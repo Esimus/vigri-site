@@ -1,6 +1,6 @@
 {
   "name": "vigri-site",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -43,5 +43,9 @@
   "engines": {
     "node": ">=24.11.0"
   },
-  "packageManager": "npm@11.6.2"
+  "packageManager": "npm@11.6.2",
+  "overrides": {
+    "hono": "^4.11.7",
+    "lodash": "^4.17.23"
+  }
 }
