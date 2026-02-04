@@ -17,6 +17,7 @@ const contactItem = { href: '/contact', key: 'dashboard.nav.contact' };
 
 const faqRoot = '/dashboard/faq';
 const faqItems = [
+  { href: '/dashboard/faq', key: 'faq_index_title' },
   { href: '/dashboard/faq/solflare', key: 'faq_solflare_page_title' },
   { href: '/dashboard/faq/phantom', key: 'faq_phantom_page_title' },
 ];
@@ -79,7 +80,10 @@ export default function DashboardNav() {
 
                 <div className="mt-1 space-y-1 pl-2">
                   {faqItems.map((f) => {
-                    const itemActive = isActive(f.href, pathname);
+                    const itemActive =
+                      f.href === faqRoot
+                        ? normalize(pathname) === normalize(f.href) // exact only for /dashboard/faq
+                        : isActive(f.href, pathname);
                     return (
                       <Link
                         key={f.href}

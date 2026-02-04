@@ -213,6 +213,56 @@
 
   "faq_menu_title": "FAQ",
 
+  "faq_index_title": "Questions & Answers",
+  "faq_index_intro": "Short answers about VIGRI, the NFT presale, and buying via wallets. If you’re new, start here.",
+
+  "faq_index_btn_phantom": "Phantom guide",
+  "faq_index_btn_solflare": "Solflare guide",
+  "faq_index_btn_litepaper": "Litepaper",
+
+  "faq_index_q_1": "What is VIGRI in simple words?",
+  "faq_index_a1_bold_1": "$VIGRI",
+  "faq_index_a1_p1_rest": "is a utility token on Solana. It’s designed as a way to pay, get discounts, and access services and fan experiences from sports clubs, dance studios, and creators on the VIGRI platform.",
+  "faq_index_a1_p2": "The project is part of the Lumiros ecosystem.",
+
+  "faq_index_q_2": "Is VIGRI an investment?",
+  "faq_index_a2_p1_pre": "No. VIGRI is a utility mechanism. By buying NFTs/tokens you support the project and get access to platform features —",
+  "faq_index_a2_p1_bold": "with no profit promises",
+  "faq_index_a2_p1_post": ".",
+  "faq_index_a2_p2": "Important: this is not financial advice. Any purchase is at your own risk.",
+
+  "faq_index_q_3": "Why start with an NFT presale?",
+  "faq_index_a3_p1": "The NFT presale is a transparent way to raise a starting budget: equal rules for everyone, with an on-chain history.",
+  "faq_index_a3_p2": "Specific benefits depend on the NFT tier.",
+
+  "faq_index_q_4": "Which wallets can I use to buy?",
+  "faq_index_a4_p1": "Main options: Phantom and Solflare.",
+  "faq_index_a4_link_phantom": "Phantom guide",
+  "faq_index_a4_link_solflare": "Solflare guide",
+
+  "faq_index_q_5": "What currency do I pay with?",
+  "faq_index_a5_bold": "SOL",
+  "faq_index_a5_p1_rest": "(Solana). Keep a small SOL buffer for network fees.",
+
+  "faq_index_q_6": "Why can a transaction fail?",
+  "faq_index_a6_p1": "Most common reasons:",
+  "faq_index_a6_b1": "Not enough SOL: purchase amount + network fee.",
+  "faq_index_a6_b2": "Wallet declined the signature (security settings/limits/unconfirmed popup).",
+  "faq_index_a6_b3": "Network congestion at that moment — try again a bit later.",
+  "faq_index_a6_b4": "Wallet extension froze — restart the browser and reopen the wallet.",
+
+  "faq_index_q_7": "Where can I follow project updates?",
+  "faq_index_a7_p1_pre": "All official links and channels are collected on the page",
+  "faq_index_channels_link_text": "Channels",
+
+  "faq_index_q_8": "When will DEX happen?",
+  "faq_index_a8_p1": "Timing depends on product readiness and liquidity launch conditions. We move carefully, without hype at any cost.",
+
+  "faq_index_q_9": "What risks should I understand?",
+  "faq_index_a9_b1": "Crypto markets are volatile; SOL and token prices can change a lot.",
+  "faq_index_a9_b2": "Platform development is a process; timelines and features may change.",
+  "faq_index_a9_b3": "There are Web3 tech risks (phishing, user mistakes, wallet security).",
+
   "faq_phantom_page_title": "Buying NFTs with Phantom",
   "faq_phantom_page_intro": "Follow these steps to install Phantom, connect your wallet to vigri.ee, and safely buy your presale NFTs.",
 

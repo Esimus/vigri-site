@@ -213,6 +213,56 @@
 
   "faq_menu_title": "KKK",
 
+  "faq_index_title": "Küsimused ja vastused",
+  "faq_index_intro": "Lühikesed vastused VIGRI, NFT eelmüügi ja rahakoti kaudu ostmise kohta. Kui oled uus, alusta siit.",
+
+  "faq_index_btn_phantom": "Phantom juhend",
+  "faq_index_btn_solflare": "Solflare juhend",
+  "faq_index_btn_litepaper": "Litepaper",
+
+  "faq_index_q_1": "Mis on VIGRI lihtsate sõnadega?",
+  "faq_index_a1_bold_1": "$VIGRI",
+  "faq_index_a1_p1_rest": "on Solana võrgus kasutustoken (utility token). See on mõeldud maksmiseks, soodustusteks ja ligipääsuks spordiklubide, tantsustuudiote ja loojate teenustele ning fännikogemustele VIGRI platvormil.",
+  "faq_index_a1_p2": "Projekt on osa Lumiros ökosüsteemist.",
+
+  "faq_index_q_2": "Kas VIGRI on investeering?",
+  "faq_index_a2_p1_pre": "Ei. VIGRI on kasutusmehhanism. NFT-de/tokenite ostuga toetad projekti ja saad ligipääsu platvormi võimalustele —",
+  "faq_index_a2_p1_bold": "ilma kasumilubadusteta",
+  "faq_index_a2_p1_post": ".",
+  "faq_index_a2_p2": "Oluline: see ei ole finantsnõuanne. Iga ost on sinu enda vastutusel.",
+
+  "faq_index_q_3": "Miks alustada NFT eelmüügiga?",
+  "faq_index_a3_p1": "NFT eelmüük on läbipaistev viis stardieelarve kogumiseks: reeglid on kõigile ühesugused ja ajalugu on plokiahelas nähtav.",
+  "faq_index_a3_p2": "Konkreetsed eelised sõltuvad NFT tasemest (tier).",
+
+  "faq_index_q_4": "Millised rahakotid sobivad ostuks?",
+  "faq_index_a4_p1": "Peamised valikud: Phantom ja Solflare.",
+  "faq_index_a4_link_phantom": "Phantom juhend",
+  "faq_index_a4_link_solflare": "Solflare juhend",
+
+  "faq_index_q_5": "Mis valuutas maksan?",
+  "faq_index_a5_bold": "SOL",
+  "faq_index_a5_p1_rest": "(Solana). Hoia väike SOL varu ka võrgutasude jaoks.",
+
+  "faq_index_q_6": "Miks tehing võib ebaõnnestuda?",
+  "faq_index_a6_p1": "Kõige levinumad põhjused:",
+  "faq_index_a6_b1": "Pole piisavalt SOL-i: ostusumma + võrgutasu.",
+  "faq_index_a6_b2": "Rahakott keeldus allkirjast (turvaseaded/piirangud/kinnitamata aken).",
+  "faq_index_a6_b3": "Võrk on hetkel ülekoormatud — proovi veidi hiljem uuesti.",
+  "faq_index_a6_b4": "Rahakoti laiendus hangus — taaskäivita brauser ja ava rahakott uuesti.",
+
+  "faq_index_q_7": "Kus jälgida projekti uudiseid?",
+  "faq_index_a7_p1_pre": "Kõik ametlikud lingid ja kanalid on koondatud lehele",
+  "faq_index_channels_link_text": "Kanalid",
+
+  "faq_index_q_8": "Millal tuleb DEX?",
+  "faq_index_a8_p1": "Aeg sõltub toote valmidusest ja likviidsuse käivitamise tingimustest. Liigume ettevaatlikult, ilma “hype iga hinna eest”.",
+
+  "faq_index_q_9": "Milliseid riske peaksin mõistma?",
+  "faq_index_a9_b1": "Krüptoturg on volatiilne; SOL-i ja tokenite hind võib palju muutuda.",
+  "faq_index_a9_b2": "Platvormi arendus on protsess; ajakava ja funktsioonid võivad muutuda.",
+  "faq_index_a9_b3": "Web3 tehnoloogilised riskid (phishing, kasutajavead, rahakoti turvalisus).",
+
   "faq_phantom_page_title": "NFT ostmine Phantomiga",
   "faq_phantom_page_intro": "Järgi neid samme, et paigaldada Phantom, ühendada rahakott vigri.ee-ga ja osta turvaliselt eelmüügi NFT-sid.",
 
