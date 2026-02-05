@@ -1,159 +1,20 @@
 // components/faq/FaqIndex.tsx
 'use client';
 
-import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useI18n } from '@/hooks/useI18n';
+import { FaqGeneral } from '@/components/faq/FaqGeneral';
+import { FaqUserQuestions } from '@/components/faq/FaqUserQuestions';
 
-type FaqItem = {
-  qKey: string;
-  a: ReactNode;
-};
-
-function FaqAccordionItem({
-  index,
-  q,
-  children,
-}: {
-  index: number;
-  q: string;
-  children: ReactNode;
-}) {
-  return (
-    <details className="card p-4">
-      <summary className="btn btn-outline w-full justify-between cursor-pointer">
-        <span className="flex items-center gap-2 min-w-0">
-          <span className="chip chip--sm" aria-hidden="true">
-            {index}
-          </span>
-          <span className="truncate">{q}</span>
-        </span>
-        <span aria-hidden="true">▾</span>
-      </summary>
-
-      <div className="mt-3 text-sm text-zinc-700 dark:text-zinc-200">{children}</div>
-    </details>
-  );
-}
+type Tab = 'general' | 'users';
 
 export function FaqIndex() {
   const { t } = useI18n();
-
-  const faqs: FaqItem[] = [
-    {
-      qKey: 'faq_index_q_1',
-      a: (
-        <div className="space-y-2">
-          <p>
-            <b>{t('faq_index_a1_bold_1')}</b> {t('faq_index_a1_p1_rest')}
-          </p>
-          <p className="text-zinc-600 dark:text-zinc-300">{t('faq_index_a1_p2')}</p>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_2',
-      a: (
-        <div className="space-y-2">
-          <p>
-            {t('faq_index_a2_p1_pre')} <b>{t('faq_index_a2_p1_bold')}</b>
-            {t('faq_index_a2_p1_post')}
-          </p>
-          <p className="text-zinc-600 dark:text-zinc-300">{t('faq_index_a2_p2')}</p>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_3',
-      a: (
-        <div className="space-y-2">
-          <p>{t('faq_index_a3_p1')}</p>
-          <p className="text-zinc-600 dark:text-zinc-300">{t('faq_index_a3_p2')}</p>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_4',
-      a: (
-        <div className="space-y-2">
-          <p>{t('faq_index_a4_p1')}</p>
-          <ul className="list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-200 space-y-1">
-            <li>
-              <Link href="/faq/phantom" className="link-accent">
-                {t('faq_index_a4_link_phantom')}
-              </Link>
-            </li>
-            <li>
-              <Link href="/faq/solflare" className="link-accent">
-                {t('faq_index_a4_link_solflare')}
-              </Link>
-            </li>
-          </ul>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_5',
-      a: (
-        <div className="space-y-2">
-          <p>
-            <b>{t('faq_index_a5_bold')}</b> {t('faq_index_a5_p1_rest')}
-          </p>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_6',
-      a: (
-        <div className="space-y-2">
-          <p>{t('faq_index_a6_p1')}</p>
-          <ul className="list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-200 space-y-1">
-            <li>{t('faq_index_a6_b1')}</li>
-            <li>{t('faq_index_a6_b2')}</li>
-            <li>{t('faq_index_a6_b3')}</li>
-            <li>{t('faq_index_a6_b4')}</li>
-          </ul>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_7',
-      a: (
-        <div className="space-y-2">
-          <p>
-            {t('faq_index_a7_p1_pre')}{' '}
-            <Link href="/channels" className="link-accent">
-              {t('faq_index_channels_link_text')}
-            </Link>
-            .
-          </p>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_8',
-      a: (
-        <div className="space-y-2">
-          <p>{t('faq_index_a8_p1')}</p>
-        </div>
-      ),
-    },
-    {
-      qKey: 'faq_index_q_9',
-      a: (
-        <div className="space-y-2">
-          <ul className="list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-200 space-y-1">
-            <li>{t('faq_index_a9_b1')}</li>
-            <li>{t('faq_index_a9_b2')}</li>
-            <li>{t('faq_index_a9_b3')}</li>
-          </ul>
-        </div>
-      ),
-    },
-  ];
+  const [tab, setTab] = useState<Tab>('general');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="card p-4">
         <div className="flex items-start gap-3">
           <div className="h-10 w-10 rounded-2xl bg-zinc-900/5 dark:bg-zinc-50/5 flex items-center justify-center">
@@ -181,13 +42,43 @@ export function FaqIndex() {
         </div>
       </div>
 
-      <section className="space-y-3">
-        {faqs.map((item, i) => (
-          <FaqAccordionItem key={item.qKey} index={i + 1} q={t(item.qKey)}>
-            {item.a}
-          </FaqAccordionItem>
-        ))}
-      </section>
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="FAQ sections">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'general'}
+          onClick={() => setTab('general')}
+          className={[
+            'inline-flex items-center rounded-full border px-4 py-2 text-sm',
+            'cursor-pointer transition',
+            'focus:outline-none focus:ring-2 focus:ring-zinc-400/20',
+            tab === 'general'
+              ? 'bg-brand-100 text-brand border-brand-200'
+              : 'bg-transparent border-zinc-200 text-zinc-800 hover:bg-zinc-900/5 hover:border-zinc-300 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-white/5 dark:hover:border-zinc-700',
+          ].join(' ')}
+        >
+          {t('faq_tab_general')}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'users'}
+          onClick={() => setTab('users')}
+          className={[
+            'inline-flex items-center rounded-full border px-4 py-2 text-sm',
+            'cursor-pointer transition',
+            'focus:outline-none focus:ring-2 focus:ring-zinc-400/20',
+            tab === 'users'
+              ? 'bg-brand-100 text-brand border-brand-200'
+              : 'bg-transparent border-zinc-200 text-zinc-800 hover:bg-zinc-900/5 hover:border-zinc-300 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-white/5 dark:hover:border-zinc-700',
+          ].join(' ')}
+        >
+          {t('faq_tab_users')}
+        </button>
+      </div>
+
+      {tab === 'general' ? <FaqGeneral /> : <FaqUserQuestions />}
     </div>
   );
 }

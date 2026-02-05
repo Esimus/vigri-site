@@ -221,9 +221,10 @@
   "faq_index_btn_litepaper": "Litepaper",
 
   "faq_index_q_1": "Mis on VIGRI lihtsate sõnadega?",
-  "faq_index_a1_bold_1": "$VIGRI",
-  "faq_index_a1_p1_rest": "on Solana võrgus kasutustoken (utility token). See on mõeldud maksmiseks, soodustusteks ja ligipääsuks spordiklubide, tantsustuudiote ja loojate teenustele ning fännikogemustele VIGRI platvormil.",
-  "faq_index_a1_p2": "Projekt on osa Lumiros ökosüsteemist.",
+  "faq_index_a1_bold_1": "VIGRI",
+  
+  "faq_index_a1_p1_rest": "on nii VIGRI platvormi nimi kui ka Solana võrgus kasutustoken.",
+  "faq_index_a1_p2": "VIGRI on rakendus, kus saad leida kontrollitud spordi- ja loomeklubisid, tiime ning üksikuid loojaid linna, ala ja taseme järgi ning jälgida nende päris lugusid spordis, tantsus ja kunstis. See ei ole tüüpiline sõnumirakendus ega puhas ühisrahastusplatvorm: ennekõike on see elav register ja voog, koos praktiliste tööriistadega neile, kes tahavad kaasa lüüa. \n\n$VIGRI tokenit kasutatakse platvormi sees makseteks, soodustusteks ja ligipääsuks teenustele ning fännikogemustele. \n\nProjekt on osa Lumiros ökosüsteemist.",
 
   "faq_index_q_2": "Kas VIGRI on investeering?",
   "faq_index_a2_p1_pre": "Ei. VIGRI on kasutusmehhanism. NFT-de/tokenite ostuga toetad projekti ja saad ligipääsu platvormi võimalustele —",
@@ -315,13 +316,6 @@
   "faq_phantom_link_chrome_store": "Phantom Chrome Web Store’is",
   "faq_phantom_link_firefox_addons": "Phantom Firefox Add-ons’is",
   "faq_phantom_link_edge_addons_home": "Edge (paigaldus Chrome Web Store’i kaudu)",
-
-  "faq_tag_edge": "Edge",
-  "faq_tag_chrome": "Chrome",
-  "faq_tag_firefox": "Firefox",
-  "faq_tag_security": "Turvalisus",
-  "faq_tag_tip": "Nipp",
-  "faq_tag_troubleshooting": "Kui miski läheb valesti",
 
   "faq_solflare_page_title": "NFT ostmine Solflare’iga",
   "faq_solflare_page_intro": "Järgi allolevaid samme. Ekraanipildid on valikulised — ava need ainult siis, kui vajad visuaalset abi.",
@@ -428,6 +422,29 @@
   "faq_solflare_step_buy_4_b1": "Pärast tehingut ava Overview / Assets / Rewards ja kontrolli uusi kirjeid.",
   "faq_solflare_step_buy_4_b2": "Soovi korral ava ka tehingu link (signature), et kinnitada olek ketis.",
   "faq_solflare_step_buy_4_alt": "Pärast ostu — tulemuse kontroll",
+
+  "faq_tab_general": "Üldised küsimused",
+  "faq_tab_users": "Küsimused kasutajatelt",
+
+  "faq_tag_edge": "Edge",
+  "faq_tag_chrome": "Chrome",
+  "faq_tag_firefox": "Firefox",
+  "faq_tag_security": "Turvalisus",
+  "faq_tag_tip": "Nipp",
+  "faq_tag_troubleshooting": "Kui miski läheb valesti",
+
+  "faq_users_title": "Küsimused kasutajatelt",
+  "faq_users_intro": "Siia tulevad küsimused, mida inimesed küsivad Telegramis, X-is või e-posti teel. Me kogume need ja avaldame siin koos vastustega.",
+  "faq_users_empty": "Praegu pole siin veel avaldatud küsimusi. Võid esitada oma küsimuse — ja lisame selle siia jaotisse.",
+  "faq_users_ask_btn": "Esita küsimus",
+  "faq_users_name_label": "Nimi (valikuline)",
+  "faq_users_name_placeholder": "Sinu nimi",
+  "faq_users_email_label": "E-post vastuse saamiseks (valikuline)",
+  "faq_users_email_placeholder": "name@example.com",
+  "faq_users_message_label": "Sinu küsimus",
+  "faq_users_message_placeholder": "Kirjuta küsimus ühe sõnumina…",
+  "faq_users_message_hint": "Avaneb sinu e-posti rakendus juba eeltäidetud kirjaga.",
+  "faq_users_send_btn": "Saada",
 
   "header.notifications": "Teavitused",
   "header.mail_empty": "Uusi teateid pole",

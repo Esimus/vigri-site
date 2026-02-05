@@ -221,9 +221,10 @@
   "faq_index_btn_litepaper": "Litepaper",
 
   "faq_index_q_1": "What is VIGRI in simple words?",
-  "faq_index_a1_bold_1": "$VIGRI",
-  "faq_index_a1_p1_rest": "is a utility token on Solana. It’s designed as a way to pay, get discounts, and access services and fan experiences from sports clubs, dance studios, and creators on the VIGRI platform.",
-  "faq_index_a1_p2": "The project is part of the Lumiros ecosystem.",
+  "faq_index_a1_bold_1": "VIGRI",
+  
+  "faq_index_a1_p1_rest": "is both the name of the VIGRI platform and a utility token on Solana.",
+  "faq_index_a1_p2": "VIGRI is an app where you can discover verified sport and creative clubs, teams, and individual creators by city, discipline, and level — and follow their real journeys in sport, dance, and arts. It’s not a typical messenger and not a pure crowdfunding site: first of all it’s a living registry and feed, with practical tools for those who want to participate. \n\nThe $VIGRI token is used for payments, discounts, and access to services and fan experiences inside the platform. \n\n The project is part of the Lumiros ecosystem.",
 
   "faq_index_q_2": "Is VIGRI an investment?",
   "faq_index_a2_p1_pre": "No. VIGRI is a utility mechanism. By buying NFTs/tokens you support the project and get access to platform features —",
@@ -315,13 +316,6 @@
   "faq_phantom_link_chrome_store": "Phantom in Chrome Web Store",
   "faq_phantom_link_firefox_addons": "Phantom in Firefox Add-ons",
   "faq_phantom_link_edge_addons_home": "Edge (install via Chrome Web Store)",
-
-  "faq_tag_edge": "Edge",
-  "faq_tag_chrome": "Chrome",
-  "faq_tag_firefox": "Firefox",
-  "faq_tag_security": "Security",
-  "faq_tag_tip": "Tip",
-  "faq_tag_troubleshooting": "If something goes wrong",
 
   "faq_solflare_page_title": "Purchase NFT via Solflare",
   "faq_solflare_page_intro": "Follow the steps below. Screenshots are optional — open them only when you need a visual reference.",
@@ -428,6 +422,29 @@
   "faq_solflare_step_buy_4_b1": "After the transaction appears, open Overview / Assets / Rewards to verify new records.",
   "faq_solflare_step_buy_4_b2": "You can also open the transaction link (signature) to confirm on-chain status.",
   "faq_solflare_step_buy_4_alt": "Post-purchase — verify transaction and records",
+
+  "faq_tab_general": "General questions",
+  "faq_tab_users": "Questions from users",
+  
+  "faq_tag_edge": "Edge",
+  "faq_tag_chrome": "Chrome",
+  "faq_tag_firefox": "Firefox",
+  "faq_tag_security": "Security",
+  "faq_tag_tip": "Tip",
+  "faq_tag_troubleshooting": "If something goes wrong",
+
+  "faq_users_title": "Questions from users",
+  "faq_users_intro": "Here we’ll publish questions people ask in Telegram, X, or by email. We’ll collect them and post them here with answers.",
+  "faq_users_empty": "No questions have been published yet. You can ask yours — and we’ll add it to this section.",
+  "faq_users_ask_btn": "Ask a question",
+  "faq_users_name_label": "Name (optional)",
+  "faq_users_name_placeholder": "Your name",
+  "faq_users_email_label": "Email for reply (optional)",
+  "faq_users_email_placeholder": "name@example.com",
+  "faq_users_message_label": "Your question",
+  "faq_users_message_placeholder": "Write your question in a single message…",
+  "faq_users_message_hint": "Your email app will open with a prefilled message.",
+  "faq_users_send_btn": "Send",
 
   "header.notifications": "Notifications",
   "header.mail_empty": "No new messages",

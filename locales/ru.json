@@ -221,9 +221,10 @@
   "faq_index_btn_litepaper": "Litepaper",
 
   "faq_index_q_1": "Что такое VIGRI простыми словами?",
-  "faq_index_a1_bold_1": "$VIGRI",
-  "faq_index_a1_p1_rest": "— утилитарный токен в сети Solana. Он задуман как инструмент оплаты, скидок и доступа к сервисам и фан-опыту спортивных клубов, танцевальных студий и создателей на платформе VIGRI.",
-  "faq_index_a1_p2": "Проект является частью экосистемы Lumiros.",
+  "faq_index_a1_bold_1": "VIGRI",
+  
+  "faq_index_a1_p1_rest": "— это и название платформы VIGRI, и утилитарный токен в сети Solana.",
+  "faq_index_a1_p2": "Платформа VIGRI — приложение, где можно найти проверенные спортивные и творческие клубы, команды и отдельных создателей по городу, направлению и уровню, подписаться и следить за их реальными историями в спорте, танце и искусстве. VIGRI — не типичный мессенджер и не чисто краудфандинговая платформа: прежде всего это живой реестр и лента, плюс практические инструменты для тех, кто хочет принять участие. \n\nТокен $VIGRI используется как инструмент оплаты, скидок и доступа к сервисам и фан-опыту внутри платформы. \n\n Проект является частью экосистемы Lumiros.",
 
   "faq_index_q_2": "VIGRI — это инвестиция?",
   "faq_index_a2_p1_pre": "Нет. VIGRI — это utility-механика. Покупая NFT/токены, ты поддерживаешь развитие проекта и получаешь доступ к возможностям платформы —",
@@ -315,13 +316,6 @@
   "faq_phantom_link_chrome_store": "Phantom в Chrome Web Store",
   "faq_phantom_link_firefox_addons": "Phantom в Firefox Add-ons",
   "faq_phantom_link_edge_addons_home": "Edge (установка через Chrome Web Store)",
-
-  "faq_tag_edge": "Edge",
-  "faq_tag_chrome": "Chrome",
-  "faq_tag_firefox": "Firefox",
-  "faq_tag_security": "Безопасность",
-  "faq_tag_tip": "Совет",
-  "faq_tag_troubleshooting": "Если что-то пошло не так",
 
   "faq_solflare_page_title": "Покупка NFT через Solflare",
   "faq_solflare_page_intro": "Следуй шагам ниже. Скриншоты необязательны — открывай их только когда нужна визуальная подсказка.",
@@ -428,6 +422,29 @@
   "faq_solflare_step_buy_4_b1": "После покупки открой Overview / Assets / Rewards и проверь новые записи.",
   "faq_solflare_step_buy_4_b2": "Также можно открыть ссылку на транзакцию (signature) и проверить статус в сети.",
   "faq_solflare_step_buy_4_alt": "После покупки — проверка результатов",
+
+  "faq_tab_general": "Общие вопросы",
+  "faq_tab_users": "Вопросы от пользователей",
+
+  "faq_tag_edge": "Edge",
+  "faq_tag_chrome": "Chrome",
+  "faq_tag_firefox": "Firefox",
+  "faq_tag_security": "Безопасность",
+  "faq_tag_tip": "Совет",
+  "faq_tag_troubleshooting": "Если что-то пошло не так",
+
+  "faq_users_title": "Вопросы от пользователей",
+  "faq_users_intro": "Здесь будут вопросы, которые люди задают в Telegram, X или по email. Мы будем собирать их и публиковать с ответами.",
+  "faq_users_empty": "Пока здесь нет опубликованных вопросов. Можно задать свой — и мы добавим его в этот раздел.",
+  "faq_users_ask_btn": "Задать вопрос",
+  "faq_users_name_label": "Имя (необязательно)",
+  "faq_users_name_placeholder": "Ваше имя",
+  "faq_users_email_label": "Email для ответа (необязательно)",
+  "faq_users_email_placeholder": "name@example.com",
+  "faq_users_message_label": "Ваш вопрос",
+  "faq_users_message_placeholder": "Напишите вопрос одним сообщением…",
+  "faq_users_message_hint": "Откроется ваше почтовое приложение с уже заполненным письмом.",
+  "faq_users_send_btn": "Отправить",
 
   "header.notifications": "Уведомления",
   "header.mail_empty": "Новых сообщений нет",
