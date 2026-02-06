@@ -150,6 +150,18 @@
   "channels_other_title": "Muud platvormid",
   "channels_other_desc": "Projekti kasvades võivad ilmuda üksikud artiklid, kampaaniad ja reklaam teistel platvormidel (Facebook, meedia, blogid jne). Need aitavad publikut laiendada, kuid ei ole põhikanalid. Ametlik sisenemispunkt ja tõese info allikas on alati vigri.ee ja kinnitatud postitused X-is ja Telegramis.",
   
+  "clubs_badge": "Piloot",
+  "clubs_title": "Klubidele ja stuudiotele",
+  "clubs_intro": "Liitu VIGRI piloodiga — ehitame koos spordi ja tantsu kogukondadele esimese kasuliku rakenduse versiooni.",
+  "clubs_cta_apply": "Esita taotlus",
+  "clubs_cta_view_pilots": "Vaata pilootklubisid",
+  "clubs_pilot_title": "Pilootklubid",
+  "clubs_pilot_empty": "Pilootklubid ilmuvad siia peagi. Kui soovid olla esimeste seas — esita taotlus.",
+  "clubs_pilot_how_title": "Kuidas piloot töötab",
+  "clubs_pilot_how_1": "Sa jagad kontakte ja lühikest kirjeldust klubist.",
+  "clubs_pilot_how_2": "Loome sinu avaliku profiili ja pilootkanali VIGRI-s.",
+  "clubs_pilot_how_3": "Te postitate uuendusi; toetajad jälgivad ja aitavad vajadusel.",
+
   "common.sign_in": "Logi sisse",
   "common.sign_up": "Loo konto",
   "common.go_dashboard": "Ava juhtpaneel",
@@ -770,6 +782,7 @@
   "nav_how": "Kuidas osta",
   "nav_contract": "Leping",
   "nav_channels": "Kanalid",
+  "nav_clubs": "Klubidele",
   "nav_compliance": "AML / KYC / GDPR",
   "nav_legal": "Õigus",
 

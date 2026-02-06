@@ -150,6 +150,18 @@
   "channels_other_title": "Other platforms",
   "channels_other_desc": "As the project grows there may be one-off articles, campaigns and ads on other platforms (Facebook, media, blogs, etc.). They help to expand the audience but are not primary channels. The official entry point and source of truth are always the site vigri.ee and pinned posts in X and Telegram.",
   
+  "clubs_badge": "Pilot",
+  "clubs_title": "For clubs and studios",
+  "clubs_intro": "Join the VIGRI pilot to help us build the first useful version of the app for sport and dance communities.",
+  "clubs_cta_apply": "Apply to join",
+  "clubs_cta_view_pilots": "View pilot clubs",
+  "clubs_pilot_title": "Pilot clubs",
+  "clubs_pilot_empty": "Pilot clubs will appear here soon. If you want your club to be among the first — apply to join.",
+  "clubs_pilot_how_title": "How the pilot works",
+  "clubs_pilot_how_1": "You share your contacts and a short description of the club.",
+  "clubs_pilot_how_2": "We create your public profile and pilot channel in VIGRI.",
+  "clubs_pilot_how_3": "You post updates; supporters follow your journey and can help when needed.",
+
   "common.sign_in": "Sign in",
   "common.sign_up": "Create account",
   "common.go_dashboard": "Go to Dashboard",
@@ -425,7 +437,7 @@
 
   "faq_tab_general": "General questions",
   "faq_tab_users": "Questions from users",
-  
+
   "faq_tag_edge": "Edge",
   "faq_tag_chrome": "Chrome",
   "faq_tag_firefox": "Firefox",
@@ -770,6 +782,7 @@
   "nav_how": "How to Buy",
   "nav_contract": "Contract",
   "nav_channels": "Channels",
+  "nav_clubs": "For clubs",
   "nav_compliance": "AML / KYC / GDPR",
   "nav_legal": "Legal",
 
