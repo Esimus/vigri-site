@@ -90,6 +90,9 @@ export default function PublicHeader() {
             <Link href="/channels" className={desktopNavItemBase}>
               {t('nav_channels')}
             </Link>
+            <Link href="/clubs" className={desktopNavItemBase}>
+              {safeT('nav_clubs', 'For clubs')}
+            </Link>
 
             {/* FAQ dropdown (desktop) */}
             <div ref={faqRef} className="relative">
@@ -327,6 +330,13 @@ export default function PublicHeader() {
                 onClick={() => setIsNavOpen(false)}
               >
                 {t('nav_channels')}
+              </Link>
+              <Link
+                href="/clubs"
+                className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
+                onClick={() => setIsNavOpen(false)}
+              >
+                {safeT('nav_clubs', 'For clubs')}
               </Link>
 
               {/* FAQ group (mobile) */}
