@@ -7,8 +7,11 @@ import { useI18n } from '@/hooks/useI18n';
 import PublicHeader from '@/components/layout/PublicHeader';
 import { AmbassadorForm, ClubPilotForm } from '@/components/forms/IntakeForms';
 
+type ClubCategory = 'sport' | 'dance' | 'music' | 'art';
+
 type Club = {
   name: string;
+  category: ClubCategory;
   location?: string;
   website?: string;
   instagram?: string;
@@ -44,11 +47,17 @@ export default function ClubsPage() {
 
   const tab = normalizeTab(sp.get('tab'));
 
+  type CategoryFilter = 'all' | ClubCategory;
+  const [clubFilter, setClubFilter] = useState<CategoryFilter>('all');
+
   const [isApplyOpen, setIsApplyOpen] = useState(false);
+  const [isAmbApplyOpen, setIsAmbApplyOpen] = useState(false);
 
   const [applyFormKey, setApplyFormKey] = useState(0);
   const [ambFormKey, setAmbFormKey] = useState(0);
+
   const applyFormRef = useRef<HTMLDivElement | null>(null);
+  const ambFormRef = useRef<HTMLDivElement | null>(null);
 
   const safeT = (key: string, fallback: string) => {
     const v = t(key);
@@ -71,14 +80,22 @@ export default function ClubsPage() {
 
   function openApply() {
     if (tab !== 'pilot') {
-        pushWithTab('pilot');
+      pushWithTab('pilot');
     }
     setIsApplyOpen(true);
 
     setTimeout(() => {
-        applyFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      applyFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
-    }
+  }
+
+  function openAmbApply() {
+    setIsAmbApplyOpen(true);
+
+    setTimeout(() => {
+      ambFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
 
   return (
     <>
@@ -155,40 +172,39 @@ export default function ClubsPage() {
                       className="btn btn-primary"
                       onClick={openApply}
                       aria-expanded="false"
-                      >
+                    >
                       {t('clubs_cta_apply')}
                     </button>
-                    ) : (
+                  ) : (
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
-                          type="button"
-                          className="btn btn-outline"
-                          onClick={() => setIsApplyOpen(false)}
-                        >
-                          {t('clubs_form_collapse')}
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={() => setIsApplyOpen(false)}
+                      >
+                        {t('clubs_form_collapse')}
                       </button>
 
                       <button
-                          type="button"
-                          className="btn btn-outline"
-                          onClick={() => setApplyFormKey((k) => k + 1)}
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={() => setApplyFormKey((k) => k + 1)}
                       >
-                          {t('clubs_form_reset')}
+                        {t('clubs_form_reset')}
                       </button>
                     </div>
                   )}
 
-                  {/* Form container (hidden when collapsed, but kept mounted to preserve typed data) */}
                   <div
-                      ref={applyFormRef}
-                      className={isApplyOpen ? 'mt-4 scroll-mt-24' : 'mt-4 hidden'}
-                    >
-                      <ClubPilotForm key={`club-${applyFormKey}`} t={t} preferredLang={lang} />
-                    </div>
+                    ref={applyFormRef}
+                    className={isApplyOpen ? 'mt-4 scroll-mt-24' : 'mt-4 hidden'}
+                  >
+                    <ClubPilotForm key={`club-${applyFormKey}`} t={t} preferredLang={lang} />
+                  </div>
                 </div>
               </article>
 
-              {/* Next steps (will be higher now because the form is collapsed) */}
+              {/* Next steps */}
               <article className="card p-4 sm:p-5">
                 <h2 className="text-sm font-semibold text-zinc-800">{t('clubs_next_title')}</h2>
                 <ul className="mt-3 space-y-2 text-sm text-zinc-600">
@@ -215,17 +231,74 @@ export default function ClubsPage() {
 
               <h2 className="text-sm font-semibold text-zinc-800">{t('clubs_pilot_title')}</h2>
 
-              {PILOT_CLUBS.length === 0 ? (
-                <article className="card p-4 sm:p-5">
-                  <p className="text-sm text-zinc-600">{t('clubs_pilot_empty')}</p>
-                </article>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {PILOT_CLUBS.map((club) => (
-                    <ClubCard key={club.name} club={club} safeT={safeT} />
-                  ))}
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className={clubFilter === 'all' ? 'btn btn-primary' : 'btn btn-outline'}
+                  onClick={() => setClubFilter('all')}
+                >
+                  {t('clubs_filter_all')}
+                </button>
+                <button
+                  type="button"
+                  className={clubFilter === 'sport' ? 'btn btn-primary' : 'btn btn-outline'}
+                  onClick={() => setClubFilter('sport')}
+                >
+                  {t('clubs_filter_sport')}
+                </button>
+                <button
+                  type="button"
+                  className={clubFilter === 'dance' ? 'btn btn-primary' : 'btn btn-outline'}
+                  onClick={() => setClubFilter('dance')}
+                >
+                  {t('clubs_filter_dance')}
+                </button>
+                <button
+                  type="button"
+                  className={clubFilter === 'music' ? 'btn btn-primary' : 'btn btn-outline'}
+                  onClick={() => setClubFilter('music')}
+                >
+                  {t('clubs_filter_music')}
+                </button>
+                <button
+                  type="button"
+                  className={clubFilter === 'art' ? 'btn btn-primary' : 'btn btn-outline'}
+                  onClick={() => setClubFilter('art')}
+                >
+                  {t('clubs_filter_art')}
+                </button>
+              </div>
+
+              {(() => {
+                const visible =
+                  clubFilter === 'all'
+                    ? PILOT_CLUBS
+                    : PILOT_CLUBS.filter((c) => c.category === clubFilter);
+
+                if (PILOT_CLUBS.length === 0) {
+                  return (
+                    <article className="card p-4 sm:p-5">
+                      <p className="text-sm text-zinc-600">{t('clubs_pilot_empty')}</p>
+                    </article>
+                  );
+                }
+
+                if (visible.length === 0) {
+                  return (
+                    <article className="card p-4 sm:p-5">
+                      <p className="text-sm text-zinc-600">{t('clubs_filter_empty')}</p>
+                    </article>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 gap-4">
+                    {visible.map((club) => (
+                      <ClubCard key={club.name} club={club} safeT={safeT} />
+                    ))}
+                  </div>
+                );
+              })()}
             </section>
           )}
 
@@ -242,18 +315,42 @@ export default function ClubsPage() {
                   <li>• {t('amb_task_3')}</li>
                 </ul>
 
-                <div className="mt-5 flex flex-col gap-3">
-                  <div>
+                <div className="mt-5">
+                  {!isAmbApplyOpen ? (
                     <button
                       type="button"
-                      className="btn btn-outline"
-                      onClick={() => setAmbFormKey((k) => k + 1)}
+                      className="btn btn-primary"
+                      onClick={openAmbApply}
+                      aria-expanded="false"
                     >
-                      {t('clubs_form_reset')}
+                      {t('clubs_cta_apply')}
                     </button>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={() => setIsAmbApplyOpen(false)}
+                      >
+                        {t('clubs_form_collapse')}
+                      </button>
 
-                  <AmbassadorForm key={`amb-${ambFormKey}`} t={t} preferredLang={lang} />
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={() => setAmbFormKey((k) => k + 1)}
+                      >
+                        {t('clubs_form_reset')}
+                      </button>
+                    </div>
+                  )}
+
+                  <div
+                    ref={ambFormRef}
+                    className={isAmbApplyOpen ? 'mt-4 scroll-mt-24' : 'mt-4 hidden'}
+                  >
+                    <AmbassadorForm key={`amb-${ambFormKey}`} t={t} preferredLang={lang} />
+                  </div>
                 </div>
               </article>
 
@@ -322,12 +419,22 @@ function ClubCard({
 
           <div className="mt-3 flex flex-wrap gap-3 text-xs">
             {club.website ? (
-              <a href={club.website} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              <a
+                href={club.website}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
                 Website
               </a>
             ) : null}
             {club.instagram ? (
-              <a href={club.instagram} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              <a
+                href={club.instagram}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
                 Instagram
               </a>
             ) : null}
@@ -361,7 +468,12 @@ function AmbassadorCard({ a }: { a: Ambassador }) {
 
           {a.social ? (
             <div className="mt-3 text-xs">
-              <a href={a.social} target="_blank" rel="noreferrer" className="underline underline-offset-2 break-all">
+              <a
+                href={a.social}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2 break-all"
+              >
                 {a.social}
               </a>
             </div>

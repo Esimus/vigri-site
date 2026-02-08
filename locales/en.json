@@ -175,10 +175,17 @@
   "clubs_about_platform_title": "What is VIGRI Platform?",
   "clubs_about_platform_body": "VIGRI Platform helps people discover sport and creative clubs and individuals by city, discipline and level. It is a living registry and feed of verified clubs, studios, teams and solo creators. VIGRI is not a typical messenger and not a pure crowdfunding platform — it is a place to follow real stories in sport, dance and arts, with practical tools added over time.",
   "clubs_about_pilot_title": "What does “pilot” mean now?",
-  "clubs_about_pilot_body": "Right now the pilot is a curated list of interested clubs: an application + a public club card on this page (name, photo, contacts, and a short answer: “Why did you join VIGRI?”). We build the first minimal version step by step; features will expand as the platform becomes stable.",
+  "clubs_about_pilot_body": "Right now the pilot is a curated list of interested clubs: an application + a public club card on this page (name, photo, contacts). We build the first minimal version step by step; features will expand as the platform becomes stable.",
 
   "clubs_apply_title": "Apply to join the pilot group",
   "clubs_apply_intro": "Fill the form below. We confirm details manually and then publish your club card on this page.",
+
+  "clubs_filter_all": "All",
+  "clubs_filter_sport": "Sport",
+  "clubs_filter_dance": "Dance",
+  "clubs_filter_music": "Music",
+  "clubs_filter_art": "Art",
+  "clubs_filter_empty": "No clubs in this category yet.",
 
   "clubs_form_club_name": "Club / studio name",
   "clubs_form_contact_name": "Your name",

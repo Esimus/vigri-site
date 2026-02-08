@@ -175,10 +175,17 @@
   "clubs_about_platform_title": "Mis on VIGRI Platform?",
   "clubs_about_platform_body": "VIGRI Platform aitab leida spordi- ja loomeklubisid ning inimesi linna, ala ja taseme järgi. See on kontrollitud klubide, stuudiote, tiimide ja üksikloojate elav register ja voog. VIGRI ei ole tüüpiline messenger ega puhas ühisrahastusplatvorm — see on koht, kus jälgida päris lugusid spordis, tantsus ja kunstis, ning praktilised tööriistad lisanduvad ajapikku.",
   "clubs_about_pilot_title": "Mida “piloot” praegu tähendab?",
-  "clubs_about_pilot_body": "Praegu on piloot huviliste klubide kureeritud nimekiri: taotlus + avalik klubi kaart sellel lehel (nimi, foto, kontaktid ja lühivastus “Miks liitusite VIGRI-ga?”). Esimest minimaalset versiooni ehitame samm-sammult; funktsionaalsus laieneb, kui platvorm stabiliseerub.",
+  "clubs_about_pilot_body": "Praegu on piloot huviliste klubide kureeritud nimekiri: taotlus + avalik klubi kaart sellel lehel (nimi, foto, kontaktid). Esimest minimaalset versiooni ehitame samm-sammult; funktsionaalsus laieneb, kui platvorm stabiliseerub.",
 
   "clubs_apply_title": "Esita taotlus pilootgruppi",
   "clubs_apply_intro": "Täida allolev vorm. Kinnitame detailid käsitsi ja seejärel avaldame klubi kaardi sellel lehel.",
+
+  "clubs_filter_all": "Kõik",
+  "clubs_filter_sport": "Sport",
+  "clubs_filter_dance": "Tants",
+  "clubs_filter_music": "Muusika",
+  "clubs_filter_art": "Kunst",
+  "clubs_filter_empty": "Selles kategoorias pole veel klubisid.",
 
   "clubs_form_club_name": "Klubi / stuudio nimi",
   "clubs_form_contact_name": "Sinu nimi",
