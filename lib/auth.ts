@@ -3,7 +3,7 @@ import { getCookie } from '@/lib/cookies';
 import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE } from '@/lib/session';
 
-export type SafeUser = { id: string; email: string };
+export type SafeUser = { id: string; email: string; role: string };
 
 /** Load user by session id (sid) and do hard-expiry checks. */
 export async function getAuthUserBySid(sid: string | null): Promise<SafeUser | null> {
@@ -23,7 +23,7 @@ export async function getAuthUserBySid(sid: string | null): Promise<SafeUser | n
     return null;
   }
 
-  return { id: s.user.id, email: s.user.email };
+  return { id: s.user.id, email: s.user.email, role: s.user.role };
 }
 
 /** Read sid from cookie and delegate to getAuthUserBySid. */

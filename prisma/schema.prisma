@@ -37,6 +37,14 @@ enum FormSubmissionStatus {
   archived
 }
 
+enum UserRole {
+  user
+  admin
+  accounting
+  kyc_reviewer
+  support
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -44,6 +52,10 @@ model User {
   passwordHash  String   @default("")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  // admin panel
+  role           UserRole        @default(user)
+  adminAuditLogs AdminAuditLog[] @relation("AdminAuditActor")
 
   // Echo participation tracking (micro-echo: 1 echo = 1_000_000)
   balanceEcho        Int @default(0) // stored in micro-echo (uecho)
@@ -285,4 +297,27 @@ model FormSubmission {
   @@index([email])
   @@index([country, city])
   @@index([userId])
+}
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Who did the action (can be null for system jobs)
+  actorId String?
+  actor   User?   @relation("AdminAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  // What happened
+  action     String // e.g. "report.generate", "kyc.approve", "user.role.set"
+  targetType String? // e.g. "user", "kyc", "report"
+  targetId   String? // e.g. userId / reportId
+  meta       Json?
+
+  // Optional request context (store hashes, never raw IP)
+  ipHash    String?
+  userAgent String?
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([targetType, targetId])
 }
