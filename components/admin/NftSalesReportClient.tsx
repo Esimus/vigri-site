@@ -204,7 +204,8 @@ export default function NftSalesReportClient() {
             type="date"
             value={start}
             onChange={(e) => setStart(e.target.value)}
-            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-sm"
+            className="input font-mono"
+            placeholder="YYYY-MM-DD"
           />
         </div>
         <div className="flex flex-col">
@@ -217,7 +218,8 @@ export default function NftSalesReportClient() {
             type="date"
             value={end}
             onChange={(e) => setEnd(e.target.value)}
-            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-sm"
+            className="input font-mono"
+            placeholder="YYYY-MM-DD"
           />
         </div>
         <button
