@@ -120,19 +120,19 @@ export default function NftSalesReportClient() {
     const controller = new AbortController();
 
     async function load() {
-        setLoading(true);
-        setError(null);
-        try {
-            const startParam = urlStart as string;
-            const endParam = urlEnd as string;
+      setLoading(true);
+      setError(null);
+      try {
+        const startParam = urlStart as string;
+        const endParam = urlEnd as string;
 
-            const res = await fetch(
-            `/api/admin/nft-sales?start=${encodeURIComponent(
-                startParam,
-            )}&end=${encodeURIComponent(endParam)}`,
-            { signal: controller.signal },
-            );
-            
+        const res = await fetch(
+          `/api/admin/nft-sales?start=${encodeURIComponent(
+            startParam,
+          )}&end=${encodeURIComponent(endParam)}`,
+          { signal: controller.signal },
+        );
+
         const json: ApiResponse = await res.json();
         if (!json.ok) {
           setError(json.error || "Failed to load data");
@@ -183,6 +183,14 @@ export default function NftSalesReportClient() {
   const totalAllTimeSol = data?.totalAllTimeSol ?? 0;
   const totalRangeSol = data?.totalRangeSol ?? 0;
   const events = data?.events ?? [];
+
+  // ссылка для PDF-отчёта
+  const pdfHref =
+    start && end
+      ? `/api/admin/nft-sales/pdf?start=${encodeURIComponent(
+          start,
+        )}&end=${encodeURIComponent(end)}`
+      : "#";
 
   return (
     <>
@@ -236,6 +244,18 @@ export default function NftSalesReportClient() {
         >
           Reset
         </button>
+        {/* Кнопка скачивания PDF-отчёта */}
+        <a
+          href={pdfHref}
+          target="_blank"
+          rel="noreferrer"
+          className={
+            "rounded-md border border-slate-600 px-3 py-1 text-sm hover:bg-slate-800" +
+            (!start || !end || loading ? " opacity-60 pointer-events-none" : "")
+          }
+        >
+          Download PDF
+        </a>
         <div className="text-xs text-slate-500">
           Current period:{" "}
           <span className="font-mono">
