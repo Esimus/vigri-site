@@ -274,7 +274,7 @@
   "contact.address": "Juriidiline aadress",
   "contact.email": "E-posti aadress",
   "contact.website": "Veebileht",
-  "contact.note": "ADET Impex OÜ vastutab vigri.ee veebilehe ning Vigri projekti arenduse eest algfaasis. Ettevõtte ametlikud andmed on kättesaadavad e-Äriregistris.",
+  "contact.note": "ADET OÜ vastutab vigri.ee veebilehe ning Vigri projekti arenduse eest algfaasis. Ettevõtte ametlikud andmed on kättesaadavad e-Äriregistris.",
   "contact.registry_link": "Vaata ettevõtet e-Äriregistris",
   "contact.tagline": "Õigusinfo ja kontakt",
 
@@ -533,6 +533,30 @@
   "faq_users_message_placeholder": "Kirjuta küsimus ühe sõnumina…",
   "faq_users_message_hint": "Avaneb sinu e-posti rakendus juba eeltäidetud kirjaga.",
   "faq_users_send_btn": "Saada",
+
+  "faq_users_q_1": "Miks alustada üldse NFT eelmüügiga, mitte „tavalise” rahakaasamisega?",
+  "faq_users_a_1": "NFT eelmüük on viis käivitada VIGRI võimalikult läbipaistvalt ja seaduslikult. NFT on siin kui digitaalne kollektsionääri pilet või osalus: toetad elusat projekti ja inimesi, mitte ei osta lubadust tulevasest kasumist.\n\nMe ei kasuta offshore-skeeme ega anna investeerimislubadusi. Võimalikult suur osa protsessidest viiakse Solana võrku, et NFTde loomine ja liikumine oleks plokiahelas nähtav.\n\nSelline tee on keerulisem: kõigepealt usaldus ja toode, alles siis numbrid. Aga see vastab VIGRI ja Lumirose ökosüsteemi väärtustele.",
+
+  "faq_users_q_2": "Mis on Lumiros ökosüsteem?",
+  "faq_users_a_2": "Lumiros on päris projektide ja inimeste ökosüsteem, mida ühendab arengu ja loomise idee.\n\nMe ehitame kogukonda, mis loob oma tooteid — alates kultuurist ja spordist kuni tehnoloogia ja infrastruktuurini — et jagada osalejate vahel ausalt võimalusi, kapitali ja töö tulemusi ning samm-sammult muuta suhtumist ressursside jaotamisse ühiskonnas.",
+
+  "faq_users_q_3": "Miks on turuplatvorme vaja?",
+  "faq_users_a_3": "Praegu toimub eelmüük ainult veebilehel vigri.ee.\n\nTuruplatvormid on vajalikud selleks, et:\n• panna esimesed NFT-d admin-mindiga vitriinile ja näidata kollektsiooni;\n• anda hoidjatele võimalus oma NFT-sid edasi müüa;\n• jõuda inimesteni, kes tegelevad Solana NFT-dega igapäevaselt.",
+
+  "faq_users_q_4": "Miks Tensor?",
+  "faq_users_a_4": "Solana võrgus on praegu kaks peamist NFT turgu: Tensor ja Magic Eden (ME).\n\n2024. aasta analüüsi järgi liikus Magic Edeni kaudu umbes 655 miljonit dollarit ja Tensori kaudu umbes 645 miljonit dollarit Solana NFT mahtu. Koos on see ligikaudu 1,3 miljardit dollarit ja peaaegu kogu Solana NFT turg.\n\n„VIGRI Presale Collection” on juba Tensorisse esitatud ja on hetkel REVIEW staatuses.\n\nP.S. Alates 20. jaanuarist 2026 on „VIGRI Presale Collection” Tensoris heaks kiidetud ja edukalt listitud.",
+
+  "faq_users_q_5": "Miks veel mitte Magic Eden?",
+  "faq_users_a_5": "Magic Edeni uute kollektsioonide ankeedis on üks nõue: projekti X konto peab omama vähemalt 100+ jälgijat.\n\nVIGRI-l on praegu vähem, seega kasvatame esmalt publikut ja näitame projekti veebilehe ja Tensori kaudu. Kui tingimused on täidetud, esitame kollektsiooni ka Magic Edenisse.",
+
+  "faq_users_q_6": "Mis on mint?",
+  "faq_users_a_6": "Mint on NFT loomine plokiahelas.\n\nMintimise hetkel luuakse unikaalne token meie kollektsiooni parameetritega (kategooria, tiraaž, Echo loogika jne), see kirjutatakse Solana võrku ja saadetakse sinu rahakotti.\n\nVIGRI eelmüügis ei hoia me ettevalmistatud „lao” NFT-sid: iga token mintitakse konkreetse ostu jaoks. Sa maksad lehel vigri.ee, nutileping teeb minti ja valmis NFT jõuab sinu rahakotti.",
+
+  "faq_users_q_7": "Mida Lumirose logod tähendavad?",
+  "faq_users_a_7_p1": "Meie ajutine Lumirose märk on omavahel põimunud valguse orbiidid: inimesed, projektid ja ideed ühes väljas, mis ristuvad ja võimendavad üksteist teadmiste, energia ja ressursside vahetuse kaudu. See vihjab protsesside seotusele: seosed ei ole alati nähtavad, kuid nad töötavad.",
+  "faq_users_a_7_p2": "Vestluskanali jaoks kasutame L-tähte — Lumirose esisuurtähte, mis on kokku pandud ühendusjoontest: see on koht, kus suhtlus loob uusi kasvupunkte.",
+  "faq_users_a7_main_logo_alt": "Lumirose logo põimunud orbiitidega",
+  "faq_users_a7_chat_logo_alt": "Lumirose vestluslogo L-tähega",
 
   "header.notifications": "Teavitused",
   "header.mail_empty": "Uusi teateid pole",

@@ -44,7 +44,7 @@ export default function ContactPage() {
               </p>
 
               <p className="mt-1 text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-50 whitespace-nowrap">
-                ADET Impex OÜ
+                ADET OÜ
               </p>
             </div>
 
@@ -142,10 +142,10 @@ export default function ContactPage() {
           <p className="mt-6 text-xs text-zinc-500 dark:text-zinc-500">
             {tf(
               'contact.note',
-              'ADET Impex OÜ is responsible for the vigri.ee website and for the early-stage development of the Vigri project. Official company data is available in the Estonian e-Business Register.'
+              'ADET OÜ is responsible for the vigri.ee website and for the early-stage development of the Vigri project. Official company data is available in the Estonian e-Business Register.'
             )}{' '}
             <a
-              href="https://ariregister.rik.ee/eng/company/16470156/ADET-Impex-O%C3%9C"
+              href="https://ariregister.rik.ee/eng/company/16470156/ADET-O%C3%9C"
               className="underline decoration-[var(--brand-400)]/70 underline-offset-2 hover:decoration-[var(--brand-600)]"
               target="_blank"
               rel="noreferrer"

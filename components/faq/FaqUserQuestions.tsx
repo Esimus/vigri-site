@@ -2,15 +2,15 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
 import { FaqAccordionItem } from '@/components/faq/FaqAccordionItem';
 
-type UserFaq = { qKey: string; aKey: string };
-
-const items: UserFaq[] = [
-  // Add user questions here as they appear:
-  // { qKey: 'faq_users_q_1', aKey: 'faq_users_a_1' },
-];
+type UserFaq = {
+  qKey: string;
+  aKey?: string;
+  render?: () => React.ReactNode;
+};
 
 function buildMailto(payload: { name: string; email: string; message: string }) {
   const subject = 'VIGRI: Question from FAQ';
@@ -24,12 +24,54 @@ function buildMailto(payload: { name: string; email: string; message: string }) 
     `Page: ${typeof window !== 'undefined' ? window.location.href : '-'}`,
   ].join('\n');
 
-  return `mailto:support@vigri.ee?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return `mailto:support@vigri.ee?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+    body,
+  )}`;
 }
 
 export function FaqUserQuestions() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+
+  const items: UserFaq[] = [
+    { qKey: 'faq_users_q_1', aKey: 'faq_users_a_1' },
+    { qKey: 'faq_users_q_2', aKey: 'faq_users_a_2' },
+    { qKey: 'faq_users_q_3', aKey: 'faq_users_a_3' },
+    { qKey: 'faq_users_q_4', aKey: 'faq_users_a_4' },
+    { qKey: 'faq_users_q_5', aKey: 'faq_users_a_5' },
+    { qKey: 'faq_users_q_6', aKey: 'faq_users_a_6' },
+    {
+      qKey: 'faq_users_q_7',
+      render: () => (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <Image
+              src="/logos/lumiros-logo.webp"
+              alt={t('faq_users_a7_main_logo_alt')}
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-full bg-zinc-900/10 p-1 dark:bg-white/10"
+            />
+            <p className="text-sm text-zinc-700 dark:text-zinc-200">
+              {t('faq_users_a_7_p1')}
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <Image
+              src="/logos/lumiros-logo_chat.webp"
+              alt={t('faq_users_a7_chat_logo_alt')}
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-full bg-zinc-900/10 p-1 dark:bg-white/10"
+            />
+            <p className="text-sm text-zinc-700 dark:text-zinc-200">
+              {t('faq_users_a_7_p2')}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -140,7 +182,7 @@ export function FaqUserQuestions() {
         <section className="space-y-3">
           {items.map((it, idx) => (
             <FaqAccordionItem key={it.qKey} index={idx + 1} question={t(it.qKey)}>
-              {t(it.aKey)}
+              {it.render ? it.render() : t(it.aKey!)}
             </FaqAccordionItem>
           ))}
         </section>

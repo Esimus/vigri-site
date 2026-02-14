@@ -274,7 +274,7 @@
   "contact.address": "Legal address",
   "contact.email": "Email",
   "contact.website": "Website",
-  "contact.note": "ADET Impex OÜ is responsible for the vigri.ee website and for the early-stage development of the Vigri project. Official company data is available in the Estonian e-Business Register.",
+  "contact.note": "ADET OÜ is responsible for the vigri.ee website and for the early-stage development of the Vigri project. Official company data is available in the Estonian e-Business Register.",
   "contact.registry_link": "View record in e-Business Register",
   "contact.tagline": "Legal information & contact",
 
@@ -533,6 +533,30 @@
   "faq_users_message_placeholder": "Write your question in a single message…",
   "faq_users_message_hint": "Your email app will open with a prefilled message.",
   "faq_users_send_btn": "Send",
+
+  "faq_users_q_1": "Why start with an NFT presale instead of a “normal” fundraising round?",
+  "faq_users_a_1": "Starting with an NFT presale is a way to launch VIGRI as transparently and lawfully as possible. Here NFTs act as a digital collectible ticket or participation pass: you support a live project and real people, not a promise of future returns.\n\nWe do not use offshore structures, grey schemes or give investment guarantees. As much as possible is moved to the Solana network so that the minting and movement of NFTs are visible on-chain.\n\nThis path is harder: first trust and product, then numbers. But it matches the values of VIGRI and the Lumiros ecosystem.",
+
+  "faq_users_q_2": "What is the Lumiros ecosystem?",
+  "faq_users_a_2": "Lumiros is an ecosystem of real-world projects and people united by the idea of development and creation.\n\nWe are building a community that creates its own products — from culture and sport to technology and infrastructure — in order to share opportunities, capital and results of work fairly between participants and gradually change attitudes towards how resources are distributed in society.",
+
+  "faq_users_q_3": "Why do we need marketplaces?",
+  "faq_users_a_3": "Right now the presale runs only through the website vigri.ee.\n\nMarketplaces are needed in order to:\n• list the first NFTs via admin mint and show the collection on a public storefront;\n• give holders the ability to resell their NFTs;\n• make sure the project is seen by people who trade Solana NFTs every day.",
+
+  "faq_users_q_4": "Why Tensor?",
+  "faq_users_a_4": "On Solana there are currently two main NFT markets: Tensor and Magic Eden (ME).\n\nAccording to 2024 analytics, around $655M of Solana-NFT volume went through Magic Eden and about $645M through Tensor. Together that is roughly $1.3B and almost the entire Solana-NFT market.\n\nThe “VIGRI Presale Collection” has already been submitted to Tensor and is currently in REVIEW status.\n\nP.S. As of 20 January 2026 the “VIGRI Presale Collection” has been approved and successfully listed on the Tensor marketplace.",
+
+  "faq_users_q_5": "Why not Magic Eden yet?",
+  "faq_users_a_5": "In the Magic Eden listing form, one of the requirements for new collections is at least 100+ followers on the project’s X account.\n\nVIGRI has fewer than that for now, so we are first growing the audience and showing the project through the website and Tensor. Once we meet the requirements, we will also submit the collection to Magic Eden.",
+
+  "faq_users_q_6": "What is “mint”?",
+  "faq_users_a_6": "Mint is the creation of an NFT on the blockchain.\n\nAt the moment of minting, a unique token is created with our collection parameters (category, supply, Echo logic, etc.), written to the Solana network and then sent to your wallet.\n\nIn the VIGRI presale we do not keep a pre-minted “warehouse” of NFTs: each token is minted for a specific purchase. You pay on vigri.ee, the smart contract performs the mint, and the finished NFT arrives in your wallet.",
+
+  "faq_users_q_7": "What do the Lumiros logos mean?",
+  "faq_users_a_7_p1": "Our temporary Lumiros mark is a set of intertwined orbits of light: people, projects and ideas in one field, intersecting and amplifying each other through the exchange of knowledge, energy and resources. It hints at the interconnectedness of processes: the links are not always visible, but they work.",
+  "faq_users_a_7_p2": "For the chat we use an L — the capital letter of Lumiros built from connection lines: this is a place where communication creates new points of growth.",
+  "faq_users_a7_main_logo_alt": "Lumiros logo with intertwined orbits",
+  "faq_users_a7_chat_logo_alt": "Lumiros chat logo with the letter L",
 
   "header.notifications": "Notifications",
   "header.mail_empty": "No new messages",

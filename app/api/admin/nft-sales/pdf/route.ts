@@ -126,6 +126,8 @@ export async function GET(req: NextRequest) {
   // Platform & period
   drawText('Platform: VIGRI', marginLeft, y, { bold: true });
   y -= lineHeight;
+  drawText('vigri.ee', marginLeft, y);
+  y -= lineHeight;
   drawText(`Report period: ${formatDate(startDate)} – ${formatDate(endDate)}`, marginLeft, y);
   y -= lineHeight;
   drawText(`Report date: ${formatDate(new Date())}`, marginLeft, y);
