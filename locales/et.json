@@ -291,6 +291,18 @@
   "dashboard.nav.profile": "Profiil",
   "dashboard.nav.contact": "Kontakt",
 
+  "docs_page_title": "VIGRI materjalid ja dokumendid",
+  "docs_page_intro": "Siit leiad VIGRI platvormi ja Lumiros ökosüsteemi esitlusmaterjalid ja põhidokumendid.",
+  "docs_pitch_title": "VIGRI Platform – pitch deck",
+  "docs_pitch_desc": "Lühike ülevaade ideest, tootest, tokenist ja arenguplaanist fondidele, partneritele ja klubidele.",
+  "docs_litepaper_title": "VIGRI Litepaper",
+  "docs_litepaper_desc": "Ülevaade VIGRI tokenist, eelmüügist ja Lumiros ökosüsteemist.",
+  "docs_lang_en": "Inglise",
+  "docs_lang_ru": "Vene",
+  "docs_lang_et": "Eesti",
+  "docs_lang_de": "Saksa",
+  "docs_btn_download": "Laadi alla",
+
   "emails.verify.subject": "Kinnita oma e-posti aadress VIGRI jaoks",
   "emails.verify.text": "Oma e-posti aadressi kinnitamiseks ava see link: {link}\nKui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.",
   "emails.verify.html": "<p>Oma e-posti aadressi kinnitamiseks klõpsa alloleval lingil:</p><p><a href=\"{link}\">{link}</a></p><p>Kui sa ei taotlenud seda kirja, võid selle lihtsalt ignoreerida.</p>",
@@ -958,6 +970,8 @@
   "transparency.addresses": "Avalikud aadressid (faasi kaupa)",
   "transparency.reports": "Aruanded ja uuendused",
   "transparency.soon": "Avaldatakse peagi",
+
+  "nav_faq_docs": "Materjalid ja dokumendid",
 
   "nft.availability": "Saadavus",
   "nft.available_short": "alles",

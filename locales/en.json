@@ -291,6 +291,18 @@
   "dashboard.nav.profile": "Profile",
   "dashboard.nav.contact": "Contact",
 
+  "docs_page_title": "VIGRI materials & documents",
+  "docs_page_intro": "Here you can find presentations and key documents about VIGRI Platform and the Lumiros ecosystem.",
+  "docs_pitch_title": "VIGRI Platform pitch deck",
+  "docs_pitch_desc": "Short overview of the idea, product, token and roadmap for funds, partners and clubs.",
+  "docs_litepaper_title": "VIGRI Litepaper",
+  "docs_litepaper_desc": "Litepaper with an overview of the VIGRI token, presale and the Lumiros ecosystem.",
+  "docs_lang_en": "English",
+  "docs_lang_ru": "Russian",
+  "docs_lang_et": "Estonian",
+  "docs_lang_de": "German",
+  "docs_btn_download": "Download",
+
   "emails.verify.subject": "Verify your email for VIGRI",
   "emails.verify.text": "To verify your email, open this link: {link}\nIf you didn't request this, ignore this email.",
   "emails.verify.html": "<p>To verify your email, click the link below:</p><p><a href=\"{link}\">{link}</a></p><p>If you didn’t request this, you can ignore this email.</p>",
@@ -958,6 +970,8 @@
   "transparency.addresses": "Public addresses (phase-specific)",
   "transparency.reports": "Reports & updates",
   "transparency.soon": "To be published",
+
+  "nav_faq_docs": "Materials & documents",
 
   "nft.availability": "Availability",
   "nft.available_short": "left",

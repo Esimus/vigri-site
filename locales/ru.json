@@ -291,6 +291,18 @@
   "dashboard.nav.profile": "Профиль",
   "dashboard.nav.contact": "Контакт",
 
+  "docs_page_title": "Материалы и документы VIGRI",
+  "docs_page_intro": "Здесь собраны презентации и документы о VIGRI Platform и экосистеме Lumiros.",
+  "docs_pitch_title": "Презентация VIGRI Platform (pitch deck)",
+  "docs_pitch_desc": "Краткое описание идеи, продукта, токена и планов развития VIGRI для фондов, партнёров и клубов.",
+  "docs_litepaper_title": "VIGRI Litepaper",
+  "docs_litepaper_desc": "Обзор токена VIGRI, пресейла и экосистемы Lumiros в формате litepaper.",
+  "docs_lang_en": "English",
+  "docs_lang_ru": "Русский",
+  "docs_lang_et": "Eesti",
+  "docs_lang_de": "Deutsch",
+  "docs_btn_download": "Скачать",
+
   "emails.verify.subject": "Подтвердите ваш email для VIGRI",
   "emails.verify.text": "Чтобы подтвердить email, откройте ссылку: {link}\nЕсли вы не запрашивали это письмо, просто проигнорируйте его.",
   "emails.verify.html": "<p>Чтобы подтвердить email, нажмите на ссылку ниже:</p><p><a href=\"{link}\">{link}</a></p><p>Если вы не запрашивали это письмо, просто проигнорируйте его.</p>",
@@ -958,6 +970,8 @@
   "transparency.addresses": "Публичные адреса (по фазам)",
   "transparency.reports": "Отчёты и обновления",
   "transparency.soon": "Будет опубликовано",
+
+  "nav_faq_docs": "Материалы и документы",
 
   "nft.availability": "Доступность",
   "nft.available_short": "осталось",

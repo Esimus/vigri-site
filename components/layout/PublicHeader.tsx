@@ -122,6 +122,14 @@ export default function PublicHeader() {
                     {safeT('nav_faq_qna', 'Q&A')}
                   </Link>
                   <Link
+                    href="/docs"
+                    className="block px-3 py-2 hover:bg-zinc-100"
+                    onClick={() => setIsFaqOpen(false)}
+                    role="menuitem"
+                  >
+                    {safeT('nav_faq_docs', 'Materials & documents')}
+                  </Link>
+                  <Link
                     href="/faq/solflare"
                     className="block px-3 py-2 hover:bg-zinc-100"
                     onClick={() => setIsFaqOpen(false)}
@@ -361,6 +369,13 @@ export default function PublicHeader() {
                       onClick={() => setIsNavOpen(false)}
                     >
                       {safeT('nav_faq_qna', 'Q&A')}
+                    </Link>
+                    <Link
+                      href="/docs"
+                      className="block rounded-lg px-3 py-2 text-sm hover:bg-zinc-100"
+                      onClick={() => setIsNavOpen(false)}
+                    >
+                      {safeT('nav_faq_docs', 'Materials & documents')}
                     </Link>
                     <Link
                       href="/faq/solflare"
