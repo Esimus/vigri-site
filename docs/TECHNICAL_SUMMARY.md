@@ -1,4 +1,4 @@
-# VIGRI Site — Technical Summary (2025-12-29)
+# VIGRI Site — Technical Summary (2026-02-16)
 
 ## Overview
 
@@ -12,7 +12,7 @@
 
 | Layer | Technology | Purpose |
 |------|------------|---------|
-| Framework | Next.js 15 (App Router) + TypeScript | SSR/SSG, API routes, React UI |
+| Framework | Next.js 16 (App Router) + TypeScript | SSR/SSG, API routes, React UI |
 | Styling | Tailwind CSS v4 | Design tokens, responsive UI |
 | Database | PostgreSQL + Prisma | Users, sessions, mint logs, referrals, awards |
 | Auth | Cookie session (`vigri_session`) + password hashing (Argon2 via `@node-rs/argon2`) | User login & session management |
@@ -37,7 +37,7 @@
 
 ## Runtime & build
 
-- Next.js 15 (App Router)
+- Next.js 16 (App Router)
 - `metadataBase` derived from `NEXT_PUBLIC_APP_URL` (fallback: `http://localhost:3000`)
 - ESLint and typecheck are expected to be clean for release readiness (`npm run lint`, `npm run typecheck`)
 
