@@ -1380,6 +1380,11 @@
   "refBanner.referrerConfirmedTitle": "Referrer confirmed",
   "refBanner.referrerId": "referrerId (from DB)",
 
+  "support_inbox_title": "Inbox and notifications",
+  "support_inbox_desc": "This section is still under development. Later it will show your personal notifications, messages from the VIGRI team and service events related to your account.",
+  "support_inbox_hint": "If you already have a question or an issue, please contact us via the contact page or by email at support@vigri.ee.",
+  "support_inbox_contact_btn": "Open contact page",
+
   "wallet.connect": "Connect wallet",
   "wallet.connecting": "Connecting wallet…",
   "wallet.connected": "Wallet connected",

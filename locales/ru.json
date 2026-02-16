@@ -1380,6 +1380,11 @@
   "refBanner.referrerConfirmedTitle": "Пригласитель подтверждён",
   "refBanner.referrerId": "referrerId (из БД)",
 
+  "support_inbox_title": "Входящие и уведомления",
+  "support_inbox_desc": "Этот раздел пока в разработке. Позже здесь появятся личные уведомления, сообщения от команды VIGRI и сервисные события, связанные с вашим аккаунтом.",
+  "support_inbox_hint": "Если уже есть вопрос или проблема, напишите нам через страницу контактов или на адрес support@vigri.ee.",
+  "support_inbox_contact_btn": "Открыть страницу контактов",
+
   "wallet.connect": "Подключить кошелёк",
   "wallet.connecting": "Подключаем кошелёк…",
   "wallet.connected": "Кошелёк подключён",

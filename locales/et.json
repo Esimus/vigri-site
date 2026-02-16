@@ -1380,6 +1380,11 @@
   "refBanner.referrerConfirmedTitle": "Kutsuja kinnitatud",
   "refBanner.referrerId": "referrerId (andmebaasist)",
 
+  "support_inbox_title": "Postkast ja teavitused",
+  "support_inbox_desc": "See jaotis on veel arenduses. Hiljem kuvatakse siin sinu isiklikud teavitused, VIGRI meeskonna sõnumid ja kontoga seotud sündmused.",
+  "support_inbox_hint": "Kui sul on juba küsimus või probleem, kirjuta meile kontaktilehe kaudu või aadressil support@vigri.ee.",
+  "support_inbox_contact_btn": "Ava kontaktileht",
+
   "wallet.connect": "Ühenda rahakott",
   "wallet.connecting": "Ühendame rahakotti…",
   "wallet.connected": "Rahakott on ühendatud",
