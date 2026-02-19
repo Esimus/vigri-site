@@ -972,6 +972,7 @@
   "transparency.soon": "Avaldatakse peagi",
 
   "nav_faq_docs": "Materjalid ja dokumendid",
+  "nav_nft": "NFT",
 
   "nft.availability": "Saadavus",
   "nft.available_short": "alles",
@@ -1137,6 +1138,10 @@
   "nft.price.final_hint_short": "⚠️ Pane tähele: lõplik summa on veidi kõrgem kui NFT hind 2,5% autoritasu ja võrgu tasude tõttu. Täpse summa näitab rahakott enne kinnitamist.",
   "nft.price.eur_loading": "Laen praegust SOL/EUR kurssi…",
   "nft.price.eur_unavailable": "SOL/EUR kurss ei ole hetkel saadaval (CoinGecko).",
+
+  "nft_public_title": "VIGRI NFT kollektsioon",
+  "nft_public_intro": "Sirvi VIGRI eelmüügi NFT kategooriaid. Ostmiseks pead sisse logima ja vajadusel läbima KYC-kontrolli.",
+  "nft.public.purchase_requires_account": "Ostmiseks pead registreeruma ja sisse logima. Pärast sisselogimist täida profiil (KYC/AML).",
 
   "nft.summary.tree_0": "Avaneb II kv 2026",
   "nft.summary.tree_1": "Koguarv: 2000",

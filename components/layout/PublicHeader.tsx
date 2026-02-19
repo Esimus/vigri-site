@@ -87,6 +87,9 @@ export default function PublicHeader() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm">
+            <Link href="/nft" className={desktopNavItemBase}>
+              {safeT('nav_nft', 'NFT')}
+            </Link>
             <Link href="/channels" className={desktopNavItemBase}>
               {t('nav_channels')}
             </Link>
@@ -331,7 +334,13 @@ export default function PublicHeader() {
               >
                 {homeLabel}
               </Link>
-
+              <Link
+                href="/nft"
+                className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
+                onClick={() => setIsNavOpen(false)}
+              >
+                {safeT('nav_nft', 'NFT')}
+              </Link>
               <Link
                 href="/channels"
                 className="block rounded-lg px-3 py-2 hover:bg-zinc-100"

@@ -181,9 +181,13 @@ function useAmlSnapshot() {
 
 type NftListApiResp = { ok: boolean; items: Item[] };
 
-export default function NftList() {
+type NftListMode = 'dashboard' | 'public';
+
+export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const detailsPrefix = mode === 'public' ? '/nft' : '/dashboard/nft';
 
   const { zone, isEe, kycStatus } = useAmlSnapshot();
 
@@ -506,7 +510,7 @@ export default function NftList() {
                 </div>
 
                 <div className="mt-auto">
-                  <Link href={`/dashboard/nft/${i.id}`} className="btn btn-outline w-full justify-center rounded-2xl">
+                  <Link href={`${detailsPrefix}/${i.id}`} className="btn btn-outline w-full justify-center rounded-2xl">
                     {t('nft.details')}
                   </Link>
                 </div>

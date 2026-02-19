@@ -972,6 +972,7 @@
   "transparency.soon": "To be published",
 
   "nav_faq_docs": "Materials & documents",
+  "nav_nft": "NFT",
 
   "nft.availability": "Availability",
   "nft.available_short": "left",
@@ -1137,6 +1138,10 @@
   "nft.price.final_hint_short": "⚠️ Please note: the final amount will be slightly higher than the NFT price due to the 2.5% royalty and Solana network fees. Your wallet will show the exact total before you confirm.",
   "nft.price.eur_loading": "Loading current SOL/EUR rate…",
   "nft.price.eur_unavailable": "SOL/EUR rate is currently unavailable (CoinGecko).",
+
+  "nft_public_title": "VIGRI NFT collection",
+  "nft_public_intro": "Browse the current VIGRI presale NFT categories. To purchase, you'll need to sign in and complete KYC where required.",
+  "nft.public.purchase_requires_account": "To purchase, you need to register and sign in. After signing in, complete your profile (KYC/AML).",
 
   "nft.summary.tree_0": "Reveals Q2 2026",
   "nft.summary.tree_1": "Total supply: 2000",

@@ -1,7 +1,7 @@
 // components/NftDetails.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
@@ -496,8 +496,17 @@ function ExplainerText({ text }: { text: string }) {
   );
 }
 
-export default function NftDetails({ id }: { id: string }) {
+type NftDetailsMode = 'dashboard' | 'public';
+
+export default function NftDetails({
+  id,
+  mode = 'dashboard',
+}: {
+  id: string;
+  mode?: NftDetailsMode;
+}) {
   const { t } = useI18n();
+  const listHref = mode === 'public' ? '/nft' : '/dashboard/nft';
 
   const phantom = usePhantomWallet();
   const solflare = useSolflareWallet();
@@ -524,8 +533,40 @@ export default function NftDetails({ id }: { id: string }) {
   // Static catalog metadata for given id
   const meta = NFT_CATALOG[id];
 
-  const [item, setItem] = useState<Item | null>(null);
-  const [design, setDesign] = useState<string | null>(null);
+  const [item, setItem] = useState<Item | null>(() => {
+    if (mode !== 'public' || !meta) return null;
+
+    const name =
+      meta.nameKey && t(meta.nameKey) !== meta.nameKey
+        ? t(meta.nameKey)
+        : meta.name ?? id;
+
+    const blurb =
+      meta.blurbKey && t(meta.blurbKey) !== meta.blurbKey
+        ? t(meta.blurbKey)
+        : meta.blurb ?? '';
+
+    return {
+      id,
+      name,
+      blurb,
+      eurPrice: 0,
+      vigriPrice: 0,
+      tier: meta.tier ?? 'tree',
+      discountPct: 0,
+      activationType: meta.activationType ?? 'none',
+      kycRequired: meta.kycRequired,
+      limited: typeof meta.supply === 'number' ? meta.supply : undefined,
+      vesting: meta.vesting ?? null,
+      designs: meta.designs ?? [],
+    };
+  });
+
+  const [design, setDesign] = useState<string | null>(() => {
+    if (mode !== 'public' || !meta) return null;
+    return meta.designs?.[0]?.id ?? null;
+  });
+
   const [act, setAct] = useState<'claim100' | 'split50' | 'discount100'>('discount100');
 
   // Physical card selection (Silver)
@@ -566,72 +607,89 @@ export default function NftDetails({ id }: { id: string }) {
   type SummaryResp = { ok?: boolean; items?: Array<SummaryItem> };
   const [sum, setSum] = useState<SummaryItem | null>(null);
 
-  async function loadAll(withSpinner = false) {
-    if (withSpinner) setIsLoading(true);
-    try {
-      // 1) NFT list (mock API)
-      const r = await fetch('/api/nft', { cache: 'no-store' });
-      const j: unknown = await r.json().catch(() => ({}));
-      if (r.ok && isNftListResp(j)) {
-        const found = j.items.find((i) => i.id === id) || null;
-        setItem(found);
-
-        // Initial design for Tree on first render
-        if (found?.id !== 'nft-ws-20') {
-          const fromMeta = meta?.designs?.[0]?.id;
-          const fromApi = found?.designs?.[0]?.id;
-          const initial = fromMeta ?? fromApi ?? null;
-          if (initial) setDesign(initial);
-        }
-
-        if (meta?.activationType === 'flex' && found?.userActivation && found.userActivation !== 'fixed') {
-          setAct(found.userActivation);
-        }
-      } else {
-        setItem(null);
-      }
-
-      // 2) Rights
+    const loadAll = useCallback(
+    async (withSpinner = false) => {
+      if (withSpinner) setIsLoading(true);
       try {
-        const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
-        const raw: unknown = await rr.json().catch(() => ({}));
-        if (rr.ok && isRightsResp(raw)) {
-          const mine = raw.items.find((x) => x.id === id) || null;
-          setRights(mine);
+        // 1) NFT list (mock API)
+        const r = await fetch('/api/nft', { cache: 'no-store' });
+        const j: unknown = await r.json().catch(() => ({}));
+        if (r.ok && isNftListResp(j)) {
+          const found = j.items.find((i) => i.id === id) || null;
+          setItem(found);
+
+          // Initial design for Tree on first render
+          if (found?.id !== 'nft-ws-20') {
+            const fromMeta = meta?.designs?.[0]?.id;
+            const fromApi = found?.designs?.[0]?.id;
+            const initial = fromMeta ?? fromApi ?? null;
+            if (initial) setDesign(initial);
+          }
+
+          if (
+            meta?.activationType === 'flex' &&
+            found?.userActivation &&
+            found.userActivation !== 'fixed'
+          ) {
+            setAct(found.userActivation);
+          }
+        } else {
+          setItem(null);
+        }
+
+        // 2) Rights (dashboard only)
+        if (mode === 'dashboard') {
+          try {
+            const rr = await fetch('/api/nft/rights', { cache: 'no-store' });
+            const raw: unknown = await rr.json().catch(() => ({}));
+            if (rr.ok && isRightsResp(raw)) {
+              const mine = raw.items.find((x) => x.id === id) || null;
+              setRights(mine);
+            } else {
+              setRights(null);
+            }
+          } catch {
+            setRights(null);
+          }
         } else {
           setRights(null);
         }
-      } catch {
-        setRights(null);
-      }
 
-      // 3) Presale GlobalConfig (mainnet admin/treasury)
-      try {
-        const gr = await fetch(`/api/presale/global-config?cluster=mainnet&ts=${Date.now()}`, { cache: 'no-store' });
-        const gj: unknown = await gr.json().catch(() => ({}));
+        // 3) Presale GlobalConfig (dashboard only)
+        if (mode === 'dashboard') {
+          try {
+            const gr = await fetch(
+              `/api/presale/global-config?cluster=mainnet&ts=${Date.now()}`,
+              { cache: 'no-store' },
+            );
+            const gj: unknown = await gr.json().catch(() => ({}));
 
-        if (gr.ok && isObject(gj) && (gj as { ok?: unknown }).ok === true) {
-          const adminPk = (gj as { admin?: unknown }).admin;
-          setPresaleAdmin(typeof adminPk === 'string' ? adminPk : null);
+            if (gr.ok && isObject(gj) && (gj as { ok?: unknown }).ok === true) {
+              const adminPk = (gj as { admin?: unknown }).admin;
+              setPresaleAdmin(typeof adminPk === 'string' ? adminPk : null);
+            } else {
+              setPresaleAdmin(null);
+            }
+          } catch {
+            setPresaleAdmin(null);
+          }
         } else {
           setPresaleAdmin(null);
         }
       } catch {
+        setItem(null);
+        setRights(null);
         setPresaleAdmin(null);
+      } finally {
+        if (withSpinner) setIsLoading(false);
       }
+    },
+    [id, meta, mode],
+  );
 
-    } catch {
-      setItem(null);
-      setRights(null);
-    } finally {
-      if (withSpinner) setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
+    useEffect(() => {
     void loadAll(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [loadAll]);
 
   useEffect(() => {
     let cancelled = false;
@@ -892,6 +950,18 @@ export default function NftDetails({ id }: { id: string }) {
 
   const firstPill = pills.find(p => p.level === 'error' || p.level === 'warning');
   const purchaseReason = firstPill ? t(firstPill.i18nKey) : null;
+
+  const publicPurchaseNotice = (() => {
+    const key = 'nft.public.purchase_requires_account';
+    const v = t(key);
+    return v === key
+      ? 'To purchase, you must register and log in to your account. Once logged in, youll need to complete your KYC/AML profile.'
+      : v;
+  })();
+
+  const uiPurchaseBlocked = mode === 'public' ? true : purchaseBlocked;
+  const uiPurchaseReason = mode === 'public' ? publicPurchaseNotice : purchaseReason;
+  const uiMintMsg = mode === 'public' ? (mintMsg ?? publicPurchaseNotice) : mintMsg;
 
   const mintBlocked = purchaseBlocked;
   const mintBlockedText = purchaseReason ?? '';
@@ -1326,6 +1396,10 @@ export default function NftDetails({ id }: { id: string }) {
 
   // Purchase (on-chain only)
   const buy = async () => {
+    if (mode === 'public') {
+      setMintMsg(publicPurchaseNotice);
+      return;
+    }
     if (isBuying) return;
 
     if (purchaseBlocked) {
@@ -1400,7 +1474,7 @@ export default function NftDetails({ id }: { id: string }) {
     if (isLoading) {
       return (
         <div className="space-y-2">
-          <Link href="/dashboard/nft" className="link-accent text-sm">
+          <Link href={listHref} className="link-accent text-sm">
             {t('nft.details.back')}
           </Link>
           <div className="card p-4 md:p-5 space-y-3 animate-pulse">
@@ -1416,7 +1490,7 @@ export default function NftDetails({ id }: { id: string }) {
     // If the download is complete and the item is still not found, leave it as Not found.
     return (
       <div className="space-y-2">
-        <Link href="/dashboard/nft" className="link-accent text-sm">
+        <Link href={listHref} className="link-accent text-sm">
           {t('nft.details.back')}
         </Link>
         <div className="text-sm opacity-70">Not found.</div>
@@ -1468,15 +1542,15 @@ export default function NftDetails({ id }: { id: string }) {
   return (
     <div className="space-y-4">
       {/* Wallet */}
-      <WalletBannerMain />
+      {mode === 'dashboard' && <WalletBannerMain />}
 
       {/* Top nav carousel */}
       <PillCarousel
-        back={{ id: 'all', label: t('nft.details.back'), href: '/dashboard/nft' }}
+        back={{ id: 'all', label: t('nft.details.back'), href: listHref }}
         items={navItems.map((it) => ({
           id: it.id,
           label: it.name,
-          href: `/dashboard/nft/${it.id}`,
+          href: `${listHref}/${it.id}`,
           active: it.id === id,
         }))}
       />
@@ -1497,6 +1571,7 @@ export default function NftDetails({ id }: { id: string }) {
           />
         </div>
 
+        {item.tier !== 'ws' ? (
         <BuyPanelMobile
           item={item}
           designs={meta?.designs ?? item.designs ?? []}
@@ -1515,9 +1590,10 @@ export default function NftDetails({ id }: { id: string }) {
           amlReason={purchaseReason}
           mintMsg={mintMsg}
           isBuying={isBuying}
-          kycPills={pills}
+          kycPills={mode === 'public' ? [] : pills}
           solEurLoading={solEurLoading}
         />
+        ) : null}
       </div>
 
       {/* Mobile: final price explainer */}
@@ -1687,8 +1763,8 @@ export default function NftDetails({ id }: { id: string }) {
                         : "cursor-pointer hover:scale-[1.01] active:scale-[0.98]")
                     }
                     onClick={buy}
-                    disabled={purchaseBlocked || isBuying}
-                    title={purchaseBlocked ? (purchaseReason ?? '') : undefined}
+                    disabled={uiPurchaseBlocked || isBuying}
+                    title={uiPurchaseBlocked ? (uiPurchaseReason ?? '') : undefined}
                   >
                     <span className="flex flex-col items-center leading-tight">
                       <span className="inline-flex items-center justify-center min-h-[18px]">
@@ -1704,11 +1780,11 @@ export default function NftDetails({ id }: { id: string }) {
                     </span>
                   </button>
 
-                  {mintMsg ? (
-                    <div className="text-xs opacity-80 mt-2">{mintMsg}</div>
+                  {uiMintMsg ? (
+                    <div className="text-xs opacity-80 mt-2">{uiMintMsg}</div>
                   ) : null}
 
-                  {pills.filter(p => p.level === 'error' || p.level === 'warning').length > 0 && (
+                  {mode === 'dashboard' && pills.filter(p => p.level === 'error' || p.level === 'warning').length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {pills
                         .filter(p => p.level === 'error' || p.level === 'warning')
@@ -1740,7 +1816,7 @@ export default function NftDetails({ id }: { id: string }) {
           )}
 
           {/* Rights */}
-          {rights && (
+          {mode === 'dashboard' && rights && (
             <div className="card p-4 md:p-5 space-y-4">
               <div className="text-sm font-medium">{t('nft.rights.title')}</div>
 
