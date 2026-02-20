@@ -67,8 +67,8 @@ export async function GET(req: NextRequest) {
     select: { paidSol: true },
   });
 
-  const totalAllTimeSol = allEvents.reduce(
-    (sum, ev) => sum + ev.paidSol,
+  const totalAllTimeSol = allEvents.reduce<number>(
+    (sum, ev) => sum + Number(ev.paidSol ?? 0),
     0,
   );
 
