@@ -13,8 +13,10 @@ type DocFile = {
 };
 
 const pitchFiles: DocFile[] = [
-  // add more languages later when PDFs are ready
   { href: '/docs/vigri-app-pitch-2026-02-en.pdf', lang: 'en' },
+  { href: '/docs/vigri-app-pitch-2026-02-ru.pdf', lang: 'ru' },
+  { href: '/docs/vigri-app-pitch-2026-02-et.pdf', lang: 'et' },
+  { href: '/docs/vigri-app-pitch-2026-02-de.pdf', lang: 'de' },
 ];
 
 const litepaperFiles: DocFile[] = [
@@ -24,18 +26,11 @@ const litepaperFiles: DocFile[] = [
 ];
 
 function langLabel(lang: LangCode, t: (key: string) => string) {
-  switch (lang) {
-    case 'en':
-      return t('docs_lang_en');
-    case 'ru':
-      return t('docs_lang_ru');
-    case 'et':
-      return t('docs_lang_et');
-    case 'de':
-      return t('docs_lang_de');
-    default:
-      return lang;
-  }
+  if (lang === 'en') return t('docs_lang_en');
+  if (lang === 'ru') return t('docs_lang_ru');
+  if (lang === 'et') return t('docs_lang_et');
+  if (lang === 'de') return t('docs_lang_de');
+  return lang;
 }
 
 export default function DocsPage() {
@@ -46,20 +41,15 @@ export default function DocsPage() {
       <PublicHeader />
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-6">
         <div className="card p-4">
-          <h1 className="text-2xl font-semibold">
-            {t('docs_page_title')}
-          </h1>
+          <h1 className="text-2xl font-semibold">{t('docs_page_title')}</h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
             {t('docs_page_intro')}
           </p>
         </div>
 
         <section className="space-y-4">
-          {/* Pitch deck */}
           <div className="card p-4">
-            <h2 className="text-lg font-semibold">
-              {t('docs_pitch_title')}
-            </h2>
+            <h2 className="text-lg font-semibold">{t('docs_pitch_title')}</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
               {t('docs_pitch_desc')}
             </p>
@@ -79,11 +69,8 @@ export default function DocsPage() {
             </div>
           </div>
 
-          {/* Litepaper */}
           <div className="card p-4">
-            <h2 className="text-lg font-semibold">
-              {t('docs_litepaper_title')}
-            </h2>
+            <h2 className="text-lg font-semibold">{t('docs_litepaper_title')}</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
               {t('docs_litepaper_desc')}
             </p>
