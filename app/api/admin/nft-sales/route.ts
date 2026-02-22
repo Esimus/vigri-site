@@ -68,8 +68,8 @@ export async function GET(req: NextRequest) {
   });
 
   const totalAllTimeSol = allEvents.reduce<number>(
-    (sum, ev) => sum + Number(ev.paidSol ?? 0),
-    0,
+    (sum: number, ev) => sum + Number(ev.paidSol ?? 0),
+   0,
   );
 
   const events = await prisma.nftMintEvent.findMany({
