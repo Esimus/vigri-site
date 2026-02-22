@@ -319,6 +319,7 @@ function BuyPanelMobile(props: {
               {mintMsg}
             </div>
           ) : null}
+          
           {kycPills.filter(p => p.level === 'error' || p.level === 'warning').length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {kycPills
@@ -601,6 +602,7 @@ export default function NftDetails({
   } | null>(null);
 
   const [meLoaded, setMeLoaded] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   // Summary for this id (from /api/nft/summary)
   type SummaryItem = { id: string; total: number; sold: number; left: number; pct: number };
@@ -699,7 +701,24 @@ export default function NftDetails({
         const r = await fetch('/api/me', { cache: 'no-store' });
         const j: unknown = await r.json().catch(() => ({}));
 
-        if (cancelled || !r.ok || !isObject(j) || (j as { ok?: unknown }).ok !== true) return;
+        if (cancelled) return;
+
+        const ok = r.ok && isObject(j) && (j as { ok?: unknown }).ok === true;
+        const userRaw = ok ? (j as Record<string, unknown>)['user'] : null;
+        const userObjId = isObject(userRaw) ? (userRaw as Record<string, unknown>)['id'] : null;
+        const userIdRoot = ok ? (j as Record<string, unknown>)['userId'] : null;
+        const authed =
+          ok &&
+          (typeof userObjId === 'string' ||
+            typeof userObjId === 'number' ||
+            typeof userIdRoot === 'string' ||
+            typeof userIdRoot === 'number');
+
+        setIsAuthenticated(authed);
+        if (!authed) {
+          setMeLoaded(true);
+          return;
+        }
 
         const statusRaw =
           (j as Record<string, unknown>)['kycStatus'] ??
@@ -742,7 +761,10 @@ export default function NftDetails({
         }
         setMeLoaded(true);
       } catch {
-        // ignore
+        if (!cancelled) {
+          setIsAuthenticated(false);
+          setMeLoaded(true);
+        }
       }
     })();
 
@@ -959,10 +981,10 @@ export default function NftDetails({
       : v;
   })();
 
-  const uiPurchaseBlocked = mode === 'public' ? true : purchaseBlocked;
-  const uiPurchaseReason = mode === 'public' ? publicPurchaseNotice : purchaseReason;
-  const uiMintMsg = mode === 'public' ? (mintMsg ?? publicPurchaseNotice) : mintMsg;
-
+  const showPublicRegNotice = mode === 'public' && !isAuthenticated;
+  const uiPurchaseBlocked = showPublicRegNotice ? true : purchaseBlocked;
+  const uiPurchaseReason = showPublicRegNotice ? publicPurchaseNotice : purchaseReason;
+  const uiMintMsg = showPublicRegNotice ? (mintMsg ?? publicPurchaseNotice) : mintMsg;
   const mintBlocked = purchaseBlocked;
   const mintBlockedText = purchaseReason ?? '';
 
@@ -1396,14 +1418,16 @@ export default function NftDetails({
 
   // Purchase (on-chain only)
   const buy = async () => {
-    if (mode === 'public') {
+    if (mode === 'public' && !isAuthenticated) {
       setMintMsg(publicPurchaseNotice);
       return;
     }
     if (isBuying) return;
 
     if (purchaseBlocked) {
-      setMintMsg(purchaseReason ?? 'KYC/AML restriction');
+      if (mode !== 'public') {
+        setMintMsg(purchaseReason ?? 'KYC/AML restriction');
+      }
       return;
     }
 
@@ -1586,11 +1610,11 @@ export default function NftDetails({
           t={t}
           solPrice={solPrice}
           eurNow={eurNow}
-          purchaseBlocked={purchaseBlocked}
-          amlReason={purchaseReason}
-          mintMsg={mintMsg}
+          purchaseBlocked={uiPurchaseBlocked}
+          amlReason={uiPurchaseReason}
+          mintMsg={uiMintMsg}
           isBuying={isBuying}
-          kycPills={mode === 'public' ? [] : pills}
+          kycPills={mode === 'public' && !isAuthenticated ? [] : pills}
           solEurLoading={solEurLoading}
         />
         ) : null}
@@ -1784,7 +1808,7 @@ export default function NftDetails({
                     <div className="text-xs opacity-80 mt-2">{uiMintMsg}</div>
                   ) : null}
 
-                  {mode === 'dashboard' && pills.filter(p => p.level === 'error' || p.level === 'warning').length > 0 && (
+                  {(mode === 'dashboard' || (mode === 'public' && isAuthenticated)) && pills.filter(p => p.level === 'error' || p.level === 'warning').length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {pills
                         .filter(p => p.level === 'error' || p.level === 'warning')
