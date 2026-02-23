@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
 
 const Kind = z.enum(['club_pilot', 'ambassador', 'faq_question', 'other']);
 
@@ -46,6 +45,10 @@ const IntakeSchema = z.object({
   // Honeypot (must be empty)
   hp: z.string().optional(),
 });
+
+type JsonPrimitive = string | number | boolean | null;
+type JsonValue = JsonPrimitive | { [key: string]: JsonValue } | JsonValue[];
+type InputJsonValue = JsonValue;
 
 function jsonOk(data: Record<string, unknown> = {}, status = 200) {
   return NextResponse.json({ ok: true, ...data }, { status });
@@ -141,7 +144,8 @@ export async function POST(req: NextRequest) {
         subject: data.subject,
         message: data.message,
 
-        payload: (data.payload as Prisma.InputJsonValue | undefined) ?? undefined,
+        // req.json() already yields JSON-safe values, so this cast is safe for Prisma JSON columns
+        payload: (data.payload as InputJsonValue | undefined) ?? undefined,
 
         consent: data.consent,
         privacyVersion: data.privacyVersion,
@@ -162,16 +166,16 @@ export async function POST(req: NextRequest) {
     });
 
     return jsonOk({ id: row.id }, 201);
-    } catch (e: unknown) {
+  } catch (e: unknown) {
     const err = e as { code?: string; message?: string };
 
     // Keep server logs for debugging; do not leak details to clients.
     console.error('Intake save failed:', err);
 
     if (err?.code === 'P2002') {
-        return jsonErr('Duplicate submission', 409);
+      return jsonErr('Duplicate submission', 409);
     }
 
     return jsonErr('Failed to save submission', 500);
-    }
+  }
 }

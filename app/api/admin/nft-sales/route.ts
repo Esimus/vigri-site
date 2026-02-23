@@ -12,6 +12,47 @@ function parseDate(value: string | null): Date | null {
   return d;
 }
 
+function toNumber(value: unknown): number {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+  if (typeof value === "bigint") return Number(value);
+
+  // Prisma Decimal-like objects (or anything with toString)
+  if (typeof value === "object" && value !== null && "toString" in value) {
+    const n = Number(String((value as { toString(): string }).toString()));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  return 0;
+}
+
+function toJsonScalar(value: unknown): string | number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return value;
+  if (typeof value === "bigint") return value.toString();
+  return String(value);
+}
+
+type AllTimeEvent = {
+  paidSol: unknown;
+};
+
+type RangeEvent = {
+  id: unknown;
+  createdAt: Date;
+  tierId: unknown;
+  tierCode: string | null;
+  quantity: number | null;
+  paidSol: unknown;
+  wallet: string | null;
+  txSignature: string | null;
+};
+
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) {
@@ -28,10 +69,7 @@ export async function GET(req: NextRequest) {
   });
 
   if (!dbUser || (dbUser.role !== "admin" && dbUser.role !== "support")) {
-    return NextResponse.json(
-      { ok: false, error: "Forbidden" },
-      { status: 403 },
-    );
+    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
   }
 
   const { searchParams } = req.nextUrl;
@@ -55,11 +93,9 @@ export async function GET(req: NextRequest) {
     endInclusive = new Date(defaultEndExclusive.getTime() - 1);
   }
 
-  const endExclusive = new Date(
-    endInclusive.getTime() + 24 * 60 * 60 * 1000,
-  );
+  const endExclusive = new Date(endInclusive.getTime() + 24 * 60 * 60 * 1000);
 
-  const allEvents = await prisma.nftMintEvent.findMany({
+  const allEvents: AllTimeEvent[] = await prisma.nftMintEvent.findMany({
     where: {
       network: "mainnet",
       paidSol: { gt: 0 },
@@ -68,11 +104,11 @@ export async function GET(req: NextRequest) {
   });
 
   const totalAllTimeSol = allEvents.reduce<number>(
-    (sum: number, ev) => sum + Number(ev.paidSol ?? 0),
-   0,
+    (sum: number, ev: AllTimeEvent) => sum + toNumber(ev.paidSol),
+    0,
   );
 
-  const events = await prisma.nftMintEvent.findMany({
+  const events: RangeEvent[] = await prisma.nftMintEvent.findMany({
     where: {
       network: "mainnet",
       paidSol: { gt: 0 },
@@ -94,8 +130,8 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const totalRangeSol = events.reduce(
-    (sum, ev) => sum + ev.paidSol,
+  const totalRangeSol = events.reduce<number>(
+    (sum: number, ev: RangeEvent) => sum + toNumber(ev.paidSol),
     0,
   );
 
@@ -103,13 +139,13 @@ export async function GET(req: NextRequest) {
     ok: true,
     totalAllTimeSol,
     totalRangeSol,
-    events: events.map((ev) => ({
-      id: ev.id,
+    events: events.map((ev: RangeEvent) => ({
+      id: toJsonScalar(ev.id),
       createdAt: ev.createdAt.toISOString(),
-      tierId: ev.tierId,
+      tierId: toJsonScalar(ev.tierId),
       tierCode: ev.tierCode,
       quantity: ev.quantity ?? 1,
-      paidSol: ev.paidSol,
+      paidSol: toNumber(ev.paidSol),
       wallet: ev.wallet,
       txSignature: ev.txSignature,
     })),
