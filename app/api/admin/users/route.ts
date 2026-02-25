@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import type { KycStatus, UserRole, UserProfile } from "@prisma/client";
 
+export const runtime = "nodejs";
+
+const ALLOWED_ROLES: UserRole[] = ["admin", "support", "kyc_reviewer"];
+
 type ProfileForCompletion = Pick<
   UserProfile,
   | "firstName"
@@ -15,10 +19,6 @@ type ProfileForCompletion = Pick<
   | "addressCity"
   | "language"
 >;
-
-export const runtime = "nodejs";
-
-const ALLOWED_ROLES: UserRole[] = ["admin", "support", "kyc_reviewer"];
 
 function parseLimit(req: NextRequest): number {
   const url = new URL(req.url);
@@ -49,6 +49,13 @@ function isProfileCompleted(p: ProfileForCompletion | null): boolean {
   );
 }
 
+function shortWallet(w: string | null): string | null {
+  if (!w) return null;
+  const s = w.trim();
+  if (s.length <= 10) return s;
+  return `${s.slice(0, 4)}...${s.slice(-4)}`;
+}
+
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) {
@@ -72,9 +79,7 @@ export async function GET(req: NextRequest) {
 
   const where: Record<string, unknown> = {};
   if (status) where.kycStatus = status;
-  if (q) {
-    where.email = { contains: q, mode: "insensitive" };
-  }
+  if (q) where.email = { contains: q, mode: "insensitive" };
 
   const [users, grouped] = await Promise.all([
     prisma.user.findMany({
@@ -87,6 +92,7 @@ export async function GET(req: NextRequest) {
         emailVerified: true,
         createdAt: true,
         role: true,
+        balanceEcho: true,
         kycStatus: true,
         kycCountryZone: true,
         kycUpdatedAt: true,
@@ -122,24 +128,55 @@ export async function GET(req: NextRequest) {
     totals[row.kycStatus] = row._count._all;
   }
 
+  // Wallet
+  const userIds = users.map((u) => u.id);
+  const walletByUserId = new Map<string, string>();
+
+  if (userIds.length > 0) {
+    const events = await prisma.nftMintEvent.findMany({
+      where: {
+        network: "mainnet",
+        paidSol: { gt: 0 },
+        userId: { in: userIds },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { userId: true, wallet: true },
+      take: 2000,
+    });
+
+    for (const ev of events) {
+      if (!ev.userId) continue;
+      if (!walletByUserId.has(ev.userId) && ev.wallet) {
+        walletByUserId.set(ev.userId, ev.wallet);
+      }
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     limit,
     totals,
-    users: users.map((u) => ({
-      id: u.id,
-      email: u.email,
-      emailVerified: u.emailVerified,
-      createdAt: u.createdAt.toISOString(),
-      role: u.role,
-      kycStatus: u.kycStatus,
-      kycCountryZone: u.kycCountryZone,
-      kycUpdatedAt: u.kycUpdatedAt ? u.kycUpdatedAt.toISOString() : null,
-      hasProfile: Boolean(u.profile),
-      profileCompleted: isProfileCompleted(u.profile),
-      profileName: u.profile ? `${u.profile.firstName} ${u.profile.lastName}`.trim() : null,
-      countryResidence: u.profile?.countryResidence ?? null,
-      isikukood: u.profile?.isikukood ?? null,
-    })),
+    users: users.map((u) => {
+      const w = walletByUserId.get(u.id) ?? null;
+
+      return {
+        id: u.id,
+        email: u.email,
+        emailVerified: u.emailVerified,
+        createdAt: u.createdAt.toISOString(),
+        role: u.role,
+        balanceEcho: u.balanceEcho,
+        kycStatus: u.kycStatus,
+        kycCountryZone: u.kycCountryZone,
+        kycUpdatedAt: u.kycUpdatedAt ? u.kycUpdatedAt.toISOString() : null,
+        hasProfile: Boolean(u.profile),
+        profileCompleted: isProfileCompleted(u.profile),
+        profileName: u.profile ? `${u.profile.firstName} ${u.profile.lastName}`.trim() : null,
+        countryResidence: u.profile?.countryResidence ?? null,
+        addressCity: u.profile?.addressCity ?? null,
+        isikukood: u.profile?.isikukood ?? null,
+        walletShort: shortWallet(w),
+      };
+    }),
   });
 }

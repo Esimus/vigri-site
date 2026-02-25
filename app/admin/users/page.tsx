@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type KycStatus = "none" | "pending" | "approved" | "rejected";
@@ -20,6 +21,11 @@ type ApiUser = {
   profileName: string | null;
   countryResidence: string | null;
   isikukood: string | null;
+
+  // new columns (will show "—" until API sends them)
+  balanceEcho?: number;
+  addressCity?: string | null;
+  walletShort?: string | null;
 };
 
 type ApiOk = {
@@ -257,6 +263,7 @@ export default function AdminUsersPage() {
         <table className="min-w-full text-xs">
           <thead className="bg-slate-900/60">
             <tr>
+              <th className="px-3 py-2 text-left font-semibold">#</th>
               <th className="px-3 py-2 text-left font-semibold">Created</th>
               <th className="px-3 py-2 text-left font-semibold">Email</th>
               <th className="px-3 py-2 text-left font-semibold">Role</th>
@@ -265,6 +272,9 @@ export default function AdminUsersPage() {
               <th className="px-3 py-2 text-left font-semibold">KYC updated</th>
               <th className="px-3 py-2 text-left font-semibold">Profile</th>
               <th className="px-3 py-2 text-left font-semibold">Residence</th>
+              <th className="px-3 py-2 text-left font-semibold">City</th>
+              <th className="px-3 py-2 text-left font-semibold">balanceEcho</th>
+              <th className="px-3 py-2 text-left font-semibold">Wallet</th>
               <th className="px-3 py-2 text-left font-semibold">EE ID</th>
               <th className="px-3 py-2 text-left font-semibold">Actions</th>
             </tr>
@@ -273,13 +283,17 @@ export default function AdminUsersPage() {
           <tbody>
             {users.length === 0 ? (
               <tr>
-                <td className="px-3 py-4 text-center text-slate-500" colSpan={9}>
+                <td className="px-3 py-4 text-center text-slate-500" colSpan={14}>
                   No users found.
                 </td>
               </tr>
             ) : (
-              users.map((u) => (
+              users.map((u, idx) => (
                 <tr key={u.id} className="border-t border-slate-800">
+                  <td className="px-3 py-2 whitespace-nowrap text-slate-400">
+                    {idx + 1}
+                  </td>
+
                   <td className="px-3 py-2 whitespace-nowrap">
                     {formatDateTimeFromIso(u.createdAt)}
                   </td>
@@ -287,7 +301,9 @@ export default function AdminUsersPage() {
                   <td className="px-3 py-2">
                     <div className="font-mono text-[11px]">{u.email}</div>
                     {u.profileName && (
-                      <div className="text-[11px] text-slate-400">{u.profileName}</div>
+                      <div className="text-[11px] text-slate-400">
+                        {u.profileName}
+                      </div>
                     )}
                   </td>
 
@@ -318,38 +334,30 @@ export default function AdminUsersPage() {
                     {u.countryResidence ?? "—"}
                   </td>
 
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {u.addressCity ?? "—"}
+                  </td>
+
+                  <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
+                    {typeof u.balanceEcho === "number" ? u.balanceEcho : "—"}
+                  </td>
+
+                  <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
+                    {u.walletShort ?? "—"}
+                  </td>
+
                   <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
                     {u.isikukood ?? "—"}
                   </td>
-                  
+
                   <td className="px-3 py-2 whitespace-nowrap">
-                    <button
-                        type="button"
-                        className="rounded-md border border-slate-600 px-2 py-1 text-[11px] hover:bg-slate-800 disabled:opacity-60"
-                        onClick={async () => {
-                        const ok = window.confirm(`Reset KYC for ${u.email}?`);
-                        if (!ok) return;
-
-                        const res = await fetch("/api/admin/kyc/reset", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ userId: u.id }),
-                        });
-
-                        const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
-
-                        if (!res.ok || !json?.ok) {
-                            alert(`Reset failed: ${json?.error || res.statusText}`);
-                            return;
-                        }
-
-                        // refresh current view
-                        router.refresh();
-                        }}
+                    <Link
+                      href={`/admin/users/${u.id}`}
+                      className="inline-flex rounded-md border border-slate-600 px-2 py-1 text-[11px] hover:bg-slate-800"
                     >
-                        Reset KYC
-                    </button>
-                    </td>
+                      Edit profile
+                    </Link>
+                  </td>
                 </tr>
               ))
             )}
