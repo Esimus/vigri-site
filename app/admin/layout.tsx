@@ -1,19 +1,20 @@
 // app/admin/layout.tsx
-import { ReactNode } from 'react';
-import { cookies } from 'next/headers';
-import { requireAdminUser } from '@/lib/adminAuth';
-import { AdminThemeToggle } from '@/components/admin/AdminThemeToggle';
+import { ReactNode } from "react";
+import Link from "next/link";
+import { cookies } from "next/headers";
+import { requireAdminUser } from "@/lib/adminAuth";
+import { AdminThemeToggle } from "@/components/admin/AdminThemeToggle";
 
 export const metadata = {
-  title: 'VIGRI Admin',
+  title: "VIGRI Admin",
 };
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const user = await requireAdminUser();
 
   const cookieStore = await cookies();
-  const resolved = cookieStore.get('vigri_theme_resolved')?.value;
-  const initialTheme: 'light' | 'dark' = resolved === 'dark' ? 'dark' : 'light';
+  const resolved = cookieStore.get("vigri_theme_resolved")?.value;
+  const initialTheme: "light" | "dark" = resolved === "dark" ? "dark" : "light";
 
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50">
@@ -24,21 +25,21 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <AdminThemeToggle initialTheme={initialTheme} />
 
         <nav className="space-y-2">
-          <a href="/admin" className="block hover:underline">
+          <Link href="/admin" className="block hover:underline">
             Overview
-          </a>
-          <a href="/admin/reports" className="block hover:underline">
+          </Link>
+          <Link href="/admin/reports" className="block hover:underline">
             Reports
-          </a>
-          <a href="/admin/users" className="block hover:underline">
+          </Link>
+          <Link href="/admin/users" className="block hover:underline">
             Users
-          </a>
-          <a href="/admin/kyc" className="block hover:underline">
+          </Link>
+          <Link href="/admin/kyc" className="block hover:underline">
             KYC
-          </a>
-          <a href="/admin/support" className="block hover:underline">
+          </Link>
+          <Link href="/admin/support" className="block hover:underline">
             Support
-          </a>
+          </Link>
         </nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>

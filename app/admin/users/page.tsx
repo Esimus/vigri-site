@@ -22,7 +22,6 @@ type ApiUser = {
   countryResidence: string | null;
   isikukood: string | null;
 
-  // new columns (will show "—" until API sends them)
   balanceEcho?: number;
   addressCity?: string | null;
   walletShort?: string | null;
@@ -57,25 +56,33 @@ function formatDateTimeFromIso(iso: string | null) {
 function statusBadge(status: KycStatus) {
   const base =
     "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium border";
+
   switch (status) {
     case "approved":
-      return `${base} border-emerald-700/60 text-emerald-300 bg-emerald-900/20`;
+      return `${base} border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700/60 dark:bg-emerald-900/20 dark:text-emerald-300`;
     case "pending":
-      return `${base} border-amber-700/60 text-amber-300 bg-amber-900/20`;
+      return `${base} border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300`;
     case "rejected":
-      return `${base} border-red-700/60 text-red-300 bg-red-900/20`;
+      return `${base} border-red-300 bg-red-50 text-red-800 dark:border-red-700/60 dark:bg-red-900/20 dark:text-red-300`;
     case "none":
     default:
-      return `${base} border-slate-700/60 text-slate-300 bg-slate-900/20`;
+      return `${base} border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700/60 dark:bg-slate-900/20 dark:text-slate-300`;
   }
 }
 
 function pillClass(active: boolean) {
+  const base = "rounded-full px-3 py-1 text-xs border transition-colors";
+  if (active) {
+    return (
+      base +
+      " border-emerald-300 bg-emerald-50 text-emerald-800" +
+      " dark:border-emerald-500/60 dark:bg-emerald-900/20 dark:text-emerald-200"
+    );
+  }
   return (
-    "rounded-full px-3 py-1 text-xs border " +
-    (active
-      ? "border-emerald-500/60 text-emerald-200 bg-emerald-900/20"
-      : "border-slate-700/60 text-slate-200 hover:bg-slate-900/30")
+    base +
+    " border-slate-300 text-slate-700 hover:bg-slate-100" +
+    " dark:border-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-900/30"
   );
 }
 
@@ -89,7 +96,8 @@ export default function AdminUsersPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [data, setData] = React.useState<ApiOk | null>(null);
 
-  // URL -> state + load
+  const fmt = React.useMemo(() => new Intl.NumberFormat("ru-RU"), []);
+
   React.useEffect(() => {
     const urlQ = (searchParams.get("q") || "").trim();
     const urlStatus = (searchParams.get("status") || "").trim() as KycStatus;
@@ -181,6 +189,8 @@ export default function AdminUsersPage() {
   const totalAll = totals.none + totals.pending + totals.approved + totals.rejected;
   const users = data?.users ?? [];
 
+  const isGlobalView = status === "all" && !q.trim();
+
   return (
     <div>
       <h1 className="text-xl font-semibold mb-4">Users</h1>
@@ -225,7 +235,7 @@ export default function AdminUsersPage() {
 
       <form onSubmit={onSubmit} className="mb-4 flex flex-wrap items-end gap-3 text-sm">
         <div className="flex flex-col">
-          <label htmlFor="q" className="mb-1 text-xs text-slate-400">
+          <label htmlFor="q" className="mb-1 text-xs text-slate-600 dark:text-slate-400">
             Search by email
           </label>
           <input
@@ -249,19 +259,19 @@ export default function AdminUsersPage() {
         <button
           type="button"
           onClick={() => router.push("/admin/users")}
-          className="rounded-md border border-slate-600 px-3 py-1 text-sm hover:bg-slate-800"
+          className="rounded-md border border-slate-300 px-3 py-1 text-sm hover:bg-slate-100 disabled:opacity-60 dark:border-slate-600 dark:hover:bg-slate-800"
           disabled={loading}
         >
           Reset
         </button>
 
-        {loading && <div className="text-xs text-slate-400">Loading…</div>}
-        {error && <div className="text-xs text-red-400">Error: {error}</div>}
+        {loading && <div className="text-xs text-slate-600 dark:text-slate-400">Loading…</div>}
+        {error && <div className="text-xs text-red-600 dark:text-red-400">Error: {error}</div>}
       </form>
 
-      <div className="border border-slate-800 rounded-lg overflow-x-auto">
+      <div className="border border-slate-200 rounded-lg overflow-x-auto dark:border-slate-800">
         <table className="min-w-full text-xs">
-          <thead className="bg-slate-900/60">
+          <thead className="bg-slate-100 dark:bg-slate-900/60">
             <tr>
               <th className="px-3 py-2 text-left font-semibold">#</th>
               <th className="px-3 py-2 text-left font-semibold">Created</th>
@@ -288,84 +298,91 @@ export default function AdminUsersPage() {
                 </td>
               </tr>
             ) : (
-              users.map((u, idx) => (
-                <tr key={u.id} className="border-t border-slate-800">
-                  <td className="px-3 py-2 whitespace-nowrap text-slate-400">
-                    {idx + 1}
-                  </td>
+              users.map((u, idx) => {
+                const displayNo = isGlobalView ? totalAll - idx : users.length - idx;
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {formatDateTimeFromIso(u.createdAt)}
-                  </td>
+                return (
+                  <tr
+                    key={u.id}
+                    className="border-t border-slate-200 dark:border-slate-800"
+                  >
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-600 dark:text-slate-400">
+                      {displayNo}
+                    </td>
 
-                  <td className="px-3 py-2">
-                    <div className="font-mono text-[11px]">{u.email}</div>
-                    {u.profileName && (
-                      <div className="text-[11px] text-slate-400">
-                        {u.profileName}
-                      </div>
-                    )}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {formatDateTimeFromIso(u.createdAt)}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">{u.role}</td>
+                    <td className="px-3 py-2">
+                      <div className="font-mono text-[11px]">{u.email}</div>
+                      {u.profileName && (
+                        <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                          {u.profileName}
+                        </div>
+                      )}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {u.emailVerified ? "Yes" : "No"}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">{u.role}</td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span className={statusBadge(u.kycStatus)}>{u.kycStatus}</span>
-                    {u.kycCountryZone && (
-                      <span className="ml-2 text-[11px] text-slate-400">
-                        zone: {u.kycCountryZone}
-                      </span>
-                    )}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {u.emailVerified ? "Yes" : "No"}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {formatDateTimeFromIso(u.kycUpdatedAt)}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span className={statusBadge(u.kycStatus)}>{u.kycStatus}</span>
+                      {u.kycCountryZone && (
+                        <span className="ml-2 text-[11px] text-slate-600 dark:text-slate-400">
+                          zone: {u.kycCountryZone}
+                        </span>
+                      )}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {u.profileCompleted ? "Completed" : u.hasProfile ? "Started" : "—"}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {formatDateTimeFromIso(u.kycUpdatedAt)}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {u.countryResidence ?? "—"}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {u.profileCompleted ? "Completed" : u.hasProfile ? "Started" : "—"}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {u.addressCity ?? "—"}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {u.countryResidence ?? "—"}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
-                    {typeof u.balanceEcho === "number" ? u.balanceEcho : "—"}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {u.addressCity ?? "—"}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
-                    {u.walletShort ?? "—"}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
+                      {typeof u.balanceEcho === "number" ? fmt.format(u.balanceEcho) : "—"}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
-                    {u.isikukood ?? "—"}
-                  </td>
+                    <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
+                      {u.walletShort ?? "—"}
+                    </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <Link
-                      href={`/admin/users/${u.id}`}
-                      className="inline-flex rounded-md border border-slate-600 px-2 py-1 text-[11px] hover:bg-slate-800"
-                    >
-                      Edit profile
-                    </Link>
-                  </td>
-                </tr>
-              ))
+                    <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
+                      {u.isikukood ?? "—"}
+                    </td>
+
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <Link
+                        href={`/admin/users/${u.id}`}
+                        className="inline-flex rounded-md border border-slate-300 px-2 py-1 text-[11px] hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800"
+                      >
+                        Edit profile
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      <div className="mt-3 text-xs text-slate-500">
+      <div className="mt-3 text-xs text-slate-600 dark:text-slate-500">
         Showing up to 200 latest users (newest first).
       </div>
     </div>
