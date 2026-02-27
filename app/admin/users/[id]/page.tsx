@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { UserKycActionsClient } from "@/components/admin/UserKycActionsClient";
+import { KycArchiveActionsClient } from "@/components/admin/KycArchiveActionsClient";
 
 export const runtime = "nodejs";
 
@@ -320,6 +321,9 @@ export default async function AdminUserDetailsPage({ params }: Props) {
                     </summary>
 
                     <div className="px-3 pb-3 pt-2">
+                      <div className="mb-3">
+                        <KycArchiveActionsClient archiveId={a.id} />
+                      </div>
                       <div className="grid gap-2 text-sm md:grid-cols-2">
                         <div>
                           <span className="text-slate-600 dark:text-slate-400">Prev zone:</span>{" "}
