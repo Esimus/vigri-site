@@ -1,3 +1,4 @@
+// app/api/admin/kyc/reset/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
@@ -38,19 +39,76 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "userId_required" }, { status: 400 });
   }
 
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, kycStatus: true, kycUpdatedAt: true },
-  });
-
-  if (!target) {
-    return NextResponse.json({ ok: false, error: "NotFound" }, { status: 404 });
-  }
-
   const ua = req.headers.get("user-agent") || null;
 
-  await prisma.$transaction(async (tx) => {
-    // Clear ONLY passport/document fields (keep base KYC like pep/consent)
+  const result = await prisma.$transaction(async (tx) => {
+    const target = await tx.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        kycStatus: true,
+        kycCountryZone: true,
+        kycUpdatedAt: true,
+        kycNote: true,
+        kycData: {
+          select: {
+            pepDeclared: true,
+            pepDetails: true,
+            consent: true,
+            passportNumber: true,
+            passportCountry: true,
+            passportIssuedAt: true,
+            passportExpiresAt: true,
+            passportIssuer: true,
+            documentImage: true,
+          },
+        },
+      },
+    });
+
+    if (!target) {
+      return { ok: false as const, status: 404 as const, error: "NotFound" as const };
+    }
+
+    const hasSomethingToArchive =
+      Boolean(target.kycData) ||
+      target.kycStatus !== "none" ||
+      target.kycUpdatedAt !== null ||
+      (target.kycNote ?? "").trim().length > 0;
+
+    let archiveId: string | null = null;
+
+    if (hasSomethingToArchive) {
+      const archived = await tx.kycDataArchive.create({
+        data: {
+          userId,
+          archivedById: user.id,
+          reason: "reset",
+
+          prevKycStatus: target.kycStatus,
+          prevKycCountryZone: target.kycCountryZone,
+          prevKycUpdatedAt: target.kycUpdatedAt,
+          prevKycNote: (target.kycNote ?? "").trim() ? target.kycNote : null,
+
+          pepDeclared: target.kycData?.pepDeclared ?? null,
+          pepDetails: target.kycData?.pepDetails ?? null,
+          consent: target.kycData?.consent ?? null,
+
+          passportNumber: target.kycData?.passportNumber ?? null,
+          passportCountry: target.kycData?.passportCountry ?? null,
+          passportIssuedAt: target.kycData?.passportIssuedAt ?? null,
+          passportExpiresAt: target.kycData?.passportExpiresAt ?? null,
+          passportIssuer: target.kycData?.passportIssuer ?? null,
+
+          documentImage: target.kycData?.documentImage ?? null,
+        },
+        select: { id: true },
+      });
+
+      archiveId = archived.id;
+    }
+
+    // Clear ONLY passport/document fields (base KYC stays)
     await tx.kycData.updateMany({
       where: { userId },
       data: {
@@ -81,14 +139,26 @@ export async function POST(req: NextRequest) {
         targetType: "user",
         targetId: userId,
         meta: {
-          prevStatus: target.kycStatus,
-          prevKycUpdatedAt: target.kycUpdatedAt ? target.kycUpdatedAt.toISOString() : null,
-          cleared: ["passportNumber", "passportCountry", "passportIssuedAt", "passportExpiresAt", "passportIssuer", "documentImage"],
+          archiveId,
+          cleared: [
+            "passportNumber",
+            "passportCountry",
+            "passportIssuedAt",
+            "passportExpiresAt",
+            "passportIssuer",
+            "documentImage",
+          ],
         },
         userAgent: ua,
       },
     });
+
+    return { ok: true as const, status: 200 as const };
   });
+
+  if (!result.ok) {
+    return NextResponse.json({ ok: false, error: result.error }, { status: result.status });
+  }
 
   return NextResponse.json({ ok: true });
 }

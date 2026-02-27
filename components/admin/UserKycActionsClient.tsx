@@ -13,23 +13,36 @@ export function UserKycActionsClient(props: {
 }) {
   const router = useRouter();
   const [note, setNote] = React.useState(props.initialNote ?? "");
+  const noteRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [busy, setBusy] = React.useState(false);
+
+  const getNoteToSend = () => {
+    const raw = noteRef.current?.value ?? note;
+    const trimmed = raw.trim();
+    return trimmed.length ? trimmed : null;
+  };
 
   const postDecision = async (status: KycStatus) => {
     setBusy(true);
     try {
+      const noteToSend = getNoteToSend();
+
       const res = await fetch("/api/admin/kyc/decision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: props.userId, status, note }),
+        body: JSON.stringify({ userId: props.userId, status, note: noteToSend ?? "" }),
       });
 
-      const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      const json = (await res.json().catch(() => null)) as
+        | { ok?: boolean; error?: string }
+        | null;
+
       if (!res.ok || !json?.ok) {
         alert(`KYC update failed: ${json?.error || res.statusText}`);
         return;
       }
 
+      setNote(noteToSend ?? "");
       router.refresh();
     } finally {
       setBusy(false);
@@ -37,7 +50,9 @@ export function UserKycActionsClient(props: {
   };
 
   const resetKyc = async () => {
-    const ok = window.confirm("Reset KYC for this user? (passport fields + document image will be cleared)");
+    const ok = window.confirm(
+      "Reset KYC for this user?\n\nCurrent passport fields + document image will be archived, then cleared.",
+    );
     if (!ok) return;
 
     setBusy(true);
@@ -48,7 +63,10 @@ export function UserKycActionsClient(props: {
         body: JSON.stringify({ userId: props.userId }),
       });
 
-      const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      const json = (await res.json().catch(() => null)) as
+        | { ok?: boolean; error?: string }
+        | null;
+
       if (!res.ok || !json?.ok) {
         alert(`Reset failed: ${json?.error || res.statusText}`);
         return;
@@ -63,8 +81,11 @@ export function UserKycActionsClient(props: {
   return (
     <div className="mt-4 space-y-3">
       <div>
-        <label className="mb-1 block text-xs text-slate-600 dark:text-slate-400">KYC note</label>
+        <label className="mb-1 block text-xs text-slate-600 dark:text-slate-400">
+          KYC note
+        </label>
         <textarea
+          ref={noteRef}
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}

@@ -84,6 +84,10 @@ model User {
   kycNote         String?
   formSubmissions FormSubmission[]
 
+  // KYC archive (snapshots before reset / replace)
+  kycArchives        KycDataArchive[]
+  kycArchivesAsActor KycDataArchive[] @relation("KycArchiveActor")
+
   @@index([referrerId])
 }
 
@@ -320,4 +324,41 @@ model AdminAuditLog {
   @@index([actorId, createdAt])
   @@index([action, createdAt])
   @@index([targetType, targetId])
+}
+
+model KycDataArchive {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Target user
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Who archived (admin/kyc reviewer)
+  archivedById String?
+  archivedBy   User?   @relation("KycArchiveActor", fields: [archivedById], references: [id], onDelete: SetNull)
+
+  reason String? // e.g. "reset", "replace"
+
+  // Snapshot of user KYC state at the time of archiving
+  prevKycStatus      KycStatus?
+  prevKycCountryZone CountryZone?
+  prevKycUpdatedAt   DateTime?
+  prevKycNote        String?
+
+  // Snapshot of KycData fields
+  pepDeclared Boolean?
+  pepDetails  String?
+  consent     Boolean?
+
+  passportNumber    String?
+  passportCountry   String?
+  passportIssuedAt  DateTime?
+  passportExpiresAt DateTime?
+  passportIssuer    String?
+
+  documentImage String?
+
+  @@index([userId, createdAt])
+  @@index([archivedById, createdAt])
 }
