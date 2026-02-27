@@ -48,6 +48,6 @@
   "overrides": {
     "hono": "^4.11.7",
     "lodash": "^4.17.23",
-    "minimatch": "10.2.2"
+    "minimatch": "^10.2.4"
   }
 }
