@@ -636,6 +636,11 @@
   "copy_tooltip": "Klõpsa kopeerimiseks lõikelauale",
   "copied_tooltip": "Kopeeritud lõikelauale",
 
+  "kyc.archive.title": "KYC arhiiv",
+  "kyc.archive.records": "Arhiivikandeid",
+  "kyc.archive.latest": "Viimane",
+  "kyc.archive.contact": "Kui vajad koopiat või kustutamistaotlust, võta ühendust toega.",
+
   "kyc.status": "KYC staatus",
   "kyc.status.none": "puudub",
   "kyc.status.pending": "töös",

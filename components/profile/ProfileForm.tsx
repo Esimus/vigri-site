@@ -49,6 +49,8 @@ type MeResp =
       kycStatus: KycStatus;
       kycCountryZone: CountryZone;
       profileCompleted: boolean;
+      kycArchiveCount: number;
+      kycArchiveLatestAt: string | null;
       profile?: {
         countryResidence?: string;
         countryCitizenship?: string;
@@ -395,6 +397,8 @@ export function ProfileForm() {
   const [meZone, setMeZone] = useState<CountryZone>(null);
   const [meKycStatus, setMeKycStatus] = useState<KycStatus>('none');
   const [meCountryCode, setMeCountryCode] = useState<string>('');
+  const [kycArchiveCount, setKycArchiveCount] = useState(0);
+  const [kycArchiveLatestAt, setKycArchiveLatestAt] = useState<string | null>(null);
 
   const loadMe = useCallback(async () => {
     const res = await fetch('/api/me', { cache: 'no-store' });
@@ -406,6 +410,8 @@ export function ProfileForm() {
       setMeZone(null);
       setMeKycStatus('none');
       setMeCountryCode('');
+      setKycArchiveCount(0);
+      setKycArchiveLatestAt(null);
       return;
     }
 
@@ -413,6 +419,8 @@ export function ProfileForm() {
     setMeProfileCompleted(Boolean(raw.profileCompleted));
     setMeZone(raw.kycCountryZone ?? null);
     setMeKycStatus(raw.kycStatus ?? 'none');
+    setKycArchiveCount(raw.kycArchiveCount ?? 0);
+    setKycArchiveLatestAt(raw.kycArchiveLatestAt ?? null);
 
     const cc = (raw.profile?.countryResidence ?? raw.profile?.countryCitizenship ?? raw.profile?.countryTax ?? '').toUpperCase();
     setMeCountryCode(cc);
@@ -1383,6 +1391,29 @@ export function ProfileForm() {
             </div>
           </div>
         </form>
+      )}
+
+      {signedIn && kycArchiveCount > 0 && (
+        <div className="card p-4 text-sm space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-medium">{t('kyc.archive.title')}</div>
+
+              <div className="mt-1 text-xs opacity-70">
+                {t('kyc.archive.records')}: {kycArchiveCount}
+                {kycArchiveLatestAt
+                  ? ` · ${t('kyc.archive.latest')}: ${
+                      kycArchiveLatestAt.length >= 10 ? kycArchiveLatestAt.slice(0, 10) : kycArchiveLatestAt
+                    }`
+                  : ''}
+              </div>
+
+              <div className="mt-1 text-xs opacity-60">{t('kyc.archive.contact')}</div>
+            </div>
+
+            <Pill tone="info">{kycArchiveCount}</Pill>
+          </div>
+        </div>
       )}
 
         <div className="card p-4 text-sm space-y-3">

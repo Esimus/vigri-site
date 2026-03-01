@@ -636,6 +636,11 @@
   "copy_tooltip": "Нажмите, чтобы скопировать",
   "copied_tooltip": "Скопировано в буфер",
 
+  "kyc.archive.title": "Архив KYC",
+  "kyc.archive.records": "Записей в архиве",
+  "kyc.archive.latest": "Последняя",
+  "kyc.archive.contact": "Если нужно получить копию или удалить архивные данные — напиши в поддержку.",
+
   "kyc.status": "Статус KYC",
   "kyc.status.none": "нет",
   "kyc.status.pending": "в процессе",

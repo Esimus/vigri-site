@@ -636,6 +636,11 @@
   "copy_tooltip": "Click to copy to clipboard",
   "copied_tooltip": "Copied to clipboard",
 
+  "kyc.archive.title": "KYC archive",
+  "kyc.archive.records": "Archive records",
+  "kyc.archive.latest": "Latest",
+  "kyc.archive.contact": "If you need a copy or deletion, contact support.",
+
   "kyc.status": "KYC status",
   "kyc.status.none": "none",
   "kyc.status.pending": "pending",

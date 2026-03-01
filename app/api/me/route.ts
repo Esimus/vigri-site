@@ -474,6 +474,9 @@ export async function GET(req: Request) {
     let canBuyLowTier = false;
     let canBuyHighTier = false;
 
+    let kycArchiveCount = 0;
+    let kycArchiveLatestAt: string | null = null;
+
     if (sid) {
       const session = (await prisma.session
         .findUnique({
@@ -531,6 +534,15 @@ export async function GET(req: Request) {
             countryBlocked = zone === 'red';
             canBuyLowTier = profileCompleted && !countryBlocked;
             canBuyHighTier = canBuyLowTier && kycStatus === 'approved';
+
+            const agg = await prisma.kycDataArchive.aggregate({
+              where: { userId: user.id },
+              _count: { _all: true },
+              _max: { createdAt: true },
+            });
+
+            kycArchiveCount = agg._count._all;
+            kycArchiveLatestAt = agg._max.createdAt ? agg._max.createdAt.toISOString() : null;
           }
         }
       }
@@ -547,6 +559,8 @@ export async function GET(req: Request) {
       countryBlocked,
       canBuyLowTier,
       canBuyHighTier,
+      kycArchiveCount,
+      kycArchiveLatestAt,
       profile,
     });
   } catch (err) {
