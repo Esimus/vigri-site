@@ -1397,7 +1397,12 @@ export function ProfileForm() {
         <div className="card p-4 text-sm space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="font-medium">{t('kyc.archive.title')}</div>
+              <div className="font-medium flex items-center gap-2">
+                <span aria-hidden="true" className="text-base leading-none">
+                  📁
+                </span>
+                <span>{t('kyc.archive.title')}</span>
+              </div>
 
               <div className="mt-1 text-xs opacity-70">
                 {t('kyc.archive.records')}: {kycArchiveCount}
