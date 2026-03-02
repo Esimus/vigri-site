@@ -636,10 +636,10 @@
   "copy_tooltip": "Нажмите, чтобы скопировать",
   "copied_tooltip": "Скопировано в буфер",
 
-  "kyc.archive.title": "Архив KYC",
+  "kyc.archive.title": "Архив прошлых проверок KYC",
   "kyc.archive.records": "Записей в архиве",
   "kyc.archive.latest": "Последняя",
-  "kyc.archive.contact": "Если нужно получить копию или удалить архивные данные — напиши в поддержку.",
+  "kyc.archive.contact": "Текущие данные KYC — в блоке ниже. Если нужно удалить или получить копию архивных данных — напиши в поддержку.",
 
   "kyc.status": "Статус KYC",
   "kyc.status.none": "нет",

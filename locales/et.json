@@ -636,10 +636,10 @@
   "copy_tooltip": "Klõpsa kopeerimiseks lõikelauale",
   "copied_tooltip": "Kopeeritud lõikelauale",
 
-  "kyc.archive.title": "KYC arhiiv",
-  "kyc.archive.records": "Arhiivikandeid",
+  "kyc.archive.title": "KYC arhiiv (varasemad kontrollid)",
+  "kyc.archive.records": "Kirjeid arhiivis",
   "kyc.archive.latest": "Viimane",
-  "kyc.archive.contact": "Kui vajad koopiat või kustutamistaotlust, võta ühendust toega.",
+  "kyc.archive.contact": "Sinu aktiivsed KYC andmed on allpool plokis. Kui vajad arhiiviandmete koopiat või kustutamist, kirjuta toele.",
 
   "kyc.status": "KYC staatus",
   "kyc.status.none": "puudub",

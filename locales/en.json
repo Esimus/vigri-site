@@ -636,10 +636,10 @@
   "copy_tooltip": "Click to copy to clipboard",
   "copied_tooltip": "Copied to clipboard",
 
-  "kyc.archive.title": "KYC archive",
-  "kyc.archive.records": "Archive records",
+  "kyc.archive.title": "KYC archive (previous checks)",
+  "kyc.archive.records": "Records in archive",
   "kyc.archive.latest": "Latest",
-  "kyc.archive.contact": "If you need a copy or deletion, contact support.",
+  "kyc.archive.contact": "Your current KYC data is in the block below. If you need a copy or deletion of archived data, please contact support.",
 
   "kyc.status": "KYC status",
   "kyc.status.none": "none",
