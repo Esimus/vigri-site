@@ -99,3 +99,29 @@ export async function sendResetEmail(to: string, link: string) {
 
   await sendMail({ to, subject, html, text });
 }
+
+type AdminAlertInput = {
+  subject: string;
+  text: string;
+};
+
+function getAdminAlertTo(): string {
+  const raw = (process.env.ADMIN_ALERT_TO ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (raw.length > 0) {
+    return raw.join(", ");
+  }
+
+  return "info@adet.ee";
+}
+
+export async function sendAdminAlert(input: AdminAlertInput) {
+  await sendMail({
+    to: getAdminAlertTo(),
+    subject: input.subject,
+    text: input.text,
+  });
+}

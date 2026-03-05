@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCookie } from '@/lib/cookies';
+import { sendAdminAlert } from '@/lib/mail';
 import { SESSION_COOKIE } from '@/lib/session';
 import { resolveAmlZone } from '@/constants/amlAnnexA';
 import type { UserProfile, KycStatus, CountryZone as DbCountryZone } from '@prisma/client';
@@ -229,6 +230,25 @@ export async function POST(req: Request) {
       kycCountryZone: zone,
       kycUpdatedAt: new Date(),
     },
+  });
+
+  const displayName = `${user.profile?.firstName ?? ''} ${user.profile?.lastName ?? ''}`.trim();
+
+  const subject = '[VIGRI] KYC submitted (pending)';
+  const text =
+    `User ID: ${user.id}\n` +
+    `Email: ${user.email}\n` +
+    `Name: ${displayName || '—'}\n` +
+    `Residence: ${user.profile?.countryResidence ?? '—'}\n` +
+    `Citizenship: ${user.profile?.countryCitizenship ?? '—'}\n` +
+    `Tax: ${user.profile?.countryTax ?? '—'}\n` +
+    `City: ${user.profile?.addressCity ?? '—'}\n` +
+    `Isikukood: ${user.profile?.isikukood ?? '—'}\n` +
+    `AML zone snapshot: ${zone}\n` +
+    `Submitted at: ${new Date().toISOString()}\n`;
+
+  await sendAdminAlert({ subject, text }).catch((e: unknown) => {
+    console.error('sendAdminAlert failed (kyc submit):', e);
   });
 
   return NextResponse.json({ ok: true, status: next });

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { sendAdminAlert } from "@/lib/mail";
 
 const Kind = z.enum(['club_pilot', 'ambassador', 'faq_question', 'other']);
 
@@ -164,6 +165,27 @@ export async function POST(req: NextRequest) {
       },
       select: { id: true },
     });
+
+      if (data.kind === "club_pilot" || data.kind === "ambassador") {
+        const subject = `[VIGRI] New ${data.kind} submission`;
+
+        const text =
+          `Kind: ${data.kind}\n` +
+          `ID: ${row.id}\n` +
+          `Created: ${new Date().toISOString()}\n` +
+          `Name: ${data.contactName ?? "—"}\n` +
+          `Email: ${data.email ?? "—"}\n` +
+          `Phone: ${data.phone ?? "—"}\n` +
+          `Telegram: ${data.telegram ?? "—"}\n` +
+          `Location: ${(data.country ?? "—") + (data.city ? ", " + data.city : "")}\n` +
+          `Subject: ${data.subject ?? "—"}\n` +
+          `Message: ${data.message ? data.message.slice(0, 4000) : "—"}\n` +
+          `Source: ${data.sourcePath ?? "—"}\n`;
+
+        await sendAdminAlert({ subject, text }).catch((e: unknown) => {
+          console.error("sendAdminAlert failed:", e);
+        });
+      }
 
     return jsonOk({ id: row.id }, 201);
   } catch (e: unknown) {

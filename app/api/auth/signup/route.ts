@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/crypto';
-import { sendMail } from '@/lib/mail';
+import { sendAdminAlert, sendMail } from '@/lib/mail';
 import { randomBytes, createHash } from 'crypto';
 
 export const runtime = 'nodejs';
@@ -41,6 +41,16 @@ export async function POST(req: Request) {
   // create user
   const user = await prisma.user.create({
     data: { email },
+  });
+
+  await sendAdminAlert({
+      subject: '[VIGRI] New user signup',
+      text:
+        `User ID: ${user.id}\n` +
+        `Email: ${user.email}\n` +
+        `Created at: ${new Date().toISOString()}\n`,
+    }).catch((e: unknown) => {
+      console.error('sendAdminAlert failed (signup):', e);
   });
 
   // store password hash
