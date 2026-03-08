@@ -210,7 +210,8 @@
   "clubs_form_err_contact": "Please provide at least one contact method (email, Telegram, or phone).",
   "clubs_form_collapse": "Collapse form",
   "clubs_form_reset": "Reset form",
-
+  "clubs_form_why_placeholder": "2–4 sentences in your own words. Example: “We’ve been looking for a modern way to share club news and communicate with our community. VIGRI impressed us with its approach and upcoming features. We’d like to join the pilot and help improve the product.” \n\nThis text will be published on your club card.",
+  
   "clubs_club_nft_label": "NFTs",
   "clubs_club_vigri_label": "VIGRI",
 

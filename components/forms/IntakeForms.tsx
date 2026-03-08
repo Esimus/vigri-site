@@ -242,7 +242,12 @@ export function ClubPilotForm({
       </div>
 
       <Field label={t('clubs_form_why')}>
-        <textarea className={textAreaBase()} value={whyJoined} onChange={(e) => setWhyJoined(e.target.value)} />
+        <textarea
+          className={textAreaBase()}
+          value={whyJoined}
+          onChange={(e) => setWhyJoined(e.target.value)}
+          placeholder={t('clubs_form_why_placeholder')}
+        />
       </Field>
 
       <label className="flex items-start gap-2 text-sm text-zinc-700">

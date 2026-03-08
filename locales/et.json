@@ -210,7 +210,8 @@
   "clubs_form_err_contact": "Palun lisa vähemalt üks kontaktviis (email, Telegram või telefon).",
   "clubs_form_collapse": "Peida vorm",
   "clubs_form_reset": "Lähtesta vorm",
-
+  "clubs_form_why_placeholder": "2–4 lauset oma sõnadega. Näiteks: “Oleme ammu otsinud kaasaegset viisi klubi uudiste jagamiseks ja oma kogukonnaga suhtlemiseks. VIGRI köitis meid oma lähenemise ja laialdaste võimalustega. Soovime osaleda piloodis ja aidata toodet paremaks teha.” \n\nSee tekst avaldatakse klubi kaardil.",
+  
   "clubs_club_nft_label": "NFT",
   "clubs_club_vigri_label": "VIGRI",
 
