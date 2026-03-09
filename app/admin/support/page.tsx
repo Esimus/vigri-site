@@ -13,6 +13,7 @@ type ApiItem = {
   status: Status;
   createdAt: string; // ISO
   updatedAt: string; // ISO
+  clubName: string | null;
 
   contactName: string | null;
   email: string | null;
@@ -122,6 +123,29 @@ function safeJsonPreview(v: unknown, max = 160) {
   } catch {
     return "[unserializable]";
   }
+}
+
+function getPayloadRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function getPayloadString(value: unknown, key: string): string | null {
+  const obj = getPayloadRecord(value);
+  const raw = obj?.[key];
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
+function getNestedPayloadString(
+  value: unknown,
+  parentKey: string,
+  childKey: string,
+): string | null {
+  const obj = getPayloadRecord(value);
+  const parent = getPayloadRecord(obj?.[parentKey]);
+  const raw = parent?.[childKey];
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
 type KindFilter = "all" | "club_pilot" | "ambassador";
@@ -396,6 +420,7 @@ export default function AdminSupportPage() {
               <th className="px-3 py-2 text-left font-semibold">Created</th>
               <th className="px-3 py-2 text-left font-semibold">Kind</th>
               <th className="px-3 py-2 text-left font-semibold">Status</th>
+              <th className="px-3 py-2 text-left font-semibold">Club</th>
               <th className="px-3 py-2 text-left font-semibold">Contact</th>
               <th className="px-3 py-2 text-left font-semibold">Location</th>
               <th className="px-3 py-2 text-left font-semibold">Subject</th>
@@ -407,7 +432,7 @@ export default function AdminSupportPage() {
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td className="px-3 py-4 text-center text-slate-500" colSpan={8}>
+                <td className="px-3 py-4 text-center text-slate-500" colSpan={9}>
                   No submissions found.
                 </td>
               </tr>
@@ -427,6 +452,10 @@ export default function AdminSupportPage() {
 
                       <td className="px-3 py-2 whitespace-nowrap">
                         <span className={statusBadge(it.status)}>{it.status}</span>
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {it.clubName ?? "—"}
                       </td>
 
                       <td className="px-3 py-2">
@@ -504,7 +533,7 @@ export default function AdminSupportPage() {
 
                     {isExpanded && (
                       <tr className="border-t border-slate-200 dark:border-slate-800">
-                        <td className="px-3 py-3" colSpan={8}>
+                        <td className="px-3 py-3" colSpan={9}>
                           <div className="grid gap-3 md:grid-cols-2">
                             <div className="text-xs">
                               <div className="font-semibold mb-1">Details</div>
@@ -520,6 +549,33 @@ export default function AdminSupportPage() {
                                   {safeJsonPreview(it.payload, 2000)}
                                 </pre>
                               </div>
+
+                              {it.kind === "club_pilot" && (
+                                <div className="mt-3">
+                                  <div className="font-semibold mb-1">Club details</div>
+                                  <div className="space-y-1 text-slate-600 dark:text-slate-400">
+                                    <div>
+                                      Club: {getPayloadString(it.payload, "clubName") ?? "—"}
+                                    </div>
+                                    <div>
+                                      Category: {getPayloadString(it.payload, "category") ?? "—"}
+                                    </div>
+                                    <div>
+                                      Role: {getPayloadString(it.payload, "contactRole") ?? "—"}
+                                    </div>
+                                    <div>
+                                      Website: {getPayloadString(it.payload, "website") ?? "—"}
+                                    </div>
+                                    <div>
+                                      Social:{" "}
+                                      {getNestedPayloadString(it.payload, "links", "social") ?? "—"}
+                                    </div>
+                                    <div>
+                                      Why joined: {getPayloadString(it.payload, "whyJoined") ?? "—"}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             <div className="text-xs">

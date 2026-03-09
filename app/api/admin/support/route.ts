@@ -53,6 +53,18 @@ function parseQ(req: NextRequest): string {
   return (url.searchParams.get("q") || "").trim();
 }
 
+function getPayloadRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function getPayloadString(value: unknown, key: string): string | null {
+  const obj = getPayloadRecord(value);
+  const raw = obj?.[key];
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) {
@@ -144,6 +156,7 @@ export async function GET(req: NextRequest) {
     totals,
     items: rows.map((r) => ({
       ...r,
+      clubName: getPayloadString(r.payload, "clubName"),
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
     })),
@@ -200,4 +213,4 @@ export async function PATCH(req: NextRequest) {
   });
 
   return NextResponse.json({ ok: true });
-}
+} 

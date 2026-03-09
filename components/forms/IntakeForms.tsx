@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 
 type IntakeKind = 'club_pilot' | 'ambassador' | 'faq_question' | 'other';
+type ClubCategory = 'sport' | 'dance' | 'music' | 'art';
 
 type IntakeResponse =
   | { ok: true; id: string }
@@ -96,6 +97,7 @@ export function ClubPilotForm({
   const [result, setResult] = useState<IntakeResponse | null>(null);
 
   const [clubName, setClubName] = useState('');
+  const [clubCategory, setClubCategory] = useState<ClubCategory | ''>('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
 
@@ -115,6 +117,7 @@ export function ClubPilotForm({
     const hasContact = Boolean(email.trim() || telegram.trim() || phone.trim());
     return (
       clubName.trim().length > 1 &&
+      !!clubCategory &&
       country.trim().length > 1 &&
       city.trim().length > 1 &&
       contactName.trim().length > 1 &&
@@ -123,7 +126,7 @@ export function ClubPilotForm({
       consent &&
       !isSubmitting
     );
-  }, [clubName, country, city, contactName, email, telegram, phone, whyJoined, consent, isSubmitting]);
+  }, [clubName, clubCategory, country, city, contactName, email, telegram, phone, whyJoined, consent, isSubmitting]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -156,6 +159,7 @@ export function ClubPilotForm({
 
         payload: {
           clubName: clubName.trim(),
+          category: clubCategory,
           contactRole: contactRole.trim() || undefined,
           website: website.trim() || undefined,
           links: {
@@ -171,6 +175,7 @@ export function ClubPilotForm({
       if (r.ok) {
         // reset only the "content" fields; keep country/city to reduce friction
         setClubName('');
+        setClubCategory('');
         setWebsite('');
         setSocialLink('');
         setWhyJoined('');
@@ -202,6 +207,20 @@ export function ClubPilotForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label={t('clubs_form_club_name')}>
           <input className={inputBase()} value={clubName} onChange={(e) => setClubName(e.target.value)} />
+        </Field>
+
+        <Field label={t('clubs_form_category')}>
+          <select
+            className={inputBase()}
+            value={clubCategory}
+            onChange={(e) => setClubCategory(e.target.value as ClubCategory | '')}
+          >
+            <option value="">{t('clubs_form_category_placeholder')}</option>
+            <option value="sport">{t('clubs_filter_sport')}</option>
+            <option value="dance">{t('clubs_filter_dance')}</option>
+            <option value="music">{t('clubs_filter_music')}</option>
+            <option value="art">{t('clubs_filter_art')}</option>
+          </select>
         </Field>
 
         <Field label={t('clubs_form_contact_name')}>
