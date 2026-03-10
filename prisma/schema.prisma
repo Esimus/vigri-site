@@ -25,6 +25,7 @@ enum CountryZone {
 enum FormSubmissionKind {
   club_pilot
   ambassador
+  club_gift
   faq_question
   other
 }

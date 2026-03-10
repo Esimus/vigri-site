@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { sendAdminAlert } from "@/lib/mail";
 
-const Kind = z.enum(['club_pilot', 'ambassador', 'faq_question', 'other']);
+const Kind = z.enum(['club_pilot', 'ambassador', 'club_gift', 'faq_question', 'other']);
 
 const IntakeSchema = z.object({
   kind: Kind,

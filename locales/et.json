@@ -223,8 +223,8 @@
   "clubs_next_1": "Sa jätad kontaktid ja põhiteabe klubi kohta.",
   "clubs_next_2": "Võtame ühendust ja kinnitame detailid (käsitsi).",
   "clubs_next_3": "Kui kõik sobib, avaldame klubi kaardi sellel lehel.",
-  "clubs_gift_title": "Kingita klubile VIGRI NFT",
-  "clubs_gift_body": "Võid osta VIGRI NFT ja kinkida selle selle nimekirja klubile VIGRI toe kaudu (käsitsi). Seejärel saame klubi kaardil näidata kingitud NFT-de arvu ja vastavat VIGRI jaotust.",
+  "clubs_gift_title": "Määra klubile VIGRI NFT või VIGRI tokeneid",
+  "clubs_gift_body": "Saad osta VIGRI NFT ja määrata selle valitud klubile või siduda klubiga mistahes koguse VIGRI tokeneid taotlusvormi kaudu. Praegu aitab NFT ost toetada VIGRI platvormi arengut ning klubi kaardil saame näidata klubile määratud NFT-sid ja tokeneid kogukonna toetuse märgina. Tulevikus, kui VIGRI token hakkab DEX-is kauplema, võivad sellised tokenid muutuda klubi jaoks ka reaalseks rahaliseks ressursiks.",
   "clubs_gift_cta": "Võta toega ühendust",
 
   "clubs_badge": "Piloot",

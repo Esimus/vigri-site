@@ -4,7 +4,7 @@
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type Kind = "club_pilot" | "ambassador" | "faq_question" | "other";
+type Kind = "club_pilot" | "ambassador" | "club_gift" | "faq_question" | "other";
 type Status = "new" | "in_review" | "done" | "spam" | "archived";
 
 type ApiItem = {
@@ -98,6 +98,8 @@ function kindLabel(kind: Kind) {
       return "Club pilot";
     case "ambassador":
       return "Ambassador";
+    case "club_gift":
+      return "Club gift";
     case "faq_question":
       return "FAQ";
     case "other":
@@ -148,7 +150,7 @@ function getNestedPayloadString(
   return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
-type KindFilter = "all" | "club_pilot" | "ambassador";
+type KindFilter = "all" | "club_pilot" | "ambassador" | "club_gift";
 type StatusFilter = "all" | Status;
 
 export default function AdminSupportPage() {
@@ -197,7 +199,7 @@ export default function AdminSupportPage() {
       params.set("limit", "200");
 
       const kinds: Kind[] =
-        opts.kind === "all" ? ["club_pilot", "ambassador"] : [opts.kind];
+        opts.kind === "all" ? ["club_pilot", "ambassador", "club_gift"] : [opts.kind];
 
       params.set("kinds", kinds.join(","));
 
@@ -223,7 +225,7 @@ export default function AdminSupportPage() {
     const urlStatus = (searchParams.get("status") || "").trim() as StatusFilter;
 
     setQ(urlQ);
-    setKind(urlKind === "club_pilot" || urlKind === "ambassador" ? urlKind : "all");
+    setKind(urlKind === "club_pilot" || urlKind === "ambassador" || urlKind === "club_gift" ? urlKind : "all");
     setStatus(
       urlStatus === "new" ||
         urlStatus === "in_review" ||
@@ -243,7 +245,7 @@ export default function AdminSupportPage() {
         await fetchData(
           {
             q: urlQ,
-            kind: urlKind === "club_pilot" || urlKind === "ambassador" ? urlKind : "all",
+            kind: urlKind === "club_pilot" || urlKind === "ambassador" || urlKind === "club_gift" ? urlKind : "all",
             status:
               urlStatus === "new" ||
               urlStatus === "in_review" ||
@@ -314,7 +316,7 @@ export default function AdminSupportPage() {
           className={pillClass(kind === "all")}
           onClick={() => applyParams({ kind: "all" })}
         >
-          Clubs + Ambassadors
+          Clubs + Ambassadors + Gifts
         </button>
         <button
           type="button"
@@ -329,6 +331,13 @@ export default function AdminSupportPage() {
           onClick={() => applyParams({ kind: "ambassador" })}
         >
           Ambassadors
+        </button>
+        <button
+          type="button"
+          className={pillClass(kind === "club_gift")}
+          onClick={() => applyParams({ kind: "club_gift" })}
+        >
+          Gifts
         </button>
       </div>
 

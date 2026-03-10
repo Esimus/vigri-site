@@ -23,10 +23,15 @@ function parseKinds(req: NextRequest): FormSubmissionKind[] {
   const url = new URL(req.url);
   const raw = (url.searchParams.get("kinds") || "").trim();
 
-  const allowed: FormSubmissionKind[] = ["club_pilot", "ambassador", "faq_question", "other"];
+    const allowed: FormSubmissionKind[] = [
+    "club_pilot",
+    "ambassador",
+    "club_gift",
+    "faq_question",
+    "other",
+  ];
 
-  // default: what you need now
-  if (!raw) return ["club_pilot", "ambassador"];
+  if (!raw) return ["club_pilot", "ambassador", "club_gift"];
 
   const parts = raw
     .split(",")

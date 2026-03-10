@@ -223,8 +223,8 @@
   "clubs_next_1": "You leave contacts and basic club info.",
   "clubs_next_2": "We reach out to confirm details (manually).",
   "clubs_next_3": "If everything is OK, we publish your club card on this page.",
-  "clubs_gift_title": "Gift a VIGRI NFT to a club",
-  "clubs_gift_body": "You can buy a VIGRI NFT and gift it to a club from this list via VIGRI support (manual). We can then display the number of gifted NFTs and the associated VIGRI allocation on the club card.",
+  "clubs_gift_title": "Assign VIGRI NFTs or VIGRI tokens to a club",
+  "clubs_gift_body": "You can buy a VIGRI NFT and assign it to a selected club, or allocate any amount of VIGRI tokens to a club through the request form. At this stage, NFT purchases help support the development of the VIGRI platform, while on the club card we can show assigned NFTs and tokens as a sign of community support. In the future, when the VIGRI token starts trading on a DEX, such tokens may also become a real financial resource for the club.",
   "clubs_gift_cta": "Contact support",
 
   "clubs_badge": "Pilot",

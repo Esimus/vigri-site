@@ -52,6 +52,7 @@ export default function ClubsPage() {
 
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [isAmbApplyOpen, setIsAmbApplyOpen] = useState(false);
+  const [isGiftOpen, setIsGiftOpen] = useState(false);
 
   const [applyFormKey, setApplyFormKey] = useState(0);
   const [ambFormKey, setAmbFormKey] = useState(0);
@@ -223,9 +224,13 @@ export default function ClubsPage() {
                 <h2 className="text-sm font-semibold text-zinc-800">{t('clubs_gift_title')}</h2>
                 <p className="mt-2 text-sm text-zinc-600">{t('clubs_gift_body')}</p>
                 <div className="mt-4">
-                  <a href="/channels" className="btn btn-outline">
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setIsGiftOpen(true)}
+                  >
                     {t('clubs_gift_cta')}
-                  </a>
+                  </button>
                 </div>
               </article>
 
@@ -370,7 +375,43 @@ export default function ClubsPage() {
             </section>
           )}
         </div>
-      </main>
+            </main>
+
+      {isGiftOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          onClick={() => setIsGiftOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gift-modal-title"
+            className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="gift-modal-title" className="text-lg font-semibold text-zinc-900">
+                  {t('clubs_gift_title')}
+                </h2>
+                <p className="mt-2 text-sm text-zinc-600">{t('clubs_gift_body')}</p>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setIsGiftOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600">
+              Gift request form will be placed here.
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
