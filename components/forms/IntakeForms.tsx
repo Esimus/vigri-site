@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 
-type IntakeKind = 'club_pilot' | 'ambassador' | 'faq_question' | 'other';
+type IntakeKind = 'club_pilot' | 'ambassador' | 'club_gift' | 'faq_question' | 'other';
 type ClubCategory = 'sport' | 'dance' | 'music' | 'art';
 
 type IntakeResponse =
@@ -292,6 +292,273 @@ export function ClubPilotForm({
 
       <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
         {isSubmitting ? t('clubs_form_sending') : t('clubs_form_submit')}
+      </button>
+    </form>
+  );
+}
+
+type ClubGiftAction = 'nft' | 'tokens';
+
+export function ClubGiftForm({
+  t,
+  preferredLang,
+  clubs,
+}: {
+  t: (key: string) => string;
+  preferredLang?: string;
+  clubs: Array<{ name: string }>;
+}) {
+  const tf = (key: string, fallback: string) => {
+    const v = t(key);
+    return v === key ? fallback : v;
+  };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [result, setResult] = useState<IntakeResponse | null>(null);
+
+  const [giftType, setGiftType] = useState<ClubGiftAction>('nft');
+  const [clubName, setClubName] = useState('');
+  const [tokenAmount, setTokenAmount] = useState('');
+
+  const [contactName, setContactName] = useState('');
+  const [email, setEmail] = useState('');
+  const [telegram, setTelegram] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const [note, setNote] = useState('');
+  const [consent, setConsent] = useState(false);
+
+  const hasClubs = clubs.length > 0;
+
+  const tokenAmountNumber = Number(tokenAmount.trim());
+  const hasValidTokenAmount =
+    giftType === 'nft' ||
+    (Number.isFinite(tokenAmountNumber) && tokenAmountNumber > 0);
+
+  const canSubmit = useMemo(() => {
+    const hasContact = Boolean(email.trim() || telegram.trim() || phone.trim());
+    return (
+      hasClubs &&
+      clubName.trim().length > 1 &&
+      contactName.trim().length > 1 &&
+      hasContact &&
+      hasValidTokenAmount &&
+      consent &&
+      !isSubmitting
+    );
+  }, [
+    hasClubs,
+    clubName,
+    contactName,
+    email,
+    telegram,
+    phone,
+    hasValidTokenAmount,
+    consent,
+    isSubmitting,
+  ]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setResult(null);
+
+    if (!hasClubs) {
+      setResult({ ok: false, error: tf('clubs_gift_form_err_no_clubs', 'No clubs are available yet.') });
+      return;
+    }
+
+    const hasContact = Boolean(email.trim() || telegram.trim() || phone.trim());
+    if (!hasContact) {
+      setResult({ ok: false, error: t('clubs_form_err_contact') });
+      return;
+    }
+
+    if (!clubName.trim()) {
+      setResult({ ok: false, error: tf('clubs_gift_form_err_club', 'Please select a club.') });
+      return;
+    }
+
+    if (!hasValidTokenAmount) {
+      setResult({
+        ok: false,
+        error: tf('clubs_gift_form_err_amount', 'Please enter a valid amount of VIGRI tokens.'),
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        ...buildCommonMeta('club_gift', preferredLang),
+
+        consent: true,
+
+        contactName: contactName.trim(),
+        email: email.trim() || undefined,
+        telegram: telegram.trim() || undefined,
+        phone: phone.trim() || undefined,
+
+        country: undefined,
+        city: undefined,
+        region: undefined,
+
+        subject: giftType === 'nft' ? 'Club gift request (NFT)' : 'Club gift request (tokens)',
+        message:
+          note.trim() ||
+          (giftType === 'nft'
+            ? `NFT gift request for ${clubName.trim()}`
+            : `Token gift request for ${clubName.trim()}: ${tokenAmount.trim()} VIGRI`),
+
+        payload: {
+          clubName: clubName.trim(),
+          giftType,
+          tokenAmount: giftType === 'tokens' ? tokenAmount.trim() : undefined,
+          note: note.trim() || undefined,
+        },
+      };
+
+      const r = await submitIntake(payload);
+      setResult(r);
+
+      if (r.ok) {
+        setGiftType('nft');
+        setClubName('');
+        setTokenAmount('');
+        setContactName('');
+        setEmail('');
+        setTelegram('');
+        setPhone('');
+        setNote('');
+        setConsent(false);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <input
+        type="text"
+        name="hp"
+        value=""
+        onChange={() => {}}
+        className="hidden"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
+
+      {!hasClubs ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {tf('clubs_gift_form_no_clubs', 'No clubs are available for gifting yet.')}
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field label={tf('clubs_gift_form_action', 'Gift type')}>
+          <select
+            className={inputBase()}
+            value={giftType}
+            onChange={(e) => setGiftType(e.target.value as ClubGiftAction)}
+          >
+            <option value="nft">{tf('clubs_gift_form_action_nft', 'Assign a VIGRI NFT')}</option>
+            <option value="tokens">{tf('clubs_gift_form_action_tokens', 'Assign VIGRI tokens')}</option>
+          </select>
+        </Field>
+
+        <Field label={tf('clubs_gift_form_club', 'Club')}>
+          <select
+            className={inputBase()}
+            value={clubName}
+            onChange={(e) => setClubName(e.target.value)}
+            disabled={!hasClubs}
+          >
+            <option value="">{tf('clubs_gift_form_club_placeholder', 'Select a club')}</option>
+            {clubs.map((club) => (
+              <option key={club.name} value={club.name}>
+                {club.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        {giftType === 'tokens' ? (
+          <Field label={tf('clubs_gift_form_amount', 'VIGRI amount')}>
+            <input
+              className={inputBase()}
+              value={tokenAmount}
+              onChange={(e) => setTokenAmount(e.target.value)}
+              placeholder={tf('clubs_gift_form_amount_placeholder', 'e.g. 5000')}
+              inputMode="decimal"
+            />
+          </Field>
+        ) : null}
+
+        <Field label={tf('clubs_gift_form_contact_name', 'Your name')}>
+          <input
+            className={inputBase()}
+            value={contactName}
+            onChange={(e) => setContactName(e.target.value)}
+          />
+        </Field>
+
+        <Field label={t('clubs_form_email')} hint={t('clubs_form_one_of')}>
+          <input className={inputBase()} value={email} onChange={(e) => setEmail(e.target.value)} />
+        </Field>
+
+        <Field label={t('clubs_form_telegram')} hint={t('clubs_form_one_of')}>
+          <input className={inputBase()} value={telegram} onChange={(e) => setTelegram(e.target.value)} />
+        </Field>
+
+        <Field label={t('clubs_form_phone')} hint={t('clubs_form_one_of')}>
+          <input className={inputBase()} value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </Field>
+      </div>
+
+      <Field
+        label={tf('clubs_gift_form_note', 'Comment')}
+        hint={tf(
+          'clubs_gift_form_note_hint',
+          'Optional: add a short note about the gift or how you would like it to be assigned.',
+        )}
+      >
+        <textarea
+          className={textAreaBase()}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </Field>
+
+      <label className="flex items-start gap-2 text-sm text-zinc-700">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+        />
+        <span>{t('clubs_form_consent')}</span>
+      </label>
+
+      {result ? (
+        <div
+          className={[
+            'rounded-xl border px-3 py-2 text-sm',
+            result.ok
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+              : 'border-red-200 bg-red-50 text-red-900',
+          ].join(' ')}
+        >
+          {result.ok
+            ? tf('clubs_gift_form_success', 'Your gift request has been sent.')
+            : result.error}
+        </div>
+      ) : null}
+
+      <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
+        {isSubmitting
+          ? t('clubs_form_sending')
+          : tf('clubs_gift_form_submit', 'Send gift request')}
       </button>
     </form>
   );

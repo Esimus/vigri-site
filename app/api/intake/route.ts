@@ -166,8 +166,24 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
-      if (data.kind === "club_pilot" || data.kind === "ambassador") {
+      if (
+        data.kind === "club_pilot" ||
+        data.kind === "ambassador" ||
+        data.kind === "club_gift"
+      ) {
         const subject = `[VIGRI] New ${data.kind} submission`;
+
+        const payloadObj =
+          data.payload && typeof data.payload === "object" && !Array.isArray(data.payload)
+            ? (data.payload as Record<string, unknown>)
+            : null;
+
+        const clubName =
+          typeof payloadObj?.clubName === "string" ? payloadObj.clubName.trim() : "";
+        const giftType =
+          typeof payloadObj?.giftType === "string" ? payloadObj.giftType.trim() : "";
+        const tokenAmount =
+          typeof payloadObj?.tokenAmount === "string" ? payloadObj.tokenAmount.trim() : "";
 
         const text =
           `Kind: ${data.kind}\n` +
@@ -178,6 +194,9 @@ export async function POST(req: NextRequest) {
           `Phone: ${data.phone ?? "—"}\n` +
           `Telegram: ${data.telegram ?? "—"}\n` +
           `Location: ${(data.country ?? "—") + (data.city ? ", " + data.city : "")}\n` +
+          `Club: ${clubName || "—"}\n` +
+          `Gift type: ${giftType || "—"}\n` +
+          `Token amount: ${tokenAmount || "—"}\n` +
           `Subject: ${data.subject ?? "—"}\n` +
           `Message: ${data.message ? data.message.slice(0, 4000) : "—"}\n` +
           `Source: ${data.sourcePath ?? "—"}\n`;

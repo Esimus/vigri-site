@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/hooks/useI18n';
 import PublicHeader from '@/components/layout/PublicHeader';
-import { AmbassadorForm, ClubPilotForm } from '@/components/forms/IntakeForms';
+import { AmbassadorForm, ClubGiftForm, ClubPilotForm } from '@/components/forms/IntakeForms';
 
 type ClubCategory = 'sport' | 'dance' | 'music' | 'art';
 
@@ -379,18 +379,18 @@ export default function ClubsPage() {
 
       {isGiftOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 px-4 py-6 sm:items-center"
           onClick={() => setIsGiftOpen(false)}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="gift-modal-title"
-            className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl"
+            className="w-full max-w-2xl rounded-2xl bg-white p-4 shadow-2xl sm:p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <h2 id="gift-modal-title" className="text-lg font-semibold text-zinc-900">
                   {t('clubs_gift_title')}
                 </h2>
@@ -399,15 +399,19 @@ export default function ClubsPage() {
 
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-outline self-start shrink-0"
                 onClick={() => setIsGiftOpen(false)}
               >
-                Close
+                {t('clubs_form_collapse')}
               </button>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600">
-              Gift request form will be placed here.
+            <div className="mt-5">
+              <ClubGiftForm
+                t={t}
+                preferredLang={lang}
+                clubs={PILOT_CLUBS.map((club) => ({ name: club.name }))}
+              />
             </div>
           </div>
         </div>
