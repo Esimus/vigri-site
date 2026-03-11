@@ -1,6 +1,7 @@
 // app/admin/clubs/page.tsx
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 type ClubStatus = "draft" | "published" | "archived";
@@ -394,6 +395,7 @@ export default function AdminClubsPage() {
                   <th className="px-3 py-2 text-left font-semibold">Category</th>
                   <th className="px-3 py-2 text-left font-semibold">Location</th>
                   <th className="px-3 py-2 text-left font-semibold">Support</th>
+                  <th className="px-3 py-2 text-left font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -413,6 +415,14 @@ export default function AdminClubsPage() {
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       NFTs: {club.nftCount} · VIGRI: {club.vigriAllocation.toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <Link
+                        href={`/admin/clubs/${club.id}`}
+                        className="inline-flex rounded-md border border-slate-300 px-2 py-1 text-[11px] hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800"
+                      >
+                        Edit
+                      </Link>
                     </td>
                   </tr>
                 ))}
