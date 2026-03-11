@@ -1,7 +1,8 @@
 // app/clubs/page.tsx
 'use client';
 
-import { useRef, useState } from 'react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/hooks/useI18n';
 import PublicHeader from '@/components/layout/PublicHeader';
@@ -10,15 +11,23 @@ import { AmbassadorForm, ClubGiftForm, ClubPilotForm } from '@/components/forms/
 type ClubCategory = 'sport' | 'dance' | 'music' | 'art';
 
 type Club = {
+  id: string;
   name: string;
-  category: ClubCategory;
-  location?: string;
-  website?: string;
-  instagram?: string;
-  email?: string;
-  quote: string;
-
-  // Optional (can be filled later when you start gifting NFTs to clubs via support)
+  slug: string | null;
+  category: ClubCategory | null;
+  city?: string | null;
+  country?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  email?: string | null;
+  quote: string | null;
+  logoUrl?: string | null;
+  logoAlt?: string | null;
+  pilotPhotoUrl?: string | null;
+  pilotPhotoAlt?: string | null;
+  pilotPhotoCaption?: string | null;
+  pilotBadge?: string | null;
+  verifiedInPerson?: boolean;
   nftCount?: number;
   vigriAllocation?: number;
 };
@@ -30,7 +39,10 @@ type Ambassador = {
   quote: string;
 };
 
-const PILOT_CLUBS: Club[] = [];
+type PilotClubsApiResponse =
+  | { ok: true; items: Club[] }
+  | { ok: false; error?: string };
+
 const AMBASSADORS: Ambassador[] = [];
 
 type Tab = 'pilot' | 'clubs' | 'ambassadors';
@@ -49,6 +61,8 @@ export default function ClubsPage() {
 
   type CategoryFilter = 'all' | ClubCategory;
   const [clubFilter, setClubFilter] = useState<CategoryFilter>('all');
+  const [pilotClubs, setPilotClubs] = useState<Club[]>([]);
+  const [pilotClubsLoading, setPilotClubsLoading] = useState(false);
 
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [isAmbApplyOpen, setIsAmbApplyOpen] = useState(false);
@@ -97,6 +111,44 @@ export default function ClubsPage() {
       ambFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
   }
+
+    useEffect(() => {
+    let cancelled = false;
+
+    async function loadPilotClubs() {
+      setPilotClubsLoading(true);
+
+      try {
+        const res = await fetch('/api/pilot-clubs?limit=100', {
+          cache: 'no-store',
+        });
+
+        const json = (await res.json()) as PilotClubsApiResponse;
+
+        if (!cancelled) {
+          if (json.ok) {
+            setPilotClubs(json.items);
+          } else {
+            setPilotClubs([]);
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setPilotClubs([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setPilotClubsLoading(false);
+        }
+      }
+    }
+
+    loadPilotClubs();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
@@ -277,10 +329,18 @@ export default function ClubsPage() {
               {(() => {
                 const visible =
                   clubFilter === 'all'
-                    ? PILOT_CLUBS
-                    : PILOT_CLUBS.filter((c) => c.category === clubFilter);
+                    ? pilotClubs
+                    : pilotClubs.filter((c) => c.category === clubFilter);
 
-                if (PILOT_CLUBS.length === 0) {
+                if (pilotClubsLoading) {
+                  return (
+                    <article className="card p-4 sm:p-5">
+                      <p className="text-sm text-zinc-600">Loading…</p>
+                    </article>
+                  );
+                }
+
+                if (pilotClubs.length === 0) {
                   return (
                     <article className="card p-4 sm:p-5">
                       <p className="text-sm text-zinc-600">{t('clubs_pilot_empty')}</p>
@@ -299,7 +359,7 @@ export default function ClubsPage() {
                 return (
                   <div className="grid grid-cols-1 gap-4">
                     {visible.map((club) => (
-                      <ClubCard key={club.name} club={club} safeT={safeT} />
+                      <ClubCard key={club.id} club={club} safeT={safeT} />
                     ))}
                   </div>
                 );
@@ -410,7 +470,7 @@ export default function ClubsPage() {
               <ClubGiftForm
                 t={t}
                 preferredLang={lang}
-                clubs={PILOT_CLUBS.map((club) => ({ name: club.name }))}
+                clubs={pilotClubs.map((club) => ({ name: club.name }))}
               />
             </div>
           </div>
@@ -430,66 +490,125 @@ function ClubCard({
   const showSupportStats =
     typeof club.nftCount === 'number' || typeof club.vigriAllocation === 'number';
 
-  return (
-    <article className="card p-4 sm:p-5">
-      <div className="flex gap-3">
-        <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-semibold text-zinc-700">
-          {club.name.trim().slice(0, 1).toUpperCase()}
-        </div>
+  const locationLabel = [club.city, club.country].filter(Boolean).join(', ');
 
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="text-sm font-semibold text-zinc-800">{club.name}</h3>
-            {club.location ? <span className="text-xs text-zinc-500">• {club.location}</span> : null}
+  return (
+    <article className="card overflow-hidden p-4 sm:p-5">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start">
+          <div className="flex items-start gap-3 md:w-[220px] md:flex-shrink-0">
+            {club.logoUrl ? (
+              <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+                <Image
+                  src={club.logoUrl}
+                  alt={club.logoAlt || `${club.name} logo`}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 text-lg font-semibold text-zinc-700">
+                {club.name.trim().slice(0, 1).toUpperCase()}
+              </div>
+            )}
+
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-zinc-900">{club.name}</h3>
+
+                {club.pilotBadge ? (
+                  <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
+                    {club.pilotBadge}
+                  </span>
+                ) : null}
+
+                {club.verifiedInPerson ? (
+                  <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800">
+                    {safeT('clubs_club_verified_label', 'Verified in person')}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-xs text-zinc-500">
+                {club.category ? (
+                  <span className="capitalize">{club.category}</span>
+                ) : null}
+                {locationLabel ? <span>• {locationLabel}</span> : null}
+              </div>
+            </div>
           </div>
 
-          <p className="mt-2 text-sm text-zinc-600">“{club.quote}”</p>
+          <div className="min-w-0 flex-1">
+            {club.quote ? (
+              <p className="text-sm leading-6 text-zinc-700">“{club.quote}”</p>
+            ) : null}
 
-          {showSupportStats ? (
-            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              {typeof club.nftCount === 'number' ? (
-                <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-zinc-700">
-                  {safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}
-                </span>
+            <div className="mt-4 flex flex-wrap gap-3 text-xs">
+              {club.website ? (
+                <a
+                  href={club.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  Website
+                </a>
               ) : null}
-
-              {typeof club.vigriAllocation === 'number' ? (
-                <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-1 text-zinc-700">
-                  {safeT('clubs_club_vigri_label', 'VIGRI')}:{' '}
-                  {club.vigriAllocation.toLocaleString()}
-                </span>
+              {club.instagram ? (
+                <a
+                  href={club.instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  Instagram
+                </a>
+              ) : null}
+              {club.email ? (
+                <a href={`mailto:${club.email}`} className="underline underline-offset-2">
+                  {club.email}
+                </a>
               ) : null}
             </div>
-          ) : null}
 
-          <div className="mt-3 flex flex-wrap gap-3 text-xs">
-            {club.website ? (
-              <a
-                href={club.website}
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-2"
-              >
-                Website
-              </a>
-            ) : null}
-            {club.instagram ? (
-              <a
-                href={club.instagram}
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-2"
-              >
-                Instagram
-              </a>
-            ) : null}
-            {club.email ? (
-              <a href={`mailto:${club.email}`} className="underline underline-offset-2">
-                {club.email}
-              </a>
+            {showSupportStats ? (
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                {typeof club.nftCount === 'number' ? (
+                  <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
+                    {safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}
+                  </span>
+                ) : null}
+
+                {typeof club.vigriAllocation === 'number' ? (
+                  <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
+                    {safeT('clubs_club_vigri_label', 'VIGRI')}:{' '}
+                    {club.vigriAllocation.toLocaleString()}
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>
+
+        {club.pilotPhotoUrl ? (
+          <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50">
+            <div className="relative aspect-[16/9] w-full">
+              <Image
+                src={club.pilotPhotoUrl}
+                alt={club.pilotPhotoAlt || `${club.name} joined VIGRI`}
+                fill
+                sizes="(max-width: 768px) 100vw, 896px"
+                className="object-cover"
+              />
+            </div>
+            {club.pilotPhotoCaption ? (
+              <div className="border-t border-zinc-200 px-3 py-2 text-xs text-zinc-600">
+                {club.pilotPhotoCaption}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </article>
   );

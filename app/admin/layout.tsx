@@ -24,23 +24,26 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
         <AdminThemeToggle initialTheme={initialTheme} />
 
-        <nav className="space-y-2">
-          <Link href="/admin" className="block hover:underline">
-            Overview
-          </Link>
-          <Link href="/admin/reports" className="block hover:underline">
-            Reports
-          </Link>
-          <Link href="/admin/users" className="block hover:underline">
-            Users
-          </Link>
-          <Link href="/admin/kyc" className="block hover:underline">
-            KYC
-          </Link>
-          <Link href="/admin/support" className="block hover:underline">
-            Support
-          </Link>
-        </nav>
+          <nav className="space-y-2">
+            <Link href="/admin" className="block hover:underline">
+              Overview
+            </Link>
+            <Link href="/admin/reports" className="block hover:underline">
+              Reports
+            </Link>
+            <Link href="/admin/users" className="block hover:underline">
+              Users
+            </Link>
+            <Link href="/admin/clubs" className="block hover:underline">
+              Clubs
+            </Link>
+            <Link href="/admin/kyc" className="block hover:underline">
+              KYC
+            </Link>
+            <Link href="/admin/support" className="block hover:underline">
+              Support
+            </Link>
+          </nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>
     </div>

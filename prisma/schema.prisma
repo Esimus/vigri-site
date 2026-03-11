@@ -38,6 +38,19 @@ enum FormSubmissionStatus {
   archived
 }
 
+enum PilotClubCategory {
+  sport
+  dance
+  music
+  art
+}
+
+enum PilotClubStatus {
+  draft
+  published
+  archived
+}
+
 enum UserRole {
   user
   admin
@@ -302,6 +315,46 @@ model FormSubmission {
   @@index([email])
   @@index([country, city])
   @@index([userId])
+}
+
+model PilotClub {
+  id        String          @id @default(cuid())
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  status    PilotClubStatus @default(draft)
+  sortOrder Int             @default(0)
+
+  name     String
+  slug     String?          @unique
+  category PilotClubCategory?
+
+  city    String?
+  country String?
+
+  website   String?
+  instagram String?
+  email     String?
+
+  quote String?
+
+  logoUrl String?
+  logoAlt String?
+
+  pilotPhotoUrl     String?
+  pilotPhotoAlt     String?
+  pilotPhotoCaption String?
+
+  pilotBadge       String?
+  verifiedInPerson Boolean @default(false)
+
+  nftCount        Int @default(0)
+  vigriAllocation Int @default(0)
+
+  internalNote String?
+
+  @@index([status, sortOrder])
+  @@index([category])
 }
 
 model AdminAuditLog {
