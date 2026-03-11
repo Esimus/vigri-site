@@ -1,5 +1,5 @@
 // lib/echo.ts
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma } from '@/generated/prisma';
 
 // 1 echo = 1_000_000 micro-echo
 const SCALE = 1_000_000;

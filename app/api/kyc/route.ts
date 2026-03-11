@@ -5,7 +5,7 @@ import { getCookie } from '@/lib/cookies';
 import { sendAdminAlert } from '@/lib/mail';
 import { SESSION_COOKIE } from '@/lib/session';
 import { resolveAmlZone } from '@/constants/amlAnnexA';
-import type { UserProfile, KycStatus, CountryZone as DbCountryZone } from '@prisma/client';
+import type { UserProfile, KycStatus, CountryZone as DbCountryZone } from '@/generated/prisma';
 
 export const runtime = 'nodejs';
 

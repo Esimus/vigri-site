@@ -11,7 +11,7 @@ import type {
   UserProfile,
   KycStatus,
   CountryZone as DbCountryZone,
-} from '@prisma/client';
+} from '@/generated/prisma';
 
 export const runtime = 'nodejs';
 

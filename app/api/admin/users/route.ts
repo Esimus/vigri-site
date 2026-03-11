@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import type { KycStatus, UserRole, UserProfile } from "@prisma/client";
+import type { KycStatus, UserRole, UserProfile } from "@/generated/prisma";
 
 export const runtime = "nodejs";
 

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import type { PilotClubCategory, PilotClubStatus, UserRole } from "@prisma/client";
+import type { PilotClubCategory, PilotClubStatus, UserRole } from "@/generated/prisma";
 
 export const runtime = "nodejs";
 

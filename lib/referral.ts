@@ -1,5 +1,5 @@
 // lib/referral.ts
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@/generated/prisma';
 import { creditEcho } from '@/lib/echo';
 
 type Result =
