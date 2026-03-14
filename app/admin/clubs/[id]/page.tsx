@@ -67,6 +67,7 @@ export default function AdminClubEditPage() {
 
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [uploadingKind, setUploadingKind] = React.useState<"logo" | "photo" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
   const [createdAt, setCreatedAt] = React.useState<string | null>(null);
@@ -155,7 +156,45 @@ export default function AdminClubEditPage() {
     void load();
   }, [load]);
 
-  const canSubmit = id.length > 0 && name.trim().length > 1 && !saving && !loading;
+  async function uploadImage(kind: "logo" | "photo", file: File) {
+    setError(null);
+    setSuccess(null);
+    setUploadingKind(kind);
+
+    try {
+      const form = new FormData();
+      form.set("file", file);
+
+      const res = await fetch(`/api/admin/pilot-clubs/upload?kind=${kind}`, {
+        method: "POST",
+        body: form,
+      });
+
+      const json = (await res.json()) as
+        | { ok: true; url: string }
+        | { ok: false; error?: string };
+
+      if (!json.ok) {
+        setError(json.error || "Upload failed");
+        return;
+      }
+
+      if (kind === "logo") {
+        setLogoUrl(json.url);
+      } else {
+        setPilotPhotoUrl(json.url);
+      }
+
+      setSuccess(kind === "logo" ? "Logo uploaded" : "Photo uploaded");
+    } catch {
+      setError("Upload failed");
+    } finally {
+      setUploadingKind(null);
+    }
+  }
+
+  const canSubmit =
+    id.length > 0 && name.trim().length > 1 && !saving && !loading && !uploadingKind;
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -332,9 +371,23 @@ export default function AdminClubEditPage() {
             <input className="input" value={pilotBadge} onChange={(e) => setPilotBadge(e.target.value)} />
           </label>
 
-          <label className="space-y-1 text-sm">
+          <label className="space-y-2 text-sm">
             <div className="text-xs font-medium text-zinc-700">Logo URL</div>
             <input className="input" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void uploadImage("logo", file);
+                e.currentTarget.value = "";
+              }}
+              disabled={saving || loading || uploadingKind !== null}
+              className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200"
+            />
+            {uploadingKind === "logo" ? (
+              <div className="text-xs text-zinc-500">Uploading logo…</div>
+            ) : null}
           </label>
 
           <label className="space-y-1 text-sm">
@@ -342,13 +395,27 @@ export default function AdminClubEditPage() {
             <input className="input" value={logoAlt} onChange={(e) => setLogoAlt(e.target.value)} />
           </label>
 
-          <label className="space-y-1 text-sm">
+          <label className="space-y-2 text-sm">
             <div className="text-xs font-medium text-zinc-700">Pilot photo URL</div>
             <input
               className="input"
               value={pilotPhotoUrl}
               onChange={(e) => setPilotPhotoUrl(e.target.value)}
             />
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void uploadImage("photo", file);
+                e.currentTarget.value = "";
+              }}
+              disabled={saving || loading || uploadingKind !== null}
+              className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200"
+            />
+            {uploadingKind === "photo" ? (
+              <div className="text-xs text-zinc-500">Uploading photo…</div>
+            ) : null}
           </label>
 
           <label className="space-y-1 text-sm">

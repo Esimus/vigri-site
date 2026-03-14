@@ -79,6 +79,7 @@ function statusBadge(status: ClubStatus) {
 export default function AdminClubsPage() {
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [uploadingKind, setUploadingKind] = React.useState<"logo" | "photo" | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
   const [items, setItems] = React.useState<ApiClub[]>([]);
@@ -130,7 +131,41 @@ export default function AdminClubsPage() {
     load();
   }, [load]);
 
-  const canSubmit = name.trim().length > 1 && !saving;
+  const canSubmit = name.trim().length > 1 && !saving && !uploadingKind;
+
+  const uploadImage = async (kind: "logo" | "photo", file: File) => {
+  setUploadingKind(kind);
+  setError(null);
+  setSuccess(null);
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", kind);
+
+    const res = await fetch("/api/admin/pilot-clubs/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const json = (await res.json()) as { ok: true; url: string } | ApiError;
+
+    if (!json.ok) {
+      setError(json.error || "Failed to upload image");
+      return;
+    }
+
+    if (kind === "logo") {
+      setLogoUrl(json.url);
+    } else {
+      setPilotPhotoUrl(json.url);
+    }
+  } catch {
+    setError("Failed to upload image");
+  } finally {
+    setUploadingKind(null);
+  }
+};
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -283,6 +318,21 @@ export default function AdminClubsPage() {
           <label className="space-y-1 text-sm">
             <div className="text-xs font-medium text-zinc-700">Logo URL</div>
             <input className="input" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                await uploadImage("logo", file);
+                e.currentTarget.value = "";
+              }}
+              disabled={uploadingKind !== null}
+            />
+            {uploadingKind === "logo" ? (
+              <div className="text-xs text-slate-500">Uploading logo…</div>
+            ) : null}
           </label>
 
           <label className="space-y-1 text-sm">
@@ -297,6 +347,21 @@ export default function AdminClubsPage() {
               value={pilotPhotoUrl}
               onChange={(e) => setPilotPhotoUrl(e.target.value)}
             />
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                await uploadImage("photo", file);
+                e.currentTarget.value = "";
+              }}
+              disabled={uploadingKind !== null}
+            />
+            {uploadingKind === "photo" ? (
+              <div className="text-xs text-slate-500">Uploading photo…</div>
+            ) : null}
           </label>
 
           <label className="space-y-1 text-sm">
