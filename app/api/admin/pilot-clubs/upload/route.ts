@@ -5,11 +5,10 @@ import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import type { UserRole } from "@prisma/client";
 
 export const runtime = "nodejs";
 
-const ALLOWED_ROLES: UserRole[] = ["admin", "support", "kyc_reviewer"];
+const ALLOWED_ROLES = new Set<string>(["admin", "support", "kyc_reviewer"]);
 
 const ALLOWED_MIME: Record<string, string> = {
   "image/jpeg": ".jpg",
@@ -30,7 +29,7 @@ async function requireAdminRole() {
     select: { role: true },
   });
 
-  if (!dbUser || !ALLOWED_ROLES.includes(dbUser.role)) {
+  if (!dbUser || !ALLOWED_ROLES.has(String(dbUser.role))) {
     return { ok: false as const, status: 403 };
   }
 
@@ -46,18 +45,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const url = new URL(req.url);
-  const kind = normalizeKind(url.searchParams.get("kind"));
-
-  if (!kind) {
-    return NextResponse.json({ ok: false, error: "Invalid kind" }, { status: 400 });
-  }
-
   let form: FormData;
   try {
     form = await req.formData();
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid form data" }, { status: 400 });
+  }
+
+  const kind = normalizeKind(String(form.get("kind") ?? ""));
+  if (!kind) {
+    return NextResponse.json({ ok: false, error: "Invalid kind" }, { status: 400 });
   }
 
   const fileEntry = form.get("file");
