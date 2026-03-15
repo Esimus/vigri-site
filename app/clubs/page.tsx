@@ -493,22 +493,22 @@ function ClubCard({
   const locationLabel = [club.city, club.country].filter(Boolean).join(', ');
 
   return (
-    <article className="card overflow-hidden p-4 sm:p-5">
+    <article className="card max-w-3xl overflow-hidden p-4 sm:p-5">
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          <div className="flex items-start gap-3 md:w-[220px] md:flex-shrink-0">
+          <div className="flex items-start gap-4 md:w-[260px] md:flex-shrink-0">
             {club.logoUrl ? (
-              <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+              <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
                 <Image
                   src={club.logoUrl}
                   alt={club.logoAlt || `${club.name} logo`}
                   fill
-                  sizes="64px"
-                  className="object-cover"
+                  sizes="80px"
+                  className="object-contain p-1"
                 />
               </div>
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 text-lg font-semibold text-zinc-700">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 text-xl font-semibold text-zinc-700">
                 {club.name.trim().slice(0, 1).toUpperCase()}
               </div>
             )}
@@ -536,6 +536,23 @@ function ClubCard({
                 ) : null}
                 {locationLabel ? <span>• {locationLabel}</span> : null}
               </div>
+
+              {showSupportStats ? (
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  {typeof club.nftCount === 'number' ? (
+                    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
+                      {safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}
+                    </span>
+                  ) : null}
+
+                  {typeof club.vigriAllocation === 'number' ? (
+                    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
+                      {safeT('clubs_club_vigri_label', 'VIGRI')}:{' '}
+                      {club.vigriAllocation.toLocaleString()}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -571,34 +588,17 @@ function ClubCard({
                 </a>
               ) : null}
             </div>
-
-            {showSupportStats ? (
-              <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                {typeof club.nftCount === 'number' ? (
-                  <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
-                    {safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}
-                  </span>
-                ) : null}
-
-                {typeof club.vigriAllocation === 'number' ? (
-                  <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
-                    {safeT('clubs_club_vigri_label', 'VIGRI')}:{' '}
-                    {club.vigriAllocation.toLocaleString()}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         </div>
 
         {club.pilotPhotoUrl ? (
-          <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50">
-            <div className="relative aspect-[16/9] w-full">
+          <div className="max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50">
+            <div className="relative aspect-[4/3] w-full sm:aspect-[16/10]">
               <Image
                 src={club.pilotPhotoUrl}
                 alt={club.pilotPhotoAlt || `${club.name} joined VIGRI`}
                 fill
-                sizes="(max-width: 768px) 100vw, 896px"
+                sizes="(max-width: 768px) 100vw, 672px"
                 className="object-cover"
               />
             </div>
