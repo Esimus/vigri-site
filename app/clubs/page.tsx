@@ -514,6 +514,7 @@ function ClubCard({
                     alt={club.logoAlt || `${club.name} logo`}
                     width={80}
                     height={80}
+                    unoptimized
                     className="h-full w-full object-contain"
                   />
                 ) : (
@@ -629,6 +630,7 @@ function ClubCard({
                     src={club.pilotPhotoUrl!}
                     alt={club.pilotPhotoAlt || `${club.name} photo`}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, 440px"
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                   />
@@ -668,6 +670,7 @@ function ClubCard({
               alt={club.pilotPhotoAlt || `${club.name} photo`}
               width={1600}
               height={1200}
+              unoptimized
               className="max-h-[90vh] w-auto rounded-2xl object-contain"
             />
           </div>
