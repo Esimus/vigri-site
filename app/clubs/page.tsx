@@ -501,12 +501,12 @@ function ClubCard({
         <div
           className={
             hasPhoto
-              ? 'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)]'
+              ? 'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_320px]'
               : 'grid grid-cols-1'
           }
         >
-          <div className="p-5 sm:p-6">
-            <div className="flex items-start gap-4">
+          <div className="p-3 sm:p-4">
+            <div className="flex items-start gap-4 sm:gap-5">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl">
                 {club.logoUrl ? (
                   <Image
@@ -524,65 +524,72 @@ function ClubCard({
                 )}
               </div>
 
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xl font-semibold tracking-tight text-zinc-900">
-                  {club.name}
-                </h3>
+              <div className="flex min-w-0 flex-1 items-start justify-between gap-4 pt-0.5">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold leading-tight tracking-tight text-zinc-900">
+                    {club.name}
+                  </h3>
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {club.pilotBadge ? (
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 ring-1 ring-emerald-200">
-                      {club.pilotBadge}
-                    </span>
-                  ) : null}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {club.pilotBadge ? (
+                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800 ring-1 ring-emerald-200">
+                        {club.pilotBadge}
+                      </span>
+                    ) : null}
 
-                  {club.verifiedInPerson ? (
-                    <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-800 ring-1 ring-sky-200">
-                      {safeT('clubs_club_verified_label', 'Verified in person')}
-                    </span>
-                  ) : null}
-                </div>
+                    {club.verifiedInPerson ? (
+                      <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800 ring-1 ring-sky-200">
+                        {safeT('clubs_club_verified_label', 'Verified in person')}
+                      </span>
+                    ) : null}
+                  </div>
 
-                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500">
-                  {club.category ? <span className="capitalize">{club.category}</span> : null}
-                  {locationLabel ? <span>• {locationLabel}</span> : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-zinc-500">
+                    {club.category ? <span className="capitalize">{club.category}</span> : null}
+                    {locationLabel ? <span>• {locationLabel}</span> : null}
+                  </div>
                 </div>
 
                 {showSupportStats ? (
-                  <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zinc-600">
-                    {typeof club.nftCount === 'number' ? (
-                      <span>
-                        {safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}
-                      </span>
-                    ) : null}
+                  <div className="shrink-0 pt-1 text-right text-[13px] text-zinc-600">
+                    <div className="flex flex-col items-end gap-1">
+                      {typeof club.nftCount === 'number' ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span aria-hidden="true">🖼️</span>
+                          <span>{safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}</span>
+                        </span>
+                      ) : null}
 
-                    {typeof club.vigriAllocation === 'number' ? (
-                      <span>
-                        {safeT('clubs_club_vigri_label', 'VIGRI')}:{' '}
-                        {club.vigriAllocation.toLocaleString()}
-                      </span>
-                    ) : null}
+                      {typeof club.vigriAllocation === 'number' ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span aria-hidden="true">🦭</span>
+                          <span>
+                            {safeT('clubs_club_vigri_label', 'VIGRI')}: {club.vigriAllocation.toLocaleString()}
+                          </span>
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 ) : null}
               </div>
             </div>
 
             {club.quote ? (
-              <div className="mt-6 flex gap-3 sm:gap-4">
+              <div className="mt-4 flex gap-2.5">
                 <div
                   aria-hidden="true"
-                  className="shrink-0 text-5xl leading-none text-zinc-300 sm:text-6xl"
+                  className="shrink-0 text-3xl leading-none text-zinc-300 sm:text-4xl"
                 >
                   “
                 </div>
-                <p className="max-w-2xl pt-2 text-base leading-8 text-zinc-700">
+                <p className="max-w-2xl pt-0.5 text-[13px] leading-6 text-zinc-700 sm:text-sm sm:leading-6">
                   {club.quote}
                 </p>
               </div>
             ) : null}
 
             {club.website || club.instagram || club.email ? (
-              <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
                 {club.website ? (
                   <a
                     href={club.website}
@@ -618,20 +625,20 @@ function ClubCard({
           </div>
 
           {hasPhoto ? (
-            <div className="px-5 pb-5 sm:px-6 sm:pb-6 md:px-0 md:pb-0">
+            <div className="flex flex-col md:min-h-[210px]">
               <button
                 type="button"
-                className="group relative block h-full w-full overflow-hidden rounded-2xl bg-zinc-100 text-left md:rounded-none"
+                className="group relative block w-full flex-1 overflow-hidden bg-zinc-50 text-left md:rounded-none"
                 onClick={() => setIsPhotoOpen(true)}
                 aria-label={`Open ${club.name} photo`}
               >
-                <div className="relative aspect-[4/3] w-full md:h-full md:min-h-[340px] md:aspect-auto">
+                <div className="relative aspect-[4/3] w-full md:h-full md:min-h-[210px] md:aspect-auto">
                   <Image
                     src={club.pilotPhotoUrl!}
                     alt={club.pilotPhotoAlt || `${club.name} photo`}
                     fill
                     unoptimized
-                    sizes="(max-width: 768px) 100vw, 440px"
+                    sizes="(max-width: 768px) 100vw, 280px"
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                   />
                 </div>
