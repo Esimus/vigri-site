@@ -49,6 +49,17 @@ type ApiError = {
   error?: string;
 };
 
+type UploadedFileItem = {
+  name: string;
+  url: string;
+};
+
+type ApiUploadListOk = {
+  ok: true;
+  kind: "logo" | "photo";
+  items: UploadedFileItem[];
+};
+
 function formatDateTimeFromIso(iso: string | null) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -94,6 +105,12 @@ export default function AdminClubEditPage() {
   const [vigriAllocation, setVigriAllocation] = React.useState("0");
   const [sortOrder, setSortOrder] = React.useState("0");
   const [internalNote, setInternalNote] = React.useState("");
+
+  const [logoFiles, setLogoFiles] = React.useState<UploadedFileItem[]>([]);
+  const [photoFiles, setPhotoFiles] = React.useState<UploadedFileItem[]>([]);
+  const [loadingFilesKind, setLoadingFilesKind] = React.useState<"logo" | "photo" | null>(null);
+  const [isLogoPickerOpen, setIsLogoPickerOpen] = React.useState(false);
+  const [isPhotoPickerOpen, setIsPhotoPickerOpen] = React.useState(false);
 
   const load = React.useCallback(async () => {
     if (!id) {
@@ -164,8 +181,9 @@ export default function AdminClubEditPage() {
     try {
       const form = new FormData();
       form.set("file", file);
+      form.set("kind", kind);
 
-      const res = await fetch(`/api/admin/pilot-clubs/upload?kind=${kind}`, {
+      const res = await fetch("/api/admin/pilot-clubs/upload", {
         method: "POST",
         body: form,
       });
@@ -190,6 +208,34 @@ export default function AdminClubEditPage() {
       setError("Upload failed");
     } finally {
       setUploadingKind(null);
+    }
+  }
+
+  async function loadUploadedFiles(kind: "logo" | "photo") {
+    setLoadingFilesKind(kind);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/admin/pilot-clubs/upload?kind=${kind}`, {
+        cache: "no-store",
+      });
+
+      const json = (await res.json()) as ApiUploadListOk | ApiError;
+
+      if (!json.ok) {
+        setError(json.error || "Failed to load uploaded files");
+        return;
+      }
+
+      if (kind === "logo") {
+        setLogoFiles(json.items);
+      } else {
+        setPhotoFiles(json.items);
+      }
+    } catch {
+      setError("Failed to load uploaded files");
+    } finally {
+      setLoadingFilesKind(null);
     }
   }
 
@@ -374,20 +420,68 @@ export default function AdminClubEditPage() {
           <label className="space-y-2 text-sm">
             <div className="text-xs font-medium text-zinc-700">Logo URL</div>
             <input className="input" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(e) => {
-                const input = e.currentTarget;
-                const file = input.files?.[0];
-                if (file) void uploadImage("logo", file);
-                input.value = "";
-              }}
-              disabled={saving || loading || uploadingKind !== null}
-              className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200"
-            />
+
+            <div className="flex flex-wrap gap-2">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(e) => {
+                  const input = e.currentTarget;
+                  const file = input.files?.[0];
+                  if (file) void uploadImage("logo", file);
+                  input.value = "";
+                }}
+                disabled={saving || loading || uploadingKind !== null}
+                className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200 sm:w-auto"
+              />
+
+              <button
+                type="button"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100"
+                onClick={async () => {
+                  if (!isLogoPickerOpen) {
+                    await loadUploadedFiles("logo");
+                    setIsLogoPickerOpen(true);
+                    return;
+                  }
+                  setIsLogoPickerOpen(false);
+                }}
+                disabled={saving || loading || loadingFilesKind !== null}
+              >
+                {isLogoPickerOpen ? "Hide existing" : "Choose existing"}
+              </button>
+            </div>
+
             {uploadingKind === "logo" ? (
               <div className="text-xs text-zinc-500">Uploading logo…</div>
+            ) : null}
+
+            {loadingFilesKind === "logo" ? (
+              <div className="text-xs text-zinc-500">Loading existing logos…</div>
+            ) : null}
+
+            {isLogoPickerOpen ? (
+              logoFiles.length > 0 ? (
+                <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2">
+                  {logoFiles.map((item) => (
+                    <button
+                      key={item.url}
+                      type="button"
+                      className="block w-full rounded-md px-2 py-1.5 text-left text-xs text-zinc-700 hover:bg-zinc-100"
+                      onClick={() => {
+                        setLogoUrl(item.url);
+                        setIsLogoPickerOpen(false);
+                      }}
+                      title={item.name}
+                    >
+                      <div className="truncate">{item.name}</div>
+                      <div className="truncate text-[11px] text-zinc-500">{item.url}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-zinc-500">No uploaded logos yet.</div>
+              )
             ) : null}
           </label>
 
@@ -403,20 +497,68 @@ export default function AdminClubEditPage() {
               value={pilotPhotoUrl}
               onChange={(e) => setPilotPhotoUrl(e.target.value)}
             />
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(e) => {
-                const input = e.currentTarget;
-                const file = input.files?.[0];
-                if (file) void uploadImage("photo", file);
-                input.value = "";
-              }}
-              disabled={saving || loading || uploadingKind !== null}
-              className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200"
-            />
+
+            <div className="flex flex-wrap gap-2">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(e) => {
+                  const input = e.currentTarget;
+                  const file = input.files?.[0];
+                  if (file) void uploadImage("photo", file);
+                  input.value = "";
+                }}
+                disabled={saving || loading || uploadingKind !== null}
+                className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200 sm:w-auto"
+              />
+
+              <button
+                type="button"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100"
+                onClick={async () => {
+                  if (!isPhotoPickerOpen) {
+                    await loadUploadedFiles("photo");
+                    setIsPhotoPickerOpen(true);
+                    return;
+                  }
+                  setIsPhotoPickerOpen(false);
+                }}
+                disabled={saving || loading || loadingFilesKind !== null}
+              >
+                {isPhotoPickerOpen ? "Hide existing" : "Choose existing"}
+              </button>
+            </div>
+
             {uploadingKind === "photo" ? (
               <div className="text-xs text-zinc-500">Uploading photo…</div>
+            ) : null}
+
+            {loadingFilesKind === "photo" ? (
+              <div className="text-xs text-zinc-500">Loading existing photos…</div>
+            ) : null}
+
+            {isPhotoPickerOpen ? (
+              photoFiles.length > 0 ? (
+                <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2">
+                  {photoFiles.map((item) => (
+                    <button
+                      key={item.url}
+                      type="button"
+                      className="block w-full rounded-md px-2 py-1.5 text-left text-xs text-zinc-700 hover:bg-zinc-100"
+                      onClick={() => {
+                        setPilotPhotoUrl(item.url);
+                        setIsPhotoPickerOpen(false);
+                      }}
+                      title={item.name}
+                    >
+                      <div className="truncate">{item.name}</div>
+                      <div className="truncate text-[11px] text-zinc-500">{item.url}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-zinc-500">No uploaded photos yet.</div>
+              )
             ) : null}
           </label>
 

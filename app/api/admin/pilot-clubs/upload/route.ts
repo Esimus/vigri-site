@@ -1,6 +1,6 @@
 // app/api/admin/pilot-clubs/upload/route.ts
 import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, readdir, writeFile } from "fs/promises";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -34,6 +34,46 @@ async function requireAdminRole() {
   }
 
   return { ok: true as const };
+}
+
+export async function GET(req: NextRequest) {
+  const guard = await requireAdminRole();
+  if (!guard.ok) {
+    return NextResponse.json(
+      { ok: false, error: guard.status === 401 ? "Unauthorized" : "Forbidden" },
+      { status: guard.status },
+    );
+  }
+
+  const url = new URL(req.url);
+  const kind = normalizeKind(url.searchParams.get("kind"));
+
+  if (!kind) {
+    return NextResponse.json({ ok: false, error: "Invalid kind" }, { status: 400 });
+  }
+
+  const subdir = kind === "logo" ? "logos" : "photos";
+  const publicDir = path.join(process.cwd(), "public");
+  const targetDir = path.join(publicDir, "uploads", "pilot-clubs", subdir);
+
+  await mkdir(targetDir, { recursive: true });
+
+  const dirEntries = await readdir(targetDir, { withFileTypes: true });
+
+  const items = dirEntries
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
+    .sort((a, b) => b.localeCompare(a))
+    .map((name) => ({
+      name,
+      url: `/uploads/pilot-clubs/${subdir}/${name}`,
+    }));
+
+  return NextResponse.json({
+    ok: true,
+    kind,
+    items,
+  });
 }
 
 export async function POST(req: NextRequest) {
