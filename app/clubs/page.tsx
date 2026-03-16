@@ -487,130 +487,193 @@ function ClubCard({
   club: Club;
   safeT: (key: string, fallback: string) => string;
 }) {
+  const [isPhotoOpen, setIsPhotoOpen] = useState(false);
+
   const showSupportStats =
     typeof club.nftCount === 'number' || typeof club.vigriAllocation === 'number';
 
   const locationLabel = [club.city, club.country].filter(Boolean).join(', ');
+  const hasPhoto = Boolean(club.pilotPhotoUrl);
 
   return (
-    <article className="card max-w-3xl overflow-hidden p-4 sm:p-5">
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          <div className="flex items-start gap-4 md:w-[260px] md:flex-shrink-0">
-            {club.logoUrl ? (
-              <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
-                <Image
-                  src={club.logoUrl}
-                  alt={club.logoAlt || `${club.name} logo`}
-                  fill
-                  sizes="80px"
-                  className="object-contain p-1"
-                />
-              </div>
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 text-xl font-semibold text-zinc-700">
-                {club.name.trim().slice(0, 1).toUpperCase()}
-              </div>
-            )}
-
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold text-zinc-900">{club.name}</h3>
-
-                {club.pilotBadge ? (
-                  <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
-                    {club.pilotBadge}
-                  </span>
-                ) : null}
-
-                {club.verifiedInPerson ? (
-                  <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800">
-                    {safeT('clubs_club_verified_label', 'Verified in person')}
-                  </span>
-                ) : null}
+    <>
+      <article className="card overflow-hidden p-0">
+        <div
+          className={
+            hasPhoto
+              ? 'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)]'
+              : 'grid grid-cols-1'
+          }
+        >
+          <div className="p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+                {club.logoUrl ? (
+                  <Image
+                    src={club.logoUrl}
+                    alt={club.logoAlt || `${club.name} logo`}
+                    width={80}
+                    height={80}
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-zinc-100 text-xl font-semibold text-zinc-700">
+                    {club.name.trim().slice(0, 1).toUpperCase()}
+                  </div>
+                )}
               </div>
 
-              <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-xs text-zinc-500">
-                {club.category ? (
-                  <span className="capitalize">{club.category}</span>
-                ) : null}
-                {locationLabel ? <span>• {locationLabel}</span> : null}
-              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xl font-semibold tracking-tight text-zinc-900">
+                  {club.name}
+                </h3>
 
-              {showSupportStats ? (
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  {typeof club.nftCount === 'number' ? (
-                    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
-                      {safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {club.pilotBadge ? (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 ring-1 ring-emerald-200">
+                      {club.pilotBadge}
                     </span>
                   ) : null}
 
-                  {typeof club.vigriAllocation === 'number' ? (
-                    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-700">
-                      {safeT('clubs_club_vigri_label', 'VIGRI')}:{' '}
-                      {club.vigriAllocation.toLocaleString()}
+                  {club.verifiedInPerson ? (
+                    <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-800 ring-1 ring-sky-200">
+                      {safeT('clubs_club_verified_label', 'Verified in person')}
                     </span>
                   ) : null}
                 </div>
-              ) : null}
-            </div>
-          </div>
 
-          <div className="min-w-0 flex-1">
+                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500">
+                  {club.category ? <span className="capitalize">{club.category}</span> : null}
+                  {locationLabel ? <span>• {locationLabel}</span> : null}
+                </div>
+
+                {showSupportStats ? (
+                  <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zinc-600">
+                    {typeof club.nftCount === 'number' ? (
+                      <span>
+                        {safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}
+                      </span>
+                    ) : null}
+
+                    {typeof club.vigriAllocation === 'number' ? (
+                      <span>
+                        {safeT('clubs_club_vigri_label', 'VIGRI')}:{' '}
+                        {club.vigriAllocation.toLocaleString()}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
             {club.quote ? (
-              <p className="text-sm leading-6 text-zinc-700">“{club.quote}”</p>
+              <div className="mt-6 flex gap-3 sm:gap-4">
+                <div
+                  aria-hidden="true"
+                  className="shrink-0 text-5xl leading-none text-zinc-300 sm:text-6xl"
+                >
+                  “
+                </div>
+                <p className="max-w-2xl pt-2 text-base leading-8 text-zinc-700">
+                  {club.quote}
+                </p>
+              </div>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap gap-3 text-xs">
-              {club.website ? (
-                <a
-                  href={club.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  Website
-                </a>
-              ) : null}
-              {club.instagram ? (
-                <a
-                  href={club.instagram}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  Instagram
-                </a>
-              ) : null}
-              {club.email ? (
-                <a href={`mailto:${club.email}`} className="underline underline-offset-2">
-                  {club.email}
-                </a>
-              ) : null}
-            </div>
-          </div>
-        </div>
+            {club.website || club.instagram || club.email ? (
+              <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                {club.website ? (
+                  <a
+                    href={club.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2"
+                  >
+                    Website
+                  </a>
+                ) : null}
 
-        {club.pilotPhotoUrl ? (
-          <div className="max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50">
-            <div className="relative aspect-[4/3] w-full sm:aspect-[16/10]">
-              <Image
-                src={club.pilotPhotoUrl}
-                alt={club.pilotPhotoAlt || `${club.name} joined VIGRI`}
-                fill
-                sizes="(max-width: 768px) 100vw, 672px"
-                className="object-cover"
-              />
-            </div>
-            {club.pilotPhotoCaption ? (
-              <div className="border-t border-zinc-200 px-3 py-2 text-xs text-zinc-600">
-                {club.pilotPhotoCaption}
+                {club.instagram ? (
+                  <a
+                    href={club.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2"
+                  >
+                    Instagram
+                  </a>
+                ) : null}
+
+                {club.email ? (
+                  <a
+                    href={`mailto:${club.email}`}
+                    className="break-all underline underline-offset-2"
+                  >
+                    {club.email}
+                  </a>
+                ) : null}
               </div>
             ) : null}
           </div>
-        ) : null}
-      </div>
-    </article>
+
+          {hasPhoto ? (
+            <div className="px-5 pb-5 sm:px-6 sm:pb-6 md:px-0 md:pb-0">
+              <button
+                type="button"
+                className="group relative block h-full w-full overflow-hidden rounded-2xl bg-zinc-100 text-left md:rounded-none"
+                onClick={() => setIsPhotoOpen(true)}
+                aria-label={`Open ${club.name} photo`}
+              >
+                <div className="relative aspect-[4/3] w-full md:h-full md:min-h-[340px] md:aspect-auto">
+                  <Image
+                    src={club.pilotPhotoUrl!}
+                    alt={club.pilotPhotoAlt || `${club.name} photo`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 440px"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </div>
+
+                <div className="pointer-events-none absolute right-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+                  View
+                </div>
+
+                {club.pilotPhotoCaption ? (
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-4 py-3 text-xs text-white">
+                    {club.pilotPhotoCaption}
+                  </div>
+                ) : null}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </article>
+
+      {hasPhoto && isPhotoOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setIsPhotoOpen(false)}
+        >
+          <div className="relative max-h-[90vh] max-w-6xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1.5 text-sm text-white"
+              onClick={() => setIsPhotoOpen(false)}
+            >
+              Close
+            </button>
+
+            <Image
+              src={club.pilotPhotoUrl!}
+              alt={club.pilotPhotoAlt || `${club.name} photo`}
+              width={1600}
+              height={1200}
+              className="max-h-[90vh] w-auto rounded-2xl object-contain"
+            />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

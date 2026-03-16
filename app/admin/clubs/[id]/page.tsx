@@ -378,9 +378,10 @@ export default function AdminClubEditPage() {
               type="file"
               accept="image/png,image/jpeg,image/webp"
               onChange={(e) => {
-                const file = e.target.files?.[0];
+                const input = e.currentTarget;
+                const file = input.files?.[0];
                 if (file) void uploadImage("logo", file);
-                e.currentTarget.value = "";
+                input.value = "";
               }}
               disabled={saving || loading || uploadingKind !== null}
               className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200"
@@ -406,9 +407,10 @@ export default function AdminClubEditPage() {
               type="file"
               accept="image/png,image/jpeg,image/webp"
               onChange={(e) => {
-                const file = e.target.files?.[0];
+                const input = e.currentTarget;
+                const file = input.files?.[0];
                 if (file) void uploadImage("photo", file);
-                e.currentTarget.value = "";
+                input.value = "";
               }}
               disabled={saving || loading || uploadingKind !== null}
               className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-xs file:font-medium file:text-zinc-800 hover:file:bg-zinc-200"

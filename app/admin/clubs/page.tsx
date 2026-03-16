@@ -323,10 +323,11 @@ export default function AdminClubsPage() {
               accept="image/*"
               className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
               onChange={async (e) => {
-                const file = e.target.files?.[0];
+                const input = e.currentTarget;
+                const file = input.files?.[0];
                 if (!file) return;
                 await uploadImage("logo", file);
-                e.currentTarget.value = "";
+                input.value = "";
               }}
               disabled={uploadingKind !== null}
             />
@@ -352,10 +353,11 @@ export default function AdminClubsPage() {
               accept="image/*"
               className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
               onChange={async (e) => {
-                const file = e.target.files?.[0];
+                const input = e.currentTarget;
+                const file = input.files?.[0];
                 if (!file) return;
                 await uploadImage("photo", file);
-                e.currentTarget.value = "";
+                input.value = "";
               }}
               disabled={uploadingKind !== null}
             />
