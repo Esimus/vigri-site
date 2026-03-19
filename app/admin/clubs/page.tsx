@@ -84,6 +84,9 @@ export default function AdminClubsPage() {
   const [success, setSuccess] = React.useState<string | null>(null);
   const [items, setItems] = React.useState<ApiClub[]>([]);
 
+  const [isCreateOpen, setIsCreateOpen] = React.useState(true);
+  const createOpenInitializedRef = React.useRef(false);
+
   const [name, setName] = React.useState("");
   const [status, setStatus] = React.useState<ClubStatus>("draft");
   const [category, setCategory] = React.useState<ClubCategory | "">("");
@@ -118,6 +121,11 @@ export default function AdminClubsPage() {
         setError(json.error || "Failed to load clubs");
       } else {
         setItems(json.items);
+
+        if (!createOpenInitializedRef.current) {
+          setIsCreateOpen(json.items.length === 0);
+          createOpenInitializedRef.current = true;
+        }
       }
     } catch {
       setItems([]);
@@ -229,6 +237,7 @@ export default function AdminClubsPage() {
         setVigriAllocation("0");
         setSortOrder("0");
         setInternalNote("");
+        setIsCreateOpen(false);
         await load();
       }
     } catch {
@@ -247,192 +256,220 @@ export default function AdminClubsPage() {
         </p>
       </div>
 
-      <form onSubmit={onSubmit} className="card p-4 sm:p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-zinc-800">Add club</h2>
+      <section className="card p-2.5 sm:p-3 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-800">Add club</h2>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {items.length > 0
+                ? "Form is collapsed by default after the first created club."
+                : "Create the first pilot club card."}
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Name</div>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Status</div>
-            <select className="input" value={status} onChange={(e) => setStatus(e.target.value as ClubStatus)}>
-              <option value="draft">draft</option>
-              <option value="published">published</option>
-              <option value="archived">archived</option>
-            </select>
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Category</div>
-            <select
-              className="input"
-              value={category}
-              onChange={(e) => setCategory(e.target.value as ClubCategory | "")}
-            >
-              <option value="">—</option>
-              <option value="sport">sport</option>
-              <option value="dance">dance</option>
-              <option value="music">music</option>
-              <option value="art">art</option>
-            </select>
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Sort order</div>
-            <input className="input" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">City</div>
-            <input className="input" value={city} onChange={(e) => setCity(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Country</div>
-            <input className="input" value={country} onChange={(e) => setCountry(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Website</div>
-            <input className="input" value={website} onChange={(e) => setWebsite(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Instagram</div>
-            <input className="input" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Email</div>
-            <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Pilot badge</div>
-            <input className="input" value={pilotBadge} onChange={(e) => setPilotBadge(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Logo URL</div>
-            <input className="input" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
-            <input
-              type="file"
-              accept="image/*"
-              className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
-              onChange={async (e) => {
-                const input = e.currentTarget;
-                const file = input.files?.[0];
-                if (!file) return;
-                await uploadImage("logo", file);
-                input.value = "";
-              }}
-              disabled={uploadingKind !== null}
-            />
-            {uploadingKind === "logo" ? (
-              <div className="text-xs text-slate-500">Uploading logo…</div>
-            ) : null}
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Logo alt</div>
-            <input className="input" value={logoAlt} onChange={(e) => setLogoAlt(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Pilot photo URL</div>
-            <input
-              className="input"
-              value={pilotPhotoUrl}
-              onChange={(e) => setPilotPhotoUrl(e.target.value)}
-            />
-            <input
-              type="file"
-              accept="image/*"
-              className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
-              onChange={async (e) => {
-                const input = e.currentTarget;
-                const file = input.files?.[0];
-                if (!file) return;
-                await uploadImage("photo", file);
-                input.value = "";
-              }}
-              disabled={uploadingKind !== null}
-            />
-            {uploadingKind === "photo" ? (
-              <div className="text-xs text-slate-500">Uploading photo…</div>
-            ) : null}
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Pilot photo alt</div>
-            <input
-              className="input"
-              value={pilotPhotoAlt}
-              onChange={(e) => setPilotPhotoAlt(e.target.value)}
-            />
-          </label>
-
-          <label className="space-y-1 text-sm sm:col-span-2">
-            <div className="text-xs font-medium text-zinc-700">Pilot photo caption</div>
-            <input
-              className="input"
-              value={pilotPhotoCaption}
-              onChange={(e) => setPilotPhotoCaption(e.target.value)}
-            />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Assigned NFTs</div>
-            <input className="input" value={nftCount} onChange={(e) => setNftCount(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm">
-            <div className="text-xs font-medium text-zinc-700">Assigned VIGRI</div>
-            <input
-              className="input"
-              value={vigriAllocation}
-              onChange={(e) => setVigriAllocation(e.target.value)}
-            />
-          </label>
-
-          <label className="flex items-center gap-2 text-sm sm:col-span-2">
-            <input
-              type="checkbox"
-              checked={verifiedInPerson}
-              onChange={(e) => setVerifiedInPerson(e.target.checked)}
-            />
-            <span>Verified in person</span>
-          </label>
-
-          <label className="space-y-1 text-sm sm:col-span-2">
-            <div className="text-xs font-medium text-zinc-700">Quote</div>
-            <textarea className="input min-h-[110px]" value={quote} onChange={(e) => setQuote(e.target.value)} />
-          </label>
-
-          <label className="space-y-1 text-sm sm:col-span-2">
-            <div className="text-xs font-medium text-zinc-700">Internal note</div>
-            <textarea
-              className="input min-h-[110px]"
-              value={internalNote}
-              onChange={(e) => setInternalNote(e.target.value)}
-            />
-          </label>
+          <button
+            type="button"
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800"
+            onClick={() => setIsCreateOpen((v) => !v)}
+          >
+            {isCreateOpen ? "Hide form" : "Open form"}
+          </button>
         </div>
 
         {error && <div className="text-sm text-red-600 dark:text-red-400">Error: {error}</div>}
         {success && <div className="text-sm text-emerald-700 dark:text-emerald-300">{success}</div>}
 
-        <button
-          type="submit"
-          className="rounded-md bg-emerald-500 px-3 py-1 text-sm font-medium text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
-          disabled={!canSubmit}
-        >
-          {saving ? "Saving…" : "Create club"}
-        </button>
-      </form>
+        {isCreateOpen ? (
+          <form
+            onSubmit={onSubmit}
+            className="space-y-2 text-sm [&_.input]:!h-8 [&_.input]:!px-2.5 [&_.input]:!py-1 [&_.input]:!text-[13px] [&_textarea.input]:!min-h-[72px] [&_textarea.input]:!py-2"
+          >
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Name</div>
+                <input className="input h-9 text-sm" value={name} onChange={(e) => setName(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Status</div>
+                <select
+                  className="input h-9 text-sm"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as ClubStatus)}
+                >
+                  <option value="draft">draft</option>
+                  <option value="published">published</option>
+                  <option value="archived">archived</option>
+                </select>
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Category</div>
+                <select
+                  className="input h-9 text-sm"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as ClubCategory | "")}
+                >
+                  <option value="">—</option>
+                  <option value="sport">sport</option>
+                  <option value="dance">dance</option>
+                  <option value="music">music</option>
+                  <option value="art">art</option>
+                </select>
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Sort order</div>
+                <input className="input h-9 text-sm" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">City</div>
+                <input className="input h-9 text-sm" value={city} onChange={(e) => setCity(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Country</div>
+                <input className="input h-9 text-sm" value={country} onChange={(e) => setCountry(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Website</div>
+                <input className="input h-9 text-sm" value={website} onChange={(e) => setWebsite(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Instagram</div>
+                <input className="input h-9 text-sm" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Email</div>
+                <input className="input h-9 text-sm" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Pilot badge</div>
+                <input className="input h-9 text-sm" value={pilotBadge} onChange={(e) => setPilotBadge(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Logo URL</div>
+                <input className="input h-9 text-sm" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="block w-full text-[11px] text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1 file:text-[11px] file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
+                  onChange={async (e) => {
+                    const input = e.currentTarget;
+                    const file = input.files?.[0];
+                    if (!file) return;
+                    await uploadImage("logo", file);
+                    input.value = "";
+                  }}
+                  disabled={uploadingKind !== null}
+                />
+                {uploadingKind === "logo" ? (
+                  <div className="text-[11px] text-slate-500">Uploading logo…</div>
+                ) : null}
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Logo alt</div>
+                <input className="input h-9 text-sm" value={logoAlt} onChange={(e) => setLogoAlt(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Pilot photo URL</div>
+                <input
+                  className="input h-9 text-sm"
+                  value={pilotPhotoUrl}
+                  onChange={(e) => setPilotPhotoUrl(e.target.value)}
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="block w-full text-[11px] text-slate-500 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-100 file:px-3 file:py-1 file:text-[11px] file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-400 dark:file:border-slate-600 dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 disabled:opacity-60"
+                  onChange={async (e) => {
+                    const input = e.currentTarget;
+                    const file = input.files?.[0];
+                    if (!file) return;
+                    await uploadImage("photo", file);
+                    input.value = "";
+                  }}
+                  disabled={uploadingKind !== null}
+                />
+                {uploadingKind === "photo" ? (
+                  <div className="text-[11px] text-slate-500">Uploading photo…</div>
+                ) : null}
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Pilot photo alt</div>
+                <input
+                  className="input h-9 text-sm"
+                  value={pilotPhotoAlt}
+                  onChange={(e) => setPilotPhotoAlt(e.target.value)}
+                />
+              </label>
+
+              <label className="space-y-1 text-xs sm:col-span-2">
+                <div className="text-xs font-medium text-zinc-700">Pilot photo caption</div>
+                <input
+                  className="input h-9 text-sm"
+                  value={pilotPhotoCaption}
+                  onChange={(e) => setPilotPhotoCaption(e.target.value)}
+                />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Assigned NFTs</div>
+                <input className="input h-9 text-sm" value={nftCount} onChange={(e) => setNftCount(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Assigned VIGRI</div>
+                <input
+                  className="input h-9 text-sm"
+                  value={vigriAllocation}
+                  onChange={(e) => setVigriAllocation(e.target.value)}
+                />
+              </label>
+
+              <label className="flex items-center gap-2 text-xs sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={verifiedInPerson}
+                  onChange={(e) => setVerifiedInPerson(e.target.checked)}
+                />
+                <span>Verified in person</span>
+              </label>
+
+              <label className="space-y-1 text-xs sm:col-span-2">
+                <div className="text-xs font-medium text-zinc-700">Quote</div>
+                <textarea className="input min-h-[84px] text-sm" value={quote} onChange={(e) => setQuote(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs sm:col-span-2">
+                <div className="text-xs font-medium text-zinc-700">Internal note</div>
+                <textarea
+                  className="input min-h-[84px] text-sm"
+                  value={internalNote}
+                  onChange={(e) => setInternalNote(e.target.value)}
+                />
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              className="rounded-md bg-emerald-500 px-3 py-1 text-xs font-medium text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
+              disabled={!canSubmit}
+            >
+              {saving ? "Saving…" : "Create club"}
+            </button>
+          </form>
+        ) : null}
+      </section>
 
       <div className="card p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
