@@ -8,7 +8,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Key features
 
-- **Next.js App Router** (Next.js 16.1.6)
+- **Next.js App Router** (Next.js 16.2.0)
 - **i18n (EN / RU / ET)** via JSON dictionaries in `locales/`
 - **User dashboard** (profile completion, KYC/AML gating)
 - **NFT presale flow**
@@ -23,7 +23,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Tech stack
 
-- **Frontend / Server:** Next.js (App Router) 16.1.6, TypeScript 5.9.3
+- **Frontend / Server:** Next.js (App Router) 16.2.0, TypeScript 5.9.3
 - **Styling:** Tailwind CSS v4.1.18
 - **Database:** PostgreSQL + Prisma 7.5.0
 - **Solana:** `@solana/web3.js` (mainnet RPC)
