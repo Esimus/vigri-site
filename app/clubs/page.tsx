@@ -524,8 +524,8 @@ function ClubCard({
                 )}
               </div>
 
-              <div className="flex min-w-0 flex-1 items-start justify-between gap-4 pt-0.5">
-                <div className="min-w-0">
+              <div className="flex min-w-0 flex-1 items-start gap-4 pt-0.5">
+                <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold leading-tight tracking-tight text-zinc-900">
                     {club.name}
                   </h3>
@@ -548,26 +548,174 @@ function ClubCard({
                     {club.category ? <span className="capitalize">{club.category}</span> : null}
                     {locationLabel ? <span>• {locationLabel}</span> : null}
                   </div>
+
+                  {showSupportStats ? (
+                    <div className="mt-3 md:hidden">
+                      <div className="inline-flex w-full max-w-[220px] items-start justify-between gap-2 rounded-xl bg-gradient-to-r from-transparent to-teal-500/12 px-3 py-2 dark:from-transparent dark:to-teal-300/10">
+                        <div className="relative h-12 w-[92px] shrink-0" aria-hidden="true">
+                          <Image
+                            src="/images/clubs/fan-room_light.png"
+                            alt=""
+                            fill
+                            unoptimized
+                            sizes="92px"
+                            className="object-contain dark:hidden"
+                          />
+                          <Image
+                            src="/images/clubs/fan-room_black.png"
+                            alt=""
+                            fill
+                            unoptimized
+                            sizes="92px"
+                            className="hidden object-contain dark:block"
+                          />
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1 text-right leading-none text-zinc-700 dark:text-zinc-100">
+                          {typeof club.nftCount === 'number' ? (
+                            <span className="inline-flex items-center justify-end gap-1.5 text-[13px] font-medium">
+                              <span
+                                aria-hidden="true"
+                                className="inline-flex h-[16px] w-[16px] items-center justify-center text-zinc-600 dark:text-zinc-100"
+                              >
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  className="h-[16px] w-[16px]"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <rect
+                                    x="4"
+                                    y="4"
+                                    width="16"
+                                    height="16"
+                                    rx="3"
+                                    stroke="currentColor"
+                                    strokeWidth="1.6"
+                                    opacity="0.85"
+                                  />
+                                  <path
+                                    d="M8 15L11 12L13 14L16 10L19 15"
+                                    stroke="currentColor"
+                                    strokeWidth="1.6"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <circle cx="9" cy="9" r="1.3" fill="currentColor" />
+                                </svg>
+                              </span>
+                              <span>
+                                {safeT('clubs_club_nft_label', 'NFT')}: {club.nftCount}
+                              </span>
+                            </span>
+                          ) : null}
+
+                          {typeof club.vigriAllocation === 'number' ? (
+                            <div className="flex flex-col items-end">
+                              <span className="text-[14px] font-semibold">
+                                {club.vigriAllocation.toLocaleString()}
+                              </span>
+                              <span className="mt-0.5 inline-flex items-center justify-end gap-1.5 text-[13px] font-medium uppercase tracking-[0.02em] text-zinc-600 dark:text-zinc-200">
+                                <Image
+                                  src="/logos/vigri-logo.webp"
+                                  alt=""
+                                  width={16}
+                                  height={16}
+                                  unoptimized
+                                  className="h-[16px] w-[16px] rounded-full object-contain"
+                                  aria-hidden="true"
+                                />
+                                <span>$VIGRI</span>
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 {showSupportStats ? (
-                  <div className="shrink-0 pt-1 text-right text-[13px] text-zinc-600">
-                    <div className="flex flex-col items-end gap-1">
-                      {typeof club.nftCount === 'number' ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <span aria-hidden="true">🖼️</span>
-                          <span>{safeT('clubs_club_nft_label', 'NFTs')}: {club.nftCount}</span>
-                        </span>
-                      ) : null}
+                  <div className="hidden shrink-0 pt-6 md:block md:pr-4">
+                    <div className="inline-flex items-start justify-end gap-2 rounded-xl bg-gradient-to-r from-transparent to-teal-500/12 px-3 py-2 dark:from-transparent dark:to-teal-300/10">
+                      <div className="relative h-14 w-[112px] shrink-0" aria-hidden="true">
+                        <Image
+                          src="/images/clubs/fan-room_light.png"
+                          alt=""
+                          fill
+                          unoptimized
+                          sizes="112px"
+                          className="object-contain dark:hidden"
+                        />
+                        <Image
+                          src="/images/clubs/fan-room_black.png"
+                          alt=""
+                          fill
+                          unoptimized
+                          sizes="112px"
+                          className="hidden object-contain dark:block"
+                        />
+                      </div>
 
-                      {typeof club.vigriAllocation === 'number' ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <span aria-hidden="true">🦭</span>
-                          <span>
-                            {safeT('clubs_club_vigri_label', 'VIGRI')}: {club.vigriAllocation.toLocaleString()}
+                      <div className="flex flex-col items-end gap-1 text-right leading-none text-zinc-700 dark:text-zinc-100">
+                        {typeof club.nftCount === 'number' ? (
+                          <span className="inline-flex items-center justify-end gap-1.5 text-[14px] font-medium">
+                            <span
+                              aria-hidden="true"
+                              className="inline-flex h-[18px] w-[18px] items-center justify-center text-zinc-600 dark:text-zinc-100"
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                                className="h-[18px] w-[18px]"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <rect
+                                  x="4"
+                                  y="4"
+                                  width="16"
+                                  height="16"
+                                  rx="3"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  opacity="0.85"
+                                />
+                                <path
+                                  d="M8 15L11 12L13 14L16 10L19 15"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <circle cx="9" cy="9" r="1.3" fill="currentColor" />
+                              </svg>
+                            </span>
+                            <span>
+                              {safeT('clubs_club_nft_label', 'NFT')}: {club.nftCount}
+                            </span>
                           </span>
-                        </span>
-                      ) : null}
+                        ) : null}
+
+                        {typeof club.vigriAllocation === 'number' ? (
+                          <div className="flex flex-col items-end">
+                            <span className="text-[15px] font-semibold">
+                              {club.vigriAllocation.toLocaleString()}
+                            </span>
+                            <span className="mt-0.5 inline-flex items-center justify-end gap-1.5 text-[14px] font-medium uppercase tracking-[0.02em] text-zinc-600 dark:text-zinc-200">
+                              <Image
+                                src="/logos/vigri-logo.webp"
+                                alt=""
+                                width={18}
+                                height={18}
+                                unoptimized
+                                className="h-[18px] w-[18px] rounded-full object-contain"
+                                aria-hidden="true"
+                              />
+                              <span>$VIGRI</span>
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 ) : null}
