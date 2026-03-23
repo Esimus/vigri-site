@@ -174,11 +174,12 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
           <Image
             src="/images/figures/figure-football.png"
             alt=""
-            width={360}
-            height={360}
-            className="w-[13rem] sm:w-[16rem] h-auto drop-shadow-md pointer-events-none select-none"
-            sizes="(min-width:640px) 16rem, 13rem"
+            width={1232}
+            height={928}
             priority={false}
+            aria-hidden
+            className="hidden xl:block w-[22.5rem] h-auto pointer-events-none select-none absolute -top-10 right-12 translate-x-10 drop-shadow-xl"
+            sizes="(min-width:1280px) 360px, 0px"
           />
         </div>
 
@@ -190,6 +191,7 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
           height={360}
           priority={false}
           aria-hidden
+          style={{ height: 'auto' }}
           className="hidden xl:block pointer-events-none select-none absolute -top-10 right-12 translate-x-10 drop-shadow-xl"
           sizes="(min-width:1280px) 360px, 0px"
         />
