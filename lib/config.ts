@@ -8,7 +8,7 @@ const EnvSchema = z.object({
   NEXT_PUBLIC_SOLANA_RPC_URL: z
     .string()
     .url()
-    .default("https://solana-rpc.publicnode.com"),
+    .default("https://api.mainnet-beta.solana.com"),
 
   NEXT_PUBLIC_CONTRACT_ADDRESS: z
     .string()
@@ -72,7 +72,7 @@ export const CONFIG = {
 const DEFAULT_RPC: Record<(typeof CONFIG)["CLUSTER"], string> = {
   devnet: "https://api.devnet.solana.com",
   testnet: "https://api.testnet.solana.com",
-  mainnet: "https://solana-rpc.publicnode.com",
+  mainnet: "https://api.mainnet-beta.solana.com",
 };
 
 // Single exported RPC for all Connections
