@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
       pilotPhotoAlt: true,
       pilotPhotoCaption: true,
       pilotBadge: true,
+      pilotSinceMonth: true,
       verifiedInPerson: true,
       nftCount: true,
       vigriAllocation: true,

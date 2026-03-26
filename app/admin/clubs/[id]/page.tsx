@@ -29,6 +29,7 @@ type ApiClub = {
   pilotPhotoAlt: string | null;
   pilotPhotoCaption: string | null;
   pilotBadge: string | null;
+  pilotSinceMonth: string | null;
   verifiedInPerson: boolean;
   nftCount: number;
   vigriAllocation: number;
@@ -100,6 +101,7 @@ export default function AdminClubEditPage() {
   const [pilotPhotoAlt, setPilotPhotoAlt] = React.useState("");
   const [pilotPhotoCaption, setPilotPhotoCaption] = React.useState("");
   const [pilotBadge, setPilotBadge] = React.useState("");
+  const [pilotSinceMonth, setPilotSinceMonth] = React.useState("");
   const [verifiedInPerson, setVerifiedInPerson] = React.useState(false);
   const [nftCount, setNftCount] = React.useState("0");
   const [vigriAllocation, setVigriAllocation] = React.useState("0");
@@ -157,6 +159,7 @@ export default function AdminClubEditPage() {
       setPilotPhotoAlt(club.pilotPhotoAlt ?? "");
       setPilotPhotoCaption(club.pilotPhotoCaption ?? "");
       setPilotBadge(club.pilotBadge ?? "");
+      setPilotSinceMonth(club.pilotSinceMonth ?? "");
       setVerifiedInPerson(club.verifiedInPerson);
       setNftCount(String(club.nftCount));
       setVigriAllocation(String(club.vigriAllocation));
@@ -268,6 +271,7 @@ export default function AdminClubEditPage() {
         pilotPhotoAlt: pilotPhotoAlt.trim(),
         pilotPhotoCaption: pilotPhotoCaption.trim(),
         pilotBadge: pilotBadge.trim(),
+        pilotSinceMonth: pilotSinceMonth.trim(),
         verifiedInPerson,
         nftCount: Number(nftCount) || 0,
         vigriAllocation: Number(vigriAllocation) || 0,
@@ -415,6 +419,16 @@ export default function AdminClubEditPage() {
           <label className="space-y-1 text-sm">
             <div className="text-xs font-medium text-zinc-700">Pilot badge</div>
             <input className="input" value={pilotBadge} onChange={(e) => setPilotBadge(e.target.value)} />
+          </label>
+
+          <label className="space-y-1 text-sm">
+            <div className="text-xs font-medium text-zinc-700">Pilot since month</div>
+            <input
+              type="month"
+              className="input"
+              value={pilotSinceMonth}
+              onChange={(e) => setPilotSinceMonth(e.target.value)}
+            />
           </label>
 
           <label className="space-y-2 text-sm">

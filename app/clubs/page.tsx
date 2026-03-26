@@ -27,6 +27,7 @@ type Club = {
   pilotPhotoAlt?: string | null;
   pilotPhotoCaption?: string | null;
   pilotBadge?: string | null;
+  pilotSinceMonth?: string | null;
   verifiedInPerson?: boolean;
   nftCount?: number;
   vigriAllocation?: number;
@@ -67,6 +68,7 @@ export default function ClubsPage() {
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [isAmbApplyOpen, setIsAmbApplyOpen] = useState(false);
   const [isGiftOpen, setIsGiftOpen] = useState(false);
+  const [isGiftCardOpen, setIsGiftCardOpen] = useState(false);
 
   const [applyFormKey, setApplyFormKey] = useState(0);
   const [ambFormKey, setAmbFormKey] = useState(0);
@@ -274,7 +276,41 @@ export default function ClubsPage() {
             <section className="space-y-4">
               <article className="card p-4 sm:p-5">
                 <h2 className="text-sm font-semibold text-zinc-800">{t('clubs_gift_title')}</h2>
-                <p className="mt-2 text-sm text-zinc-600">{t('clubs_gift_body')}</p>
+
+                <div className="mt-2 md:hidden">
+                  <div className="relative">
+                    <div
+                      className={
+                        isGiftCardOpen
+                          ? 'text-sm text-zinc-600'
+                          : 'max-h-[4.8rem] overflow-hidden text-sm text-zinc-600'
+                      }
+                    >
+                      <p>{t('clubs_gift_body')}</p>
+                    </div>
+
+                    {!isGiftCardOpen && (
+                      <div
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-10 fade-curtain"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="mt-2 inline-flex items-center gap-1 text-xs link-accent"
+                    onClick={() => setIsGiftCardOpen((v) => !v)}
+                  >
+                    {isGiftCardOpen
+                      ? (t('nft.read_less') ?? 'Show less')
+                      : (t('nft.read_more') ?? 'Show more')}
+                    <span aria-hidden>{isGiftCardOpen ? '↑' : '↓'}</span>
+                  </button>
+                </div>
+
+                <p className="mt-2 hidden text-sm text-zinc-600 md:block">{t('clubs_gift_body')}</p>
+
                 <div className="mt-4">
                   <button
                     type="button"
@@ -359,7 +395,7 @@ export default function ClubsPage() {
                 return (
                   <div className="grid grid-cols-1 gap-4">
                     {visible.map((club) => (
-                      <ClubCard key={club.id} club={club} safeT={safeT} />
+                      <ClubCard key={club.id} club={club} safeT={safeT} lang={lang} />
                     ))}
                   </div>
                 );
@@ -483,9 +519,11 @@ export default function ClubsPage() {
 function ClubCard({
   club,
   safeT,
+  lang,
 }: {
   club: Club;
   safeT: (key: string, fallback: string) => string;
+  lang: string;
 }) {
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
 
@@ -494,6 +532,46 @@ function ClubCard({
 
   const locationLabel = [club.city, club.country].filter(Boolean).join(', ');
   const hasPhoto = Boolean(club.pilotPhotoUrl);
+  const pilotSinceInfo = (() => {
+    if (!club.pilotSinceMonth) return null;
+
+    const match = /^(\d{4})-(\d{2})$/.exec(club.pilotSinceMonth);
+    if (!match) return null;
+
+    const year = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    const date = new Date(year, month, 1);
+
+    const ruMonths = [
+      'января',
+      'февраля',
+      'марта',
+      'апреля',
+      'мая',
+      'июня',
+      'июля',
+      'августа',
+      'сентября',
+      'октября',
+      'ноября',
+      'декабря',
+    ];
+
+    const locale = lang === 'ru' ? 'ru-RU' : lang === 'et' ? 'et-EE' : 'en-US';
+
+    const monthYear =
+      lang === 'ru'
+        ? `${ruMonths[month]} ${year}`
+        : new Intl.DateTimeFormat(locale, {
+            month: 'long',
+            year: 'numeric',
+          }).format(date);
+
+    return {
+      line1: safeT('clubs_pilot_since', 'In pilot since'),
+      line2: monthYear,
+    };
+  })();
 
   return (
     <>
@@ -548,96 +626,11 @@ function ClubCard({
                     {club.category ? <span className="capitalize">{club.category}</span> : null}
                     {locationLabel ? <span>• {locationLabel}</span> : null}
                   </div>
-
-                  {showSupportStats ? (
-                    <div className="mt-3 md:hidden">
-                      <div className="inline-flex w-full max-w-[220px] items-start justify-between gap-2 rounded-xl bg-gradient-to-r from-transparent to-teal-500/12 px-3 py-2 dark:from-transparent dark:to-teal-300/10">
-                        <div className="relative h-12 w-[92px] shrink-0" aria-hidden="true">
-                          <Image
-                            src="/images/clubs/fan-room_light.png"
-                            alt=""
-                            fill
-                            unoptimized
-                            sizes="92px"
-                            className="object-contain dark:hidden"
-                          />
-                          <Image
-                            src="/images/clubs/fan-room_black.png"
-                            alt=""
-                            fill
-                            unoptimized
-                            sizes="92px"
-                            className="hidden object-contain dark:block"
-                          />
-                        </div>
-
-                        <div className="flex flex-col items-end gap-1 text-right leading-none text-zinc-700 dark:text-zinc-100">
-                          {typeof club.nftCount === 'number' ? (
-                            <span className="inline-flex items-center justify-end gap-1.5 text-[13px] font-medium">
-                              <span
-                                aria-hidden="true"
-                                className="inline-flex h-[16px] w-[16px] items-center justify-center text-zinc-600 dark:text-zinc-100"
-                              >
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  className="h-[16px] w-[16px]"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <rect
-                                    x="4"
-                                    y="4"
-                                    width="16"
-                                    height="16"
-                                    rx="3"
-                                    stroke="currentColor"
-                                    strokeWidth="1.6"
-                                    opacity="0.85"
-                                  />
-                                  <path
-                                    d="M8 15L11 12L13 14L16 10L19 15"
-                                    stroke="currentColor"
-                                    strokeWidth="1.6"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <circle cx="9" cy="9" r="1.3" fill="currentColor" />
-                                </svg>
-                              </span>
-                              <span>
-                                {safeT('clubs_club_nft_label', 'NFT')}: {club.nftCount}
-                              </span>
-                            </span>
-                          ) : null}
-
-                          {typeof club.vigriAllocation === 'number' ? (
-                            <div className="flex flex-col items-end">
-                              <span className="text-[14px] font-semibold">
-                                {club.vigriAllocation.toLocaleString()}
-                              </span>
-                              <span className="mt-0.5 inline-flex items-center justify-end gap-1.5 text-[13px] font-medium uppercase tracking-[0.02em] text-zinc-600 dark:text-zinc-200">
-                                <Image
-                                  src="/logos/vigri-logo.webp"
-                                  alt=""
-                                  width={16}
-                                  height={16}
-                                  unoptimized
-                                  className="h-[16px] w-[16px] rounded-full object-contain"
-                                  aria-hidden="true"
-                                />
-                                <span>$VIGRI</span>
-                              </span>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
                 </div>
 
                 {showSupportStats ? (
                   <div className="hidden shrink-0 pt-6 md:block md:pr-4">
-                    <div className="inline-flex items-start justify-end gap-2 rounded-xl bg-gradient-to-r from-transparent to-teal-500/12 px-3 py-2 dark:from-transparent dark:to-teal-300/10">
+                    <div className="inline-flex items-start justify-end gap-1 rounded-xl bg-gradient-to-r from-transparent to-teal-500/12 px-3 py-2 dark:from-transparent dark:to-teal-300/10">
                       <div className="relative h-14 w-[112px] shrink-0" aria-hidden="true">
                         <Image
                           src="/images/clubs/fan-room_light.png"
@@ -645,7 +638,7 @@ function ClubCard({
                           fill
                           unoptimized
                           sizes="112px"
-                          className="object-contain dark:hidden"
+                          className="object-contain object-right dark:hidden"
                         />
                         <Image
                           src="/images/clubs/fan-room_black.png"
@@ -653,13 +646,13 @@ function ClubCard({
                           fill
                           unoptimized
                           sizes="112px"
-                          className="hidden object-contain dark:block"
+                          className="hidden object-contain object-right dark:block"
                         />
                       </div>
 
-                      <div className="flex flex-col items-end gap-1 text-right leading-none text-zinc-700 dark:text-zinc-100">
+                      <div className="flex flex-col items-end gap-2 text-right leading-none text-zinc-700 dark:text-zinc-100">
                         {typeof club.nftCount === 'number' ? (
-                          <span className="inline-flex items-center justify-end gap-1.5 text-[14px] font-medium">
+                          <span className="inline-flex items-center justify-end gap-1.5 text-[12px] font-medium">
                             <span
                               aria-hidden="true"
                               className="inline-flex h-[18px] w-[18px] items-center justify-center text-zinc-600 dark:text-zinc-100"
@@ -698,10 +691,10 @@ function ClubCard({
 
                         {typeof club.vigriAllocation === 'number' ? (
                           <div className="flex flex-col items-end">
-                            <span className="text-[15px] font-semibold">
+                            <span className="text-[14px] font-semibold">
                               {club.vigriAllocation.toLocaleString()}
                             </span>
-                            <span className="mt-0.5 inline-flex items-center justify-end gap-1.5 text-[14px] font-medium uppercase tracking-[0.02em] text-zinc-600 dark:text-zinc-200">
+                            <span className="mt-0.5 inline-flex items-center justify-end gap-1.5 text-[12px] font-medium uppercase tracking-[0.02em] text-zinc-600 dark:text-zinc-200">
                               <Image
                                 src="/logos/vigri-logo.webp"
                                 alt=""
@@ -721,6 +714,108 @@ function ClubCard({
                 ) : null}
               </div>
             </div>
+
+            {showSupportStats ? (
+              <div className="mt-3 md:hidden">
+                <div className="grid grid-cols-[80px_minmax(0,1fr)] items-center gap-2">
+                  <div className="text-center text-[10px] leading-4 text-zinc-300">
+                    {pilotSinceInfo ? (
+                      <>
+                        <div>{pilotSinceInfo.line1}</div>
+                        <div>{pilotSinceInfo.line2}</div>
+                      </>
+                    ) : (
+                      <div className="h-8" />
+                    )}
+                  </div>
+
+                  <div className="rounded-xl bg-gradient-to-r from-transparent via-teal-500/10 to-teal-500/14 px-2.5 py-2.5 dark:from-transparent dark:via-teal-300/8 dark:to-teal-300/12">
+                    <div className="relative min-w-0 pr-[72px]">
+                      <div className="flex justify-center pl-12">
+                        <div className="relative h-12 w-[84px]" aria-hidden="true">
+                          <Image
+                            src="/images/clubs/fan-room_light.png"
+                            alt=""
+                            fill
+                            unoptimized
+                            sizes="84px"
+                            className="object-contain dark:hidden"
+                          />
+                          <Image
+                            src="/images/clubs/fan-room_black.png"
+                            alt=""
+                            fill
+                            unoptimized
+                            sizes="84px"
+                            className="hidden object-contain dark:block"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-col items-end gap-3 text-right leading-none text-zinc-100">
+                        {typeof club.nftCount === 'number' ? (
+                          <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap text-[10px] font-medium">
+                            <span
+                              aria-hidden="true"
+                              className="inline-flex h-3 w-3 items-center justify-center text-zinc-300"
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                                className="h-3 w-3"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <rect
+                                  x="4"
+                                  y="4"
+                                  width="16"
+                                  height="16"
+                                  rx="3"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  opacity="0.85"
+                                />
+                                <path
+                                  d="M8 15L11 12L13 14L16 10L19 15"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <circle cx="9" cy="9" r="1.3" fill="currentColor" />
+                              </svg>
+                            </span>
+                            <span>
+                              {safeT('clubs_club_nft_label', 'NFT')}: {club.nftCount}
+                            </span>
+                          </span>
+                        ) : null}
+
+                        {typeof club.vigriAllocation === 'number' ? (
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="whitespace-nowrap text-[11px] font-semibold">
+                              {club.vigriAllocation.toLocaleString()}
+                            </span>
+                            <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.02em] text-zinc-300">
+                              <Image
+                                src="/logos/vigri-logo.webp"
+                                alt=""
+                                width={12}
+                                height={12}
+                                unoptimized
+                                className="h-3 w-3 rounded-full object-contain"
+                                aria-hidden="true"
+                              />
+                              <span>$VIGRI</span>
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {club.quote ? (
               <div className="mt-4 flex gap-2.5">

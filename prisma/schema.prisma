@@ -347,6 +347,7 @@ model PilotClub {
   pilotPhotoCaption String?
 
   pilotBadge       String?
+  pilotSinceMonth  String?
   verifiedInPerson Boolean @default(false)
 
   nftCount        Int @default(0)

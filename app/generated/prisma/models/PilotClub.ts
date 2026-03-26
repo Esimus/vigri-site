@@ -59,6 +59,7 @@ export type PilotClubMinAggregateOutputType = {
   pilotPhotoAlt: string | null
   pilotPhotoCaption: string | null
   pilotBadge: string | null
+  pilotSinceMonth: string | null
   verifiedInPerson: boolean | null
   nftCount: number | null
   vigriAllocation: number | null
@@ -86,6 +87,7 @@ export type PilotClubMaxAggregateOutputType = {
   pilotPhotoAlt: string | null
   pilotPhotoCaption: string | null
   pilotBadge: string | null
+  pilotSinceMonth: string | null
   verifiedInPerson: boolean | null
   nftCount: number | null
   vigriAllocation: number | null
@@ -113,6 +115,7 @@ export type PilotClubCountAggregateOutputType = {
   pilotPhotoAlt: number
   pilotPhotoCaption: number
   pilotBadge: number
+  pilotSinceMonth: number
   verifiedInPerson: number
   nftCount: number
   vigriAllocation: number
@@ -154,6 +157,7 @@ export type PilotClubMinAggregateInputType = {
   pilotPhotoAlt?: true
   pilotPhotoCaption?: true
   pilotBadge?: true
+  pilotSinceMonth?: true
   verifiedInPerson?: true
   nftCount?: true
   vigriAllocation?: true
@@ -181,6 +185,7 @@ export type PilotClubMaxAggregateInputType = {
   pilotPhotoAlt?: true
   pilotPhotoCaption?: true
   pilotBadge?: true
+  pilotSinceMonth?: true
   verifiedInPerson?: true
   nftCount?: true
   vigriAllocation?: true
@@ -208,6 +213,7 @@ export type PilotClubCountAggregateInputType = {
   pilotPhotoAlt?: true
   pilotPhotoCaption?: true
   pilotBadge?: true
+  pilotSinceMonth?: true
   verifiedInPerson?: true
   nftCount?: true
   vigriAllocation?: true
@@ -322,6 +328,7 @@ export type PilotClubGroupByOutputType = {
   pilotPhotoAlt: string | null
   pilotPhotoCaption: string | null
   pilotBadge: string | null
+  pilotSinceMonth: string | null
   verifiedInPerson: boolean
   nftCount: number
   vigriAllocation: number
@@ -372,6 +379,7 @@ export type PilotClubWhereInput = {
   pilotPhotoAlt?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   pilotPhotoCaption?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   pilotBadge?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  pilotSinceMonth?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   verifiedInPerson?: Prisma.BoolFilter<"PilotClub"> | boolean
   nftCount?: Prisma.IntFilter<"PilotClub"> | number
   vigriAllocation?: Prisma.IntFilter<"PilotClub"> | number
@@ -399,6 +407,7 @@ export type PilotClubOrderByWithRelationInput = {
   pilotPhotoAlt?: Prisma.SortOrderInput | Prisma.SortOrder
   pilotPhotoCaption?: Prisma.SortOrderInput | Prisma.SortOrder
   pilotBadge?: Prisma.SortOrderInput | Prisma.SortOrder
+  pilotSinceMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedInPerson?: Prisma.SortOrder
   nftCount?: Prisma.SortOrder
   vigriAllocation?: Prisma.SortOrder
@@ -429,6 +438,7 @@ export type PilotClubWhereUniqueInput = Prisma.AtLeast<{
   pilotPhotoAlt?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   pilotPhotoCaption?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   pilotBadge?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  pilotSinceMonth?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   verifiedInPerson?: Prisma.BoolFilter<"PilotClub"> | boolean
   nftCount?: Prisma.IntFilter<"PilotClub"> | number
   vigriAllocation?: Prisma.IntFilter<"PilotClub"> | number
@@ -456,6 +466,7 @@ export type PilotClubOrderByWithAggregationInput = {
   pilotPhotoAlt?: Prisma.SortOrderInput | Prisma.SortOrder
   pilotPhotoCaption?: Prisma.SortOrderInput | Prisma.SortOrder
   pilotBadge?: Prisma.SortOrderInput | Prisma.SortOrder
+  pilotSinceMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedInPerson?: Prisma.SortOrder
   nftCount?: Prisma.SortOrder
   vigriAllocation?: Prisma.SortOrder
@@ -491,6 +502,7 @@ export type PilotClubScalarWhereWithAggregatesInput = {
   pilotPhotoAlt?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   pilotPhotoCaption?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   pilotBadge?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
+  pilotSinceMonth?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   verifiedInPerson?: Prisma.BoolWithAggregatesFilter<"PilotClub"> | boolean
   nftCount?: Prisma.IntWithAggregatesFilter<"PilotClub"> | number
   vigriAllocation?: Prisma.IntWithAggregatesFilter<"PilotClub"> | number
@@ -518,6 +530,7 @@ export type PilotClubCreateInput = {
   pilotPhotoAlt?: string | null
   pilotPhotoCaption?: string | null
   pilotBadge?: string | null
+  pilotSinceMonth?: string | null
   verifiedInPerson?: boolean
   nftCount?: number
   vigriAllocation?: number
@@ -545,6 +558,7 @@ export type PilotClubUncheckedCreateInput = {
   pilotPhotoAlt?: string | null
   pilotPhotoCaption?: string | null
   pilotBadge?: string | null
+  pilotSinceMonth?: string | null
   verifiedInPerson?: boolean
   nftCount?: number
   vigriAllocation?: number
@@ -572,6 +586,7 @@ export type PilotClubUpdateInput = {
   pilotPhotoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pilotSinceMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedInPerson?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nftCount?: Prisma.IntFieldUpdateOperationsInput | number
   vigriAllocation?: Prisma.IntFieldUpdateOperationsInput | number
@@ -599,6 +614,7 @@ export type PilotClubUncheckedUpdateInput = {
   pilotPhotoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pilotSinceMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedInPerson?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nftCount?: Prisma.IntFieldUpdateOperationsInput | number
   vigriAllocation?: Prisma.IntFieldUpdateOperationsInput | number
@@ -626,6 +642,7 @@ export type PilotClubCreateManyInput = {
   pilotPhotoAlt?: string | null
   pilotPhotoCaption?: string | null
   pilotBadge?: string | null
+  pilotSinceMonth?: string | null
   verifiedInPerson?: boolean
   nftCount?: number
   vigriAllocation?: number
@@ -653,6 +670,7 @@ export type PilotClubUpdateManyMutationInput = {
   pilotPhotoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pilotSinceMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedInPerson?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nftCount?: Prisma.IntFieldUpdateOperationsInput | number
   vigriAllocation?: Prisma.IntFieldUpdateOperationsInput | number
@@ -680,6 +698,7 @@ export type PilotClubUncheckedUpdateManyInput = {
   pilotPhotoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotBadge?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pilotSinceMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedInPerson?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nftCount?: Prisma.IntFieldUpdateOperationsInput | number
   vigriAllocation?: Prisma.IntFieldUpdateOperationsInput | number
@@ -707,6 +726,7 @@ export type PilotClubCountOrderByAggregateInput = {
   pilotPhotoAlt?: Prisma.SortOrder
   pilotPhotoCaption?: Prisma.SortOrder
   pilotBadge?: Prisma.SortOrder
+  pilotSinceMonth?: Prisma.SortOrder
   verifiedInPerson?: Prisma.SortOrder
   nftCount?: Prisma.SortOrder
   vigriAllocation?: Prisma.SortOrder
@@ -740,6 +760,7 @@ export type PilotClubMaxOrderByAggregateInput = {
   pilotPhotoAlt?: Prisma.SortOrder
   pilotPhotoCaption?: Prisma.SortOrder
   pilotBadge?: Prisma.SortOrder
+  pilotSinceMonth?: Prisma.SortOrder
   verifiedInPerson?: Prisma.SortOrder
   nftCount?: Prisma.SortOrder
   vigriAllocation?: Prisma.SortOrder
@@ -767,6 +788,7 @@ export type PilotClubMinOrderByAggregateInput = {
   pilotPhotoAlt?: Prisma.SortOrder
   pilotPhotoCaption?: Prisma.SortOrder
   pilotBadge?: Prisma.SortOrder
+  pilotSinceMonth?: Prisma.SortOrder
   verifiedInPerson?: Prisma.SortOrder
   nftCount?: Prisma.SortOrder
   vigriAllocation?: Prisma.SortOrder
@@ -810,6 +832,7 @@ export type PilotClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   pilotPhotoAlt?: boolean
   pilotPhotoCaption?: boolean
   pilotBadge?: boolean
+  pilotSinceMonth?: boolean
   verifiedInPerson?: boolean
   nftCount?: boolean
   vigriAllocation?: boolean
@@ -837,6 +860,7 @@ export type PilotClubSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   pilotPhotoAlt?: boolean
   pilotPhotoCaption?: boolean
   pilotBadge?: boolean
+  pilotSinceMonth?: boolean
   verifiedInPerson?: boolean
   nftCount?: boolean
   vigriAllocation?: boolean
@@ -864,6 +888,7 @@ export type PilotClubSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   pilotPhotoAlt?: boolean
   pilotPhotoCaption?: boolean
   pilotBadge?: boolean
+  pilotSinceMonth?: boolean
   verifiedInPerson?: boolean
   nftCount?: boolean
   vigriAllocation?: boolean
@@ -891,13 +916,14 @@ export type PilotClubSelectScalar = {
   pilotPhotoAlt?: boolean
   pilotPhotoCaption?: boolean
   pilotBadge?: boolean
+  pilotSinceMonth?: boolean
   verifiedInPerson?: boolean
   nftCount?: boolean
   vigriAllocation?: boolean
   internalNote?: boolean
 }
 
-export type PilotClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "status" | "sortOrder" | "name" | "slug" | "category" | "city" | "country" | "website" | "instagram" | "email" | "quote" | "logoUrl" | "logoAlt" | "pilotPhotoUrl" | "pilotPhotoAlt" | "pilotPhotoCaption" | "pilotBadge" | "verifiedInPerson" | "nftCount" | "vigriAllocation" | "internalNote", ExtArgs["result"]["pilotClub"]>
+export type PilotClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "status" | "sortOrder" | "name" | "slug" | "category" | "city" | "country" | "website" | "instagram" | "email" | "quote" | "logoUrl" | "logoAlt" | "pilotPhotoUrl" | "pilotPhotoAlt" | "pilotPhotoCaption" | "pilotBadge" | "pilotSinceMonth" | "verifiedInPerson" | "nftCount" | "vigriAllocation" | "internalNote", ExtArgs["result"]["pilotClub"]>
 
 export type $PilotClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PilotClub"
@@ -923,6 +949,7 @@ export type $PilotClubPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     pilotPhotoAlt: string | null
     pilotPhotoCaption: string | null
     pilotBadge: string | null
+    pilotSinceMonth: string | null
     verifiedInPerson: boolean
     nftCount: number
     vigriAllocation: number
@@ -1370,6 +1397,7 @@ export interface PilotClubFieldRefs {
   readonly pilotPhotoAlt: Prisma.FieldRef<"PilotClub", 'String'>
   readonly pilotPhotoCaption: Prisma.FieldRef<"PilotClub", 'String'>
   readonly pilotBadge: Prisma.FieldRef<"PilotClub", 'String'>
+  readonly pilotSinceMonth: Prisma.FieldRef<"PilotClub", 'String'>
   readonly verifiedInPerson: Prisma.FieldRef<"PilotClub", 'Boolean'>
   readonly nftCount: Prisma.FieldRef<"PilotClub", 'Int'>
   readonly vigriAllocation: Prisma.FieldRef<"PilotClub", 'Int'>

@@ -28,6 +28,7 @@ type ApiClub = {
   pilotPhotoAlt: string | null;
   pilotPhotoCaption: string | null;
   pilotBadge: string | null;
+  pilotSinceMonth: string | null;
   verifiedInPerson: boolean;
   nftCount: number;
   vigriAllocation: number;
@@ -102,6 +103,7 @@ export default function AdminClubsPage() {
   const [pilotPhotoAlt, setPilotPhotoAlt] = React.useState("");
   const [pilotPhotoCaption, setPilotPhotoCaption] = React.useState("");
   const [pilotBadge, setPilotBadge] = React.useState("Pilot club");
+  const [pilotSinceMonth, setPilotSinceMonth] = React.useState("");
   const [verifiedInPerson, setVerifiedInPerson] = React.useState(false);
   const [nftCount, setNftCount] = React.useState("0");
   const [vigriAllocation, setVigriAllocation] = React.useState("0");
@@ -198,6 +200,7 @@ export default function AdminClubsPage() {
         pilotPhotoAlt: pilotPhotoAlt.trim() || undefined,
         pilotPhotoCaption: pilotPhotoCaption.trim() || undefined,
         pilotBadge: pilotBadge.trim() || undefined,
+        pilotSinceMonth: pilotSinceMonth.trim() || undefined,
         verifiedInPerson,
         nftCount: Number(nftCount) || 0,
         vigriAllocation: Number(vigriAllocation) || 0,
@@ -351,6 +354,16 @@ export default function AdminClubsPage() {
               <label className="space-y-1 text-xs">
                 <div className="text-xs font-medium text-zinc-700">Pilot badge</div>
                 <input className="input h-9 text-sm" value={pilotBadge} onChange={(e) => setPilotBadge(e.target.value)} />
+              </label>
+
+              <label className="space-y-1 text-xs">
+                <div className="text-xs font-medium text-zinc-700">Pilot since month</div>
+                <input
+                  type="month"
+                  className="input h-9 text-sm"
+                  value={pilotSinceMonth}
+                  onChange={(e) => setPilotSinceMonth(e.target.value)}
+                />
               </label>
 
               <label className="space-y-1 text-xs">

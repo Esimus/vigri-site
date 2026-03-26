@@ -1622,6 +1622,7 @@ export const PilotClubScalarFieldEnum = {
   pilotPhotoAlt: 'pilotPhotoAlt',
   pilotPhotoCaption: 'pilotPhotoCaption',
   pilotBadge: 'pilotBadge',
+  pilotSinceMonth: 'pilotSinceMonth',
   verifiedInPerson: 'verifiedInPerson',
   nftCount: 'nftCount',
   vigriAllocation: 'vigriAllocation',

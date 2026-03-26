@@ -12,6 +12,12 @@ const ALLOWED_ROLES: UserRole[] = ["admin", "support", "kyc_reviewer"];
 const CategorySchema = z.enum(["sport", "dance", "music", "art"]);
 const StatusSchema = z.enum(["draft", "published", "archived"]);
 
+const PilotSinceMonthSchema = z
+  .string()
+  .trim()
+  .refine((v) => v === "" || /^\d{4}-(0[1-9]|1[0-2])$/.test(v), "Invalid pilotSinceMonth")
+  .optional();
+
 const CreatePilotClubSchema = z.object({
   name: z.string().trim().min(1).max(160),
   status: StatusSchema.optional(),
@@ -34,6 +40,7 @@ const CreatePilotClubSchema = z.object({
   pilotPhotoCaption: z.string().trim().max(200).optional(),
 
   pilotBadge: z.string().trim().max(120).optional(),
+  pilotSinceMonth: PilotSinceMonthSchema,
   verifiedInPerson: z.boolean().optional(),
 
   nftCount: z.number().int().min(0).optional(),
@@ -117,6 +124,7 @@ export async function GET(req: NextRequest) {
       pilotPhotoAlt: true,
       pilotPhotoCaption: true,
       pilotBadge: true,
+      pilotSinceMonth: true,
       verifiedInPerson: true,
       nftCount: true,
       vigriAllocation: true,
@@ -184,6 +192,7 @@ export async function POST(req: NextRequest) {
       pilotPhotoCaption: normalizeString(data.pilotPhotoCaption),
 
       pilotBadge: normalizeString(data.pilotBadge),
+      pilotSinceMonth: normalizeString(data.pilotSinceMonth),
       verifiedInPerson: data.verifiedInPerson ?? false,
 
       nftCount: data.nftCount ?? 0,

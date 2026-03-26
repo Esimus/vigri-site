@@ -12,6 +12,12 @@ const ALLOWED_ROLES: UserRole[] = ["admin", "support", "kyc_reviewer"];
 const CategorySchema = z.enum(["sport", "dance", "music", "art"]);
 const StatusSchema = z.enum(["draft", "published", "archived"]);
 
+const PilotSinceMonthSchema = z
+  .string()
+  .trim()
+  .refine((v) => v === "" || /^\d{4}-(0[1-9]|1[0-2])$/.test(v), "Invalid pilotSinceMonth")
+  .optional();
+
 const UpdatePilotClubSchema = z.object({
   name: z.string().trim().min(1).max(160).optional(),
   slug: z.string().trim().max(80).optional(),
@@ -35,6 +41,7 @@ const UpdatePilotClubSchema = z.object({
   pilotPhotoCaption: z.string().trim().max(200).optional(),
 
   pilotBadge: z.string().trim().max(120).optional(),
+  pilotSinceMonth: PilotSinceMonthSchema,
   verifiedInPerson: z.boolean().optional(),
 
   nftCount: z.number().int().min(0).optional(),
@@ -112,6 +119,7 @@ export async function GET(
       pilotPhotoAlt: true,
       pilotPhotoCaption: true,
       pilotBadge: true,
+      pilotSinceMonth: true,
       verifiedInPerson: true,
       nftCount: true,
       vigriAllocation: true,
@@ -178,6 +186,7 @@ export async function PATCH(
     pilotPhotoAlt?: string | null;
     pilotPhotoCaption?: string | null;
     pilotBadge?: string | null;
+    pilotSinceMonth?: string | null;
     verifiedInPerson?: boolean;
     nftCount?: number;
     vigriAllocation?: number;
@@ -218,6 +227,9 @@ export async function PATCH(
   }
 
   if (typeof data.pilotBadge !== "undefined") update.pilotBadge = normalizeString(data.pilotBadge);
+  if (typeof data.pilotSinceMonth !== "undefined") {
+    update.pilotSinceMonth = normalizeString(data.pilotSinceMonth);
+  }
   if (typeof data.verifiedInPerson !== "undefined") {
     update.verifiedInPerson = data.verifiedInPerson;
   }
