@@ -652,7 +652,7 @@ function ClubCard({
 
                       <div className="flex flex-col items-end gap-2 text-right leading-none text-zinc-700 dark:text-zinc-100">
                         {typeof club.nftCount === 'number' ? (
-                          <span className="inline-flex items-center justify-end gap-1.5 text-[12px] font-medium">
+                          <span className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
                             <span
                               aria-hidden="true"
                               className="inline-flex h-[18px] w-[18px] items-center justify-center text-zinc-600 dark:text-zinc-100"
@@ -683,8 +683,11 @@ function ClubCard({
                                 <circle cx="9" cy="9" r="1.3" fill="currentColor" />
                               </svg>
                             </span>
-                            <span>
-                              {safeT('clubs_club_nft_label', 'NFT')}: {club.nftCount}
+                            <span className="text-[12px] font-medium text-zinc-600 dark:text-zinc-200">
+                              {safeT('clubs_club_nft_label', 'NFT')}: 
+                            </span>
+                            <span className="text-[14px] font-semibold text-zinc-700 dark:text-zinc-100">
+                              {club.nftCount}
                             </span>
                           </span>
                         ) : null}
@@ -730,15 +733,15 @@ function ClubCard({
                   </div>
 
                   <div className="rounded-xl bg-gradient-to-r from-transparent via-teal-500/10 to-teal-500/14 px-2.5 py-2.5 dark:from-transparent dark:via-teal-300/8 dark:to-teal-300/12">
-                    <div className="relative min-w-0 pr-[72px]">
-                      <div className="flex justify-center pl-12">
-                        <div className="relative h-12 w-[84px]" aria-hidden="true">
+                    <div className="grid grid-cols-[1fr_64px] items-center gap-0,5">
+                      <div className="flex justify-end">
+                        <div className="relative h-[52px] w-[92px]" aria-hidden="true">
                           <Image
                             src="/images/clubs/fan-room_light.png"
                             alt=""
                             fill
                             unoptimized
-                            sizes="84px"
+                            sizes="92px"
                             className="object-contain dark:hidden"
                           />
                           <Image
@@ -746,15 +749,15 @@ function ClubCard({
                             alt=""
                             fill
                             unoptimized
-                            sizes="84px"
+                            sizes="92px"
                             className="hidden object-contain dark:block"
                           />
                         </div>
                       </div>
 
-                      <div className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-col items-end gap-3 text-right leading-none text-zinc-100">
+                      <div className="flex flex-col items-end gap-3 text-right leading-none text-zinc-100">
                         {typeof club.nftCount === 'number' ? (
-                          <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap text-[10px] font-medium">
+                          <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
                             <span
                               aria-hidden="true"
                               className="inline-flex h-3 w-3 items-center justify-center text-zinc-300"
@@ -785,8 +788,11 @@ function ClubCard({
                                 <circle cx="9" cy="9" r="1.3" fill="currentColor" />
                               </svg>
                             </span>
-                            <span>
-                              {safeT('clubs_club_nft_label', 'NFT')}: {club.nftCount}
+                            <span className="text-[10px] font-medium text-zinc-300">
+                              {safeT('clubs_club_nft_label', 'NFT')}:
+                            </span>
+                            <span className="text-[11px] font-semibold text-zinc-100">
+                              {club.nftCount}
                             </span>
                           </span>
                         ) : null}
