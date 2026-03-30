@@ -114,7 +114,7 @@ export default function ClubsPage() {
     }, 50);
   }
 
-    useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
 
     async function loadPilotClubs() {
@@ -471,7 +471,7 @@ export default function ClubsPage() {
             </section>
           )}
         </div>
-            </main>
+      </main>
 
       {isGiftOpen && (
         <div
@@ -526,12 +526,16 @@ function ClubCard({
   lang: string;
 }) {
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
   const showSupportStats =
     typeof club.nftCount === 'number' || typeof club.vigriAllocation === 'number';
 
   const locationLabel = [club.city, club.country].filter(Boolean).join(', ');
   const hasPhoto = Boolean(club.pilotPhotoUrl);
+  const hasLinks = Boolean(club.website || club.instagram || club.email);
+  const hasExpandableContent = showSupportStats || Boolean(club.quote) || hasLinks || hasPhoto;
+
   const pilotSinceInfo = (() => {
     if (!club.pilotSinceMonth) return null;
 
@@ -602,8 +606,8 @@ function ClubCard({
                 )}
               </div>
 
-              <div className="flex min-w-0 flex-1 items-start gap-4 pt-0.5">
-                <div className="min-w-0 flex-1">
+              <div className="relative flex min-w-0 flex-1 items-start gap-3 pt-0.5">
+                <div className="min-w-0 flex-1 pr-12 md:pr-0">
                   <h3 className="text-lg font-semibold leading-tight tracking-tight text-zinc-900">
                     {club.name}
                   </h3>
@@ -626,7 +630,119 @@ function ClubCard({
                     {club.category ? <span className="capitalize">{club.category}</span> : null}
                     {locationLabel ? <span>• {locationLabel}</span> : null}
                   </div>
+
+                  {showSupportStats && !isMobileExpanded ? (
+                    <div className="mt-3 flex items-center gap-5 md:hidden">
+                      {typeof club.nftCount === 'number' ? (
+                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-zinc-100">
+                          <span
+                            aria-hidden="true"
+                            className="inline-flex h-4 w-4 items-center justify-center text-zinc-300"
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-4 w-4"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <rect
+                                x="4"
+                                y="4"
+                                width="16"
+                                height="16"
+                                rx="3"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                opacity="0.85"
+                              />
+                              <path
+                                d="M8 15L11 12L13 14L16 10L19 15"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <circle cx="9" cy="9" r="1.3" fill="currentColor" />
+                            </svg>
+                          </span>
+                          <span className="text-[15px] font-semibold">{club.nftCount}</span>
+                        </div>
+                      ) : null}
+
+                      {typeof club.vigriAllocation === 'number' ? (
+                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-zinc-100">
+                          <Image
+                            src="/logos/vigri-logo.webp"
+                            alt=""
+                            width={18}
+                            height={18}
+                            unoptimized
+                            className="h-[18px] w-[18px] rounded-full object-contain"
+                            aria-hidden="true"
+                          />
+                          <span className="text-[15px] font-semibold">
+                            {club.vigriAllocation.toLocaleString()}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
+
+                {hasExpandableContent ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileExpanded((v) => !v)}
+                    aria-label={isMobileExpanded ? 'Collapse club card' : 'Expand club card'}
+                    aria-expanded={isMobileExpanded}
+                    className="absolute bottom-0 right-0 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition hover:text-zinc-200 md:hidden"
+                  >
+                    <svg
+                      viewBox="0 0 24 30"
+                      className="h-7 w-7"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 4H20"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M4 8H20"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M4 12H20"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M4 16H20"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M4 20H20"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d={isMobileExpanded ? 'M7 26L12 21L17 26' : 'M7 22L12 27L17 22'}
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                ) : null}
 
                 {showSupportStats ? (
                   <div className="hidden shrink-0 pt-6 md:block md:pr-4">
@@ -684,7 +800,7 @@ function ClubCard({
                               </svg>
                             </span>
                             <span className="text-[12px] font-medium text-zinc-600 dark:text-zinc-200">
-                              {safeT('clubs_club_nft_label', 'NFT')}: 
+                              {safeT('clubs_club_nft_label', 'NFT')}:
                             </span>
                             <span className="text-[14px] font-semibold text-zinc-700 dark:text-zinc-100">
                               {club.nftCount}
@@ -718,7 +834,7 @@ function ClubCard({
               </div>
             </div>
 
-            {showSupportStats ? (
+            {showSupportStats && isMobileExpanded ? (
               <div className="mt-3 md:hidden">
                 <div className="grid grid-cols-[80px_minmax(0,1fr)] items-center gap-2">
                   <div className="text-center text-[10px] leading-4 text-zinc-300">
@@ -733,7 +849,7 @@ function ClubCard({
                   </div>
 
                   <div className="rounded-xl bg-gradient-to-r from-transparent via-teal-500/10 to-teal-500/14 px-2.5 py-2.5 dark:from-transparent dark:via-teal-300/8 dark:to-teal-300/12">
-                    <div className="grid grid-cols-[1fr_64px] items-center gap-0,5">
+                    <div className="grid grid-cols-[1fr_64px] items-center gap-0.5">
                       <div className="flex justify-end">
                         <div className="relative h-[52px] w-[92px]" aria-hidden="true">
                           <Image
@@ -824,7 +940,7 @@ function ClubCard({
             ) : null}
 
             {club.quote ? (
-              <div className="mt-4 flex gap-2.5">
+              <div className={`${isMobileExpanded ? 'flex' : 'hidden'} mt-4 gap-2.5 md:flex`}>
                 <div
                   aria-hidden="true"
                   className="shrink-0 text-3xl leading-none text-zinc-300 sm:text-4xl"
@@ -837,8 +953,10 @@ function ClubCard({
               </div>
             ) : null}
 
-            {club.website || club.instagram || club.email ? (
-              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+            {hasLinks ? (
+              <div
+                className={`${isMobileExpanded ? 'flex' : 'hidden'} mt-4 flex-wrap gap-x-4 gap-y-1 text-[13px] md:flex`}
+              >
                 {club.website ? (
                   <a
                     href={club.website}
@@ -874,7 +992,7 @@ function ClubCard({
           </div>
 
           {hasPhoto ? (
-            <div className="flex flex-col md:min-h-[210px]">
+            <div className={`${isMobileExpanded ? 'flex' : 'hidden'} flex-col md:flex md:min-h-[210px]`}>
               <button
                 type="button"
                 className="group relative block w-full flex-1 overflow-hidden bg-zinc-50 text-left md:rounded-none"
