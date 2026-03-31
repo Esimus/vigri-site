@@ -53,6 +53,9 @@ export type PilotClubMinAggregateOutputType = {
   instagram: string | null
   email: string | null
   quote: string | null
+  quoteRu: string | null
+  quoteEn: string | null
+  quoteEt: string | null
   logoUrl: string | null
   logoAlt: string | null
   pilotPhotoUrl: string | null
@@ -81,6 +84,9 @@ export type PilotClubMaxAggregateOutputType = {
   instagram: string | null
   email: string | null
   quote: string | null
+  quoteRu: string | null
+  quoteEn: string | null
+  quoteEt: string | null
   logoUrl: string | null
   logoAlt: string | null
   pilotPhotoUrl: string | null
@@ -109,6 +115,9 @@ export type PilotClubCountAggregateOutputType = {
   instagram: number
   email: number
   quote: number
+  quoteRu: number
+  quoteEn: number
+  quoteEt: number
   logoUrl: number
   logoAlt: number
   pilotPhotoUrl: number
@@ -151,6 +160,9 @@ export type PilotClubMinAggregateInputType = {
   instagram?: true
   email?: true
   quote?: true
+  quoteRu?: true
+  quoteEn?: true
+  quoteEt?: true
   logoUrl?: true
   logoAlt?: true
   pilotPhotoUrl?: true
@@ -179,6 +191,9 @@ export type PilotClubMaxAggregateInputType = {
   instagram?: true
   email?: true
   quote?: true
+  quoteRu?: true
+  quoteEn?: true
+  quoteEt?: true
   logoUrl?: true
   logoAlt?: true
   pilotPhotoUrl?: true
@@ -207,6 +222,9 @@ export type PilotClubCountAggregateInputType = {
   instagram?: true
   email?: true
   quote?: true
+  quoteRu?: true
+  quoteEn?: true
+  quoteEt?: true
   logoUrl?: true
   logoAlt?: true
   pilotPhotoUrl?: true
@@ -322,6 +340,9 @@ export type PilotClubGroupByOutputType = {
   instagram: string | null
   email: string | null
   quote: string | null
+  quoteRu: string | null
+  quoteEn: string | null
+  quoteEt: string | null
   logoUrl: string | null
   logoAlt: string | null
   pilotPhotoUrl: string | null
@@ -373,6 +394,9 @@ export type PilotClubWhereInput = {
   instagram?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   email?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   quote?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  quoteRu?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  quoteEn?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  quoteEt?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   logoUrl?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   logoAlt?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   pilotPhotoUrl?: Prisma.StringNullableFilter<"PilotClub"> | string | null
@@ -401,6 +425,9 @@ export type PilotClubOrderByWithRelationInput = {
   instagram?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   quote?: Prisma.SortOrderInput | Prisma.SortOrder
+  quoteRu?: Prisma.SortOrderInput | Prisma.SortOrder
+  quoteEn?: Prisma.SortOrderInput | Prisma.SortOrder
+  quoteEt?: Prisma.SortOrderInput | Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   logoAlt?: Prisma.SortOrderInput | Prisma.SortOrder
   pilotPhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -432,6 +459,9 @@ export type PilotClubWhereUniqueInput = Prisma.AtLeast<{
   instagram?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   email?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   quote?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  quoteRu?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  quoteEn?: Prisma.StringNullableFilter<"PilotClub"> | string | null
+  quoteEt?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   logoUrl?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   logoAlt?: Prisma.StringNullableFilter<"PilotClub"> | string | null
   pilotPhotoUrl?: Prisma.StringNullableFilter<"PilotClub"> | string | null
@@ -460,6 +490,9 @@ export type PilotClubOrderByWithAggregationInput = {
   instagram?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   quote?: Prisma.SortOrderInput | Prisma.SortOrder
+  quoteRu?: Prisma.SortOrderInput | Prisma.SortOrder
+  quoteEn?: Prisma.SortOrderInput | Prisma.SortOrder
+  quoteEt?: Prisma.SortOrderInput | Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   logoAlt?: Prisma.SortOrderInput | Prisma.SortOrder
   pilotPhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -496,6 +529,9 @@ export type PilotClubScalarWhereWithAggregatesInput = {
   instagram?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   email?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   quote?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
+  quoteRu?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
+  quoteEn?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
+  quoteEt?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   logoUrl?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   logoAlt?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
   pilotPhotoUrl?: Prisma.StringNullableWithAggregatesFilter<"PilotClub"> | string | null
@@ -524,6 +560,9 @@ export type PilotClubCreateInput = {
   instagram?: string | null
   email?: string | null
   quote?: string | null
+  quoteRu?: string | null
+  quoteEn?: string | null
+  quoteEt?: string | null
   logoUrl?: string | null
   logoAlt?: string | null
   pilotPhotoUrl?: string | null
@@ -552,6 +591,9 @@ export type PilotClubUncheckedCreateInput = {
   instagram?: string | null
   email?: string | null
   quote?: string | null
+  quoteRu?: string | null
+  quoteEn?: string | null
+  quoteEt?: string | null
   logoUrl?: string | null
   logoAlt?: string | null
   pilotPhotoUrl?: string | null
@@ -580,6 +622,9 @@ export type PilotClubUpdateInput = {
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteRu?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -608,6 +653,9 @@ export type PilotClubUncheckedUpdateInput = {
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteRu?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -636,6 +684,9 @@ export type PilotClubCreateManyInput = {
   instagram?: string | null
   email?: string | null
   quote?: string | null
+  quoteRu?: string | null
+  quoteEn?: string | null
+  quoteEt?: string | null
   logoUrl?: string | null
   logoAlt?: string | null
   pilotPhotoUrl?: string | null
@@ -664,6 +715,9 @@ export type PilotClubUpdateManyMutationInput = {
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteRu?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -692,6 +746,9 @@ export type PilotClubUncheckedUpdateManyInput = {
   instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteRu?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quoteEt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logoAlt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pilotPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -720,6 +777,9 @@ export type PilotClubCountOrderByAggregateInput = {
   instagram?: Prisma.SortOrder
   email?: Prisma.SortOrder
   quote?: Prisma.SortOrder
+  quoteRu?: Prisma.SortOrder
+  quoteEn?: Prisma.SortOrder
+  quoteEt?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   logoAlt?: Prisma.SortOrder
   pilotPhotoUrl?: Prisma.SortOrder
@@ -754,6 +814,9 @@ export type PilotClubMaxOrderByAggregateInput = {
   instagram?: Prisma.SortOrder
   email?: Prisma.SortOrder
   quote?: Prisma.SortOrder
+  quoteRu?: Prisma.SortOrder
+  quoteEn?: Prisma.SortOrder
+  quoteEt?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   logoAlt?: Prisma.SortOrder
   pilotPhotoUrl?: Prisma.SortOrder
@@ -782,6 +845,9 @@ export type PilotClubMinOrderByAggregateInput = {
   instagram?: Prisma.SortOrder
   email?: Prisma.SortOrder
   quote?: Prisma.SortOrder
+  quoteRu?: Prisma.SortOrder
+  quoteEn?: Prisma.SortOrder
+  quoteEt?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   logoAlt?: Prisma.SortOrder
   pilotPhotoUrl?: Prisma.SortOrder
@@ -826,6 +892,9 @@ export type PilotClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   instagram?: boolean
   email?: boolean
   quote?: boolean
+  quoteRu?: boolean
+  quoteEn?: boolean
+  quoteEt?: boolean
   logoUrl?: boolean
   logoAlt?: boolean
   pilotPhotoUrl?: boolean
@@ -854,6 +923,9 @@ export type PilotClubSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   instagram?: boolean
   email?: boolean
   quote?: boolean
+  quoteRu?: boolean
+  quoteEn?: boolean
+  quoteEt?: boolean
   logoUrl?: boolean
   logoAlt?: boolean
   pilotPhotoUrl?: boolean
@@ -882,6 +954,9 @@ export type PilotClubSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   instagram?: boolean
   email?: boolean
   quote?: boolean
+  quoteRu?: boolean
+  quoteEn?: boolean
+  quoteEt?: boolean
   logoUrl?: boolean
   logoAlt?: boolean
   pilotPhotoUrl?: boolean
@@ -910,6 +985,9 @@ export type PilotClubSelectScalar = {
   instagram?: boolean
   email?: boolean
   quote?: boolean
+  quoteRu?: boolean
+  quoteEn?: boolean
+  quoteEt?: boolean
   logoUrl?: boolean
   logoAlt?: boolean
   pilotPhotoUrl?: boolean
@@ -923,7 +1001,7 @@ export type PilotClubSelectScalar = {
   internalNote?: boolean
 }
 
-export type PilotClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "status" | "sortOrder" | "name" | "slug" | "category" | "city" | "country" | "website" | "instagram" | "email" | "quote" | "logoUrl" | "logoAlt" | "pilotPhotoUrl" | "pilotPhotoAlt" | "pilotPhotoCaption" | "pilotBadge" | "pilotSinceMonth" | "verifiedInPerson" | "nftCount" | "vigriAllocation" | "internalNote", ExtArgs["result"]["pilotClub"]>
+export type PilotClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "status" | "sortOrder" | "name" | "slug" | "category" | "city" | "country" | "website" | "instagram" | "email" | "quote" | "quoteRu" | "quoteEn" | "quoteEt" | "logoUrl" | "logoAlt" | "pilotPhotoUrl" | "pilotPhotoAlt" | "pilotPhotoCaption" | "pilotBadge" | "pilotSinceMonth" | "verifiedInPerson" | "nftCount" | "vigriAllocation" | "internalNote", ExtArgs["result"]["pilotClub"]>
 
 export type $PilotClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PilotClub"
@@ -943,6 +1021,9 @@ export type $PilotClubPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     instagram: string | null
     email: string | null
     quote: string | null
+    quoteRu: string | null
+    quoteEn: string | null
+    quoteEt: string | null
     logoUrl: string | null
     logoAlt: string | null
     pilotPhotoUrl: string | null
@@ -1391,6 +1472,9 @@ export interface PilotClubFieldRefs {
   readonly instagram: Prisma.FieldRef<"PilotClub", 'String'>
   readonly email: Prisma.FieldRef<"PilotClub", 'String'>
   readonly quote: Prisma.FieldRef<"PilotClub", 'String'>
+  readonly quoteRu: Prisma.FieldRef<"PilotClub", 'String'>
+  readonly quoteEn: Prisma.FieldRef<"PilotClub", 'String'>
+  readonly quoteEt: Prisma.FieldRef<"PilotClub", 'String'>
   readonly logoUrl: Prisma.FieldRef<"PilotClub", 'String'>
   readonly logoAlt: Prisma.FieldRef<"PilotClub", 'String'>
   readonly pilotPhotoUrl: Prisma.FieldRef<"PilotClub", 'String'>

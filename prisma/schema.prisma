@@ -337,7 +337,10 @@ model PilotClub {
   instagram String?
   email     String?
 
-  quote String?
+  quote   String?
+  quoteRu String?
+  quoteEn String?
+  quoteEt String?
 
   logoUrl String?
   logoAlt String?

@@ -32,6 +32,9 @@ const UpdatePilotClubSchema = z.object({
   email: z.string().trim().email().max(254).optional(),
 
   quote: z.string().trim().max(4000).optional(),
+  quoteRu: z.string().trim().max(4000).optional(),
+  quoteEn: z.string().trim().max(4000).optional(),
+  quoteEt: z.string().trim().max(4000).optional(),
 
   logoUrl: z.string().trim().max(1000).optional(),
   logoAlt: z.string().trim().max(200).optional(),
@@ -113,6 +116,9 @@ export async function GET(
       instagram: true,
       email: true,
       quote: true,
+      quoteRu: true,
+      quoteEn: true,
+      quoteEt: true,
       logoUrl: true,
       logoAlt: true,
       pilotPhotoUrl: true,
@@ -180,6 +186,9 @@ export async function PATCH(
     instagram?: string | null;
     email?: string | null;
     quote?: string | null;
+    quoteRu?: string | null;
+    quoteEn?: string | null;
+    quoteEt?: string | null;
     logoUrl?: string | null;
     logoAlt?: string | null;
     pilotPhotoUrl?: string | null;
@@ -212,6 +221,9 @@ export async function PATCH(
   if (typeof data.email !== "undefined") update.email = normalizeString(data.email);
 
   if (typeof data.quote !== "undefined") update.quote = normalizeString(data.quote);
+  if (typeof data.quoteRu !== "undefined") update.quoteRu = normalizeString(data.quoteRu);
+  if (typeof data.quoteEn !== "undefined") update.quoteEn = normalizeString(data.quoteEn);
+  if (typeof data.quoteEt !== "undefined") update.quoteEt = normalizeString(data.quoteEt);
 
   if (typeof data.logoUrl !== "undefined") update.logoUrl = normalizeString(data.logoUrl);
   if (typeof data.logoAlt !== "undefined") update.logoAlt = normalizeString(data.logoAlt);

@@ -21,6 +21,9 @@ type Club = {
   instagram?: string | null;
   email?: string | null;
   quote: string | null;
+  quoteRu: string | null;
+  quoteEn: string | null;
+  quoteEt: string | null;
   logoUrl?: string | null;
   logoAlt?: string | null;
   pilotPhotoUrl?: string | null;
@@ -527,6 +530,11 @@ function ClubCard({
 }) {
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const quoteText = (() => {
+    if (lang === 'ru') return club.quoteRu || club.quote || club.quoteEn || club.quoteEt || null;
+    if (lang === 'et') return club.quoteEt || club.quote || club.quoteEn || club.quoteRu || null;
+    return club.quoteEn || club.quote || club.quoteRu || club.quoteEt || null;
+  })();
 
   const showSupportStats =
     typeof club.nftCount === 'number' || typeof club.vigriAllocation === 'number';
@@ -534,7 +542,7 @@ function ClubCard({
   const locationLabel = [club.city, club.country].filter(Boolean).join(', ');
   const hasPhoto = Boolean(club.pilotPhotoUrl);
   const hasLinks = Boolean(club.website || club.instagram || club.email);
-  const hasExpandableContent = showSupportStats || Boolean(club.quote) || hasLinks || hasPhoto;
+  const hasExpandableContent = showSupportStats || Boolean(quoteText) || hasLinks || hasPhoto;
 
   const pilotSinceInfo = (() => {
     if (!club.pilotSinceMonth) return null;
@@ -939,7 +947,7 @@ function ClubCard({
               </div>
             ) : null}
 
-            {club.quote ? (
+            {quoteText ? (
               <div className={`${isMobileExpanded ? 'flex' : 'hidden'} mt-4 gap-2.5 md:flex`}>
                 <div
                   aria-hidden="true"
@@ -948,7 +956,7 @@ function ClubCard({
                   “
                 </div>
                 <p className="max-w-2xl pt-0.5 text-[13px] leading-6 text-zinc-700 sm:text-sm sm:leading-6">
-                  {club.quote}
+                  {quoteText}
                 </p>
               </div>
             ) : null}

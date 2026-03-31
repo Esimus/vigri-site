@@ -23,6 +23,9 @@ type ApiClub = {
   instagram: string | null;
   email: string | null;
   quote: string | null;
+  quoteRu: string | null;
+  quoteEn: string | null;
+  quoteEt: string | null;
   logoUrl: string | null;
   logoAlt: string | null;
   pilotPhotoUrl: string | null;
@@ -95,6 +98,9 @@ export default function AdminClubEditPage() {
   const [instagram, setInstagram] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [quote, setQuote] = React.useState("");
+  const [quoteRu, setQuoteRu] = React.useState("");
+  const [quoteEn, setQuoteEn] = React.useState("");
+  const [quoteEt, setQuoteEt] = React.useState("");
   const [logoUrl, setLogoUrl] = React.useState("");
   const [logoAlt, setLogoAlt] = React.useState("");
   const [pilotPhotoUrl, setPilotPhotoUrl] = React.useState("");
@@ -153,6 +159,9 @@ export default function AdminClubEditPage() {
       setInstagram(club.instagram ?? "");
       setEmail(club.email ?? "");
       setQuote(club.quote ?? "");
+      setQuoteRu(club.quoteRu ?? "");
+      setQuoteEn(club.quoteEn ?? "");
+      setQuoteEt(club.quoteEt ?? "");
       setLogoUrl(club.logoUrl ?? "");
       setLogoAlt(club.logoAlt ?? "");
       setPilotPhotoUrl(club.pilotPhotoUrl ?? "");
@@ -265,6 +274,9 @@ export default function AdminClubEditPage() {
         instagram: instagram.trim(),
         email: email.trim(),
         quote: quote.trim(),
+        quoteRu: quoteRu.trim(),
+        quoteEn: quoteEn.trim(),
+        quoteEt: quoteEt.trim(),
         logoUrl: logoUrl.trim(),
         logoAlt: logoAlt.trim(),
         pilotPhotoUrl: pilotPhotoUrl.trim(),
@@ -618,11 +630,29 @@ export default function AdminClubEditPage() {
           </label>
 
           <label className="space-y-1 text-sm sm:col-span-2">
-            <div className="text-xs font-medium text-zinc-700">Quote</div>
+            <div className="text-xs font-medium text-zinc-700">Quote (RU)</div>
             <textarea
               className="input min-h-[110px]"
-              value={quote}
-              onChange={(e) => setQuote(e.target.value)}
+              value={quoteRu}
+              onChange={(e) => setQuoteRu(e.target.value)}
+            />
+          </label>
+
+          <label className="space-y-1 text-sm sm:col-span-2">
+            <div className="text-xs font-medium text-zinc-700">Quote (EN)</div>
+            <textarea
+              className="input min-h-[110px]"
+              value={quoteEn}
+              onChange={(e) => setQuoteEn(e.target.value)}
+            />
+          </label>
+
+          <label className="space-y-1 text-sm sm:col-span-2">
+            <div className="text-xs font-medium text-zinc-700">Quote (ET)</div>
+            <textarea
+              className="input min-h-[110px]"
+              value={quoteEt}
+              onChange={(e) => setQuoteEt(e.target.value)}
             />
           </label>
 
