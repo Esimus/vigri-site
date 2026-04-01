@@ -15,7 +15,7 @@
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
+    "@prisma/client": "^7.6.0",
     "@solana/web3.js": "^1.98.4",
     "next": "16.2.0",
     "nodemailer": "^8.0.4",
@@ -36,7 +36,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
-    "prisma": "^7.5.0",
+    "prisma": "^7.6.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"

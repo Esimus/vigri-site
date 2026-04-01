@@ -315,7 +315,7 @@ export type FormSubmissionGroupByOutputType = {
   _max: FormSubmissionMaxAggregateOutputType | null
 }
 
-type GetFormSubmissionGroupByPayload<T extends FormSubmissionGroupByArgs> = Prisma.PrismaPromise<
+export type GetFormSubmissionGroupByPayload<T extends FormSubmissionGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<FormSubmissionGroupByOutputType, T['by']> &
       {

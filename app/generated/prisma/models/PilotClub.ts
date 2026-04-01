@@ -361,7 +361,7 @@ export type PilotClubGroupByOutputType = {
   _max: PilotClubMaxAggregateOutputType | null
 }
 
-type GetPilotClubGroupByPayload<T extends PilotClubGroupByArgs> = Prisma.PrismaPromise<
+export type GetPilotClubGroupByPayload<T extends PilotClubGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<PilotClubGroupByOutputType, T['by']> &
       {

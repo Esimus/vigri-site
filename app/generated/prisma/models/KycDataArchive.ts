@@ -249,7 +249,7 @@ export type KycDataArchiveGroupByOutputType = {
   _max: KycDataArchiveMaxAggregateOutputType | null
 }
 
-type GetKycDataArchiveGroupByPayload<T extends KycDataArchiveGroupByArgs> = Prisma.PrismaPromise<
+export type GetKycDataArchiveGroupByPayload<T extends KycDataArchiveGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<KycDataArchiveGroupByOutputType, T['by']> &
       {

@@ -182,7 +182,7 @@ export type AdminAuditLogGroupByOutputType = {
   _max: AdminAuditLogMaxAggregateOutputType | null
 }
 
-type GetAdminAuditLogGroupByPayload<T extends AdminAuditLogGroupByArgs> = Prisma.PrismaPromise<
+export type GetAdminAuditLogGroupByPayload<T extends AdminAuditLogGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<AdminAuditLogGroupByOutputType, T['by']> &
       {

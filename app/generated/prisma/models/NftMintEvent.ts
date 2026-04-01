@@ -296,7 +296,7 @@ export type NftMintEventGroupByOutputType = {
   _max: NftMintEventMaxAggregateOutputType | null
 }
 
-type GetNftMintEventGroupByPayload<T extends NftMintEventGroupByArgs> = Prisma.PrismaPromise<
+export type GetNftMintEventGroupByPayload<T extends NftMintEventGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<NftMintEventGroupByOutputType, T['by']> &
       {

@@ -241,7 +241,7 @@ export type EchoLogGroupByOutputType = {
   _max: EchoLogMaxAggregateOutputType | null
 }
 
-type GetEchoLogGroupByPayload<T extends EchoLogGroupByArgs> = Prisma.PrismaPromise<
+export type GetEchoLogGroupByPayload<T extends EchoLogGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<EchoLogGroupByOutputType, T['by']> &
       {

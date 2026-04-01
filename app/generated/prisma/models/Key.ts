@@ -158,7 +158,7 @@ export type KeyGroupByOutputType = {
   _max: KeyMaxAggregateOutputType | null
 }
 
-type GetKeyGroupByPayload<T extends KeyGroupByArgs> = Prisma.PrismaPromise<
+export type GetKeyGroupByPayload<T extends KeyGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<KeyGroupByOutputType, T['by']> &
       {
