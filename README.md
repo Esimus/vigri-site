@@ -25,7 +25,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 - **Frontend / Server:** Next.js (App Router) 16.2.0, TypeScript 5.9.3
 - **Styling:** Tailwind CSS v4.1.18
-- **Database:** PostgreSQL + Prisma 7.5.0
+- **Database:** PostgreSQL + Prisma 7.6.0
 - **Solana:** `@solana/web3.js` (mainnet RPC)
 - **Ops (production):** typically behind Nginx + process manager (e.g., PM2)
 
@@ -42,7 +42,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 ## Requirements
 
 - Node.js **24.13.0** (see `.nvmrc`)
-- npm **11.10.1** (see `package.json#packageManager`)
+- npm **11.12.1** (see `package.json#packageManager`)
 - PostgreSQL **14+** (or compatible managed Postgres)
 
 ---
