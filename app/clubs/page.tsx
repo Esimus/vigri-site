@@ -642,10 +642,10 @@ function ClubCard({
                   {showSupportStats && !isMobileExpanded ? (
                     <div className="mt-3 flex items-center gap-5 md:hidden">
                       {typeof club.nftCount === 'number' ? (
-                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-zinc-100">
+                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-zinc-700 dark:text-zinc-100">
                           <span
                             aria-hidden="true"
-                            className="inline-flex h-4 w-4 items-center justify-center text-zinc-300"
+                            className="inline-flex h-4 w-4 items-center justify-center text-zinc-700 dark:text-zinc-300"
                           >
                             <svg
                               viewBox="0 0 24 24"
@@ -678,7 +678,7 @@ function ClubCard({
                       ) : null}
 
                       {typeof club.vigriAllocation === 'number' ? (
-                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-zinc-100">
+                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-zinc-700 dark:text-zinc-100">
                           <Image
                             src="/logos/vigri-logo.webp"
                             alt=""
@@ -845,7 +845,7 @@ function ClubCard({
             {showSupportStats && isMobileExpanded ? (
               <div className="mt-3 md:hidden">
                 <div className="grid grid-cols-[80px_minmax(0,1fr)] items-center gap-2">
-                  <div className="text-center text-[10px] leading-4 text-zinc-300">
+                  <div className="text-center text-[10px] leading-4 text-zinc-500 dark:text-zinc-300">
                     {pilotSinceInfo ? (
                       <>
                         <div>{pilotSinceInfo.line1}</div>
@@ -879,12 +879,12 @@ function ClubCard({
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-3 text-right leading-none text-zinc-100">
+                      <div className="flex flex-col items-end gap-3 text-right leading-none text-zinc-700 dark:text-zinc-100">
                         {typeof club.nftCount === 'number' ? (
                           <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
                             <span
                               aria-hidden="true"
-                              className="inline-flex h-3 w-3 items-center justify-center text-zinc-300"
+                              className="inline-flex h-3 w-3 items-center justify-center text-zinc-700 dark:text-zinc-300"
                             >
                               <svg
                                 viewBox="0 0 24 24"
@@ -912,10 +912,10 @@ function ClubCard({
                                 <circle cx="9" cy="9" r="1.3" fill="currentColor" />
                               </svg>
                             </span>
-                            <span className="text-[10px] font-medium text-zinc-300">
+                            <span className="text-[10px] font-medium text-zinc-700 dark:text-zinc-300">
                               {safeT('clubs_club_nft_label', 'NFT')}:
                             </span>
-                            <span className="text-[11px] font-semibold text-zinc-100">
+                            <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-100">
                               {club.nftCount}
                             </span>
                           </span>
@@ -926,7 +926,7 @@ function ClubCard({
                             <span className="whitespace-nowrap text-[11px] font-semibold">
                               {club.vigriAllocation.toLocaleString()}
                             </span>
-                            <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.02em] text-zinc-300">
+                            <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.02em] text-zinc-700 dark:text-zinc-300">
                               <Image
                                 src="/logos/vigri-logo.webp"
                                 alt=""
