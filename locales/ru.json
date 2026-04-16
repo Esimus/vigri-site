@@ -312,6 +312,8 @@
   "dashboard.nav.profile": "Профиль",
   "dashboard.nav.contact": "Контакт",
 
+  "docs_clubs_pitch_title": "Презентация VIGRI для клубов",
+  "docs_clubs_pitch_desc": "Короткая презентация для спортивных и творческих клубов, приглашённых в пилотную группу VIGRI.",
   "docs_page_title": "Материалы и документы VIGRI",
   "docs_page_intro": "Здесь собраны презентации и документы о VIGRI Platform и экосистеме Lumiros.",
   "docs_pitch_title": "Презентация VIGRI Platform (pitch deck)",
@@ -322,6 +324,7 @@
   "docs_lang_ru": "Русский",
   "docs_lang_et": "Eesti",
   "docs_lang_de": "Deutsch",
+  "docs_lang_sv": "Swedish",
   "docs_btn_download": "Скачать",
 
   "emails.verify.subject": "Подтвердите ваш email для VIGRI",

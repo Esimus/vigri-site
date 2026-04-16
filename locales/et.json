@@ -312,6 +312,8 @@
   "dashboard.nav.profile": "Profiil",
   "dashboard.nav.contact": "Kontakt",
 
+  "docs_clubs_pitch_title": "VIGRI klubide pilootesitlus",
+  "docs_clubs_pitch_desc": "Lühike esitlus spordi- ja loomeklubidele, kes on kutsutud VIGRI pilootgruppi.",
   "docs_page_title": "VIGRI materjalid ja dokumendid",
   "docs_page_intro": "Siit leiad VIGRI platvormi ja Lumiros ökosüsteemi esitlusmaterjalid ja põhidokumendid.",
   "docs_pitch_title": "VIGRI Platform – pitch deck",
@@ -322,6 +324,7 @@
   "docs_lang_ru": "Vene",
   "docs_lang_et": "Eesti",
   "docs_lang_de": "Saksa",
+  "docs_lang_sv": "Rootsi",
   "docs_btn_download": "Laadi alla",
 
   "emails.verify.subject": "Kinnita oma e-posti aadress VIGRI jaoks",

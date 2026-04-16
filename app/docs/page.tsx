@@ -5,7 +5,7 @@ import Link from 'next/link';
 import PublicHeader from '@/components/layout/PublicHeader';
 import { useI18n } from '@/hooks/useI18n';
 
-type LangCode = 'en' | 'ru' | 'et' | 'de';
+type LangCode = 'en' | 'ru' | 'et' | 'de' | 'sv';
 
 type DocFile = {
   href: string;
@@ -13,23 +13,31 @@ type DocFile = {
 };
 
 const pitchFiles: DocFile[] = [
-  { href: '/docs/vigri-app-pitch-2026-02-en.pdf', lang: 'en' },
-  { href: '/docs/vigri-app-pitch-2026-02-ru.pdf', lang: 'ru' },
   { href: '/docs/vigri-app-pitch-2026-02-et.pdf', lang: 'et' },
+  { href: '/docs/vigri-app-pitch-2026-02-ru.pdf', lang: 'ru' },
+  { href: '/docs/vigri-app-pitch-2026-02-en.pdf', lang: 'en' },
   { href: '/docs/vigri-app-pitch-2026-02-de.pdf', lang: 'de' },
 ];
 
 const litepaperFiles: DocFile[] = [
-  { href: '/docs/vigri-litepaper-en.pdf', lang: 'en' },
-  { href: '/docs/vigri-litepaper-ru.pdf', lang: 'ru' },
   { href: '/docs/vigri-litepaper-et.pdf', lang: 'et' },
+  { href: '/docs/vigri-litepaper-ru.pdf', lang: 'ru' },
+  { href: '/docs/vigri-litepaper-en.pdf', lang: 'en' },
+];
+
+const clubsPitchFiles: DocFile[] = [
+  { href: '/docs/vigri-app-pitch-for-clubs-2026-04-ee.pdf', lang: 'et' },
+  { href: '/docs/vigri-app-pitch-for-clubs-2026-04-ru.pdf', lang: 'ru' },
+  { href: '/docs/vigri-app-pitch-for-clubs-2026-04-en.pdf', lang: 'en' },
+  { href: '/docs/vigri-app-pitch-for-clubs-2026-04-se.pdf', lang: 'sv' },
 ];
 
 function langLabel(lang: LangCode, t: (key: string) => string) {
-  if (lang === 'en') return t('docs_lang_en');
-  if (lang === 'ru') return t('docs_lang_ru');
   if (lang === 'et') return t('docs_lang_et');
+  if (lang === 'ru') return t('docs_lang_ru');
+  if (lang === 'en') return t('docs_lang_en');
   if (lang === 'de') return t('docs_lang_de');
+  if (lang === 'sv') return t('docs_lang_sv');
   return lang;
 }
 
@@ -56,6 +64,27 @@ export default function DocsPage() {
 
             <div className="mt-3 flex flex-wrap gap-2">
               {pitchFiles.map((file) => (
+                <Link
+                  key={file.href}
+                  href={file.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-outline text-sm"
+                >
+                  {t('docs_btn_download')} ({langLabel(file.lang, t)}, PDF)
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="card p-4">
+            <h2 className="text-lg font-semibold">{t('docs_clubs_pitch_title')}</h2>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+              {t('docs_clubs_pitch_desc')}
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {clubsPitchFiles.map((file) => (
                 <Link
                   key={file.href}
                   href={file.href}
