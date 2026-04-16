@@ -46,10 +46,10 @@
   },
   "packageManager": "npm@11.6.2",
   "overrides": {
-    "hono": "4.12.12",
+    "hono": "4.12.14",
     "@hono/node-server": "1.19.13",
     "@prisma/dev": {
-      "hono": "4.12.12",
+      "hono": "4.12.14",
       "@hono/node-server": "1.19.13"
     },
     "lodash": "^4.17.23",
