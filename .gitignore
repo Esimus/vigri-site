@@ -24,3 +24,6 @@ prisma/dev.db
 
 # Windows ADS metadata
 *:Zone.Identifier
+
+# Local uploaded files
+/public/uploads/
