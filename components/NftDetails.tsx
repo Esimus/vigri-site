@@ -12,8 +12,23 @@ import SalesBar from '@/components/ui/SalesBar';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
 import { useSolflareWallet } from '@/hooks/useSolflareWallet';
 import { getKycBadgeStateForNftList } from '@/lib/kyc/getKycUiState';
-import { Transaction, TransactionInstruction, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, ComputeBudgetProgram } from '@solana/web3.js';
-import { Buffer } from 'buffer';
+import {
+  AccountRole,
+  address,
+  appendTransactionMessageInstructions,
+  compileTransaction,
+  createTransactionMessage,
+  generateKeyPairSigner,
+  getAddressEncoder,
+  getBase64EncodedWireTransaction,
+  getProgramDerivedAddress,
+  partiallySignTransactionWithSigners,
+  setTransactionMessageFeePayer,
+  setTransactionMessageLifetimeUsingBlockhash,
+  type Address,
+  type Instruction,
+} from '@solana/kit';
+import { getUtf8Encoder } from '@solana/codecs-strings';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
 import { WalletBannerMain } from '@/components/wallet';
@@ -68,8 +83,8 @@ type RightsResp = { ok: true; items: Rights[]; tgePriceEur?: number };
 type ClaimResp = { ok: true; vigriClaimed: number };
 type DiscountResp = { ok: true; vigriBought: number; unitEur: number };
 type PhantomProviderLike = {
-  signTransaction?: (tx: Transaction) => Promise<Transaction>;
-  signAndSendTransaction: (tx: Transaction) => Promise<{ signature?: string } | string>;
+  signTransaction?: (tx: unknown) => Promise<unknown>;
+  signAndSendTransaction: (tx: unknown) => Promise<{ signature?: string } | string>;
 };
 
 function getActiveWalletProvider(kind: 'phantom' | 'solflare' | null): PhantomProviderLike | null {
@@ -125,15 +140,18 @@ function isDiscountResp(v: unknown): v is DiscountResp {
 type KycStatus = 'none' | 'pending' | 'approved' | 'rejected';
 
 // --- Presale on-chain constants (cluster-aware) ---
-const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
-const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+const TOKEN_PROGRAM_ID = address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+const ASSOCIATED_TOKEN_PROGRAM_ID = address('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+const TOKEN_METADATA_PROGRAM_ID = address('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+const SYSTEM_PROGRAM_ID = address('11111111111111111111111111111111');
+const SYSVAR_RENT_ADDRESS = address('SysvarRent111111111111111111111111111111111');
+const COMPUTE_BUDGET_PROGRAM_ID = address('ComputeBudget111111111111111111111111111111');
 
-function findGlobalConfigPda(): PublicKey {
+async function findGlobalConfigPda(): Promise<Address> {
   return getGlobalConfigPda('mainnet');
 }
 
-function presaleProgramId(): PublicKey {
+function presaleProgramId(): Address {
   return getPresaleProgramId('mainnet');
 }
 
@@ -1031,7 +1049,7 @@ export default function NftDetails({
 
     try {
       // Derive PDAs
-      const globalConfig = findGlobalConfigPda();
+      const globalConfig = await findGlobalConfigPda();
 
       // Load admin/treasury from backend (cluster-aware)
       let adminPkStr: string | null = presaleAdmin ?? null;
@@ -1065,7 +1083,7 @@ export default function NftDetails({
         return;
       }
 
-      const admin = adminPkStr ? new PublicKey(adminPkStr) : null;
+      const admin = adminPkStr ? address(adminPkStr) : null;
       if (!admin) {
         setMintMsg(t('nft.mint.adminMissing'));
         return;
@@ -1149,47 +1167,65 @@ export default function NftDetails({
         return new Uint8Array(hash).slice(0, 8);
       }
 
-      function findAta(owner: PublicKey, mint: PublicKey): PublicKey {
-        const [ata] = PublicKey.findProgramAddressSync(
-          [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-          ASSOCIATED_TOKEN_PROGRAM_ID,
-        );
+      async function findAta(owner: Address, mint: Address): Promise<Address> {
+        const [ata] = await getProgramDerivedAddress({
+          programAddress: ASSOCIATED_TOKEN_PROGRAM_ID,
+          seeds: [
+            getAddressEncoder().encode(owner),
+            getAddressEncoder().encode(TOKEN_PROGRAM_ID),
+            getAddressEncoder().encode(mint),
+          ],
+        });
+
         return ata;
       }
 
-      function findMetadataPda(mint: PublicKey): PublicKey {
-        const [pda] = PublicKey.findProgramAddressSync(
-          [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-          TOKEN_METADATA_PROGRAM_ID,
-        );
+      async function findMetadataPda(mint: Address): Promise<Address> {
+        const [pda] = await getProgramDerivedAddress({
+          programAddress: TOKEN_METADATA_PROGRAM_ID,
+          seeds: [
+            getUtf8Encoder().encode('metadata'),
+            getAddressEncoder().encode(TOKEN_METADATA_PROGRAM_ID),
+            getAddressEncoder().encode(mint),
+          ],
+        });
+
         return pda;
       }
 
-      // Fresh mint keypair (NFT mint)
-      const mintKp = Keypair.generate();
-      const mintPk = mintKp.publicKey;
+      async function findMasterEditionPda(mint: Address): Promise<Address> {
+        const [pda] = await getProgramDerivedAddress({
+          programAddress: TOKEN_METADATA_PROGRAM_ID,
+          seeds: [
+            getUtf8Encoder().encode('metadata'),
+            getAddressEncoder().encode(TOKEN_METADATA_PROGRAM_ID),
+            getAddressEncoder().encode(mint),
+            getUtf8Encoder().encode('edition'),
+          ],
+        });
 
-      const payerAta = findAta(publicKey, mintPk);
-      const metadata = findMetadataPda(mintPk);
+        return pda;
+      }
 
-      // Master Edition PDA for this mint (must match on-chain accounts)
-      const [edition] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('metadata'),
-          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-          mintPk.toBuffer(),
-          Buffer.from('edition'),
-        ],
-        TOKEN_METADATA_PROGRAM_ID,
-      );
+      const mintSigner = await generateKeyPairSigner();
+      const mintPk = mintSigner.address;
+
+      const payerAddress = address(publicKey.toBase58());
+      const payerAta = await findAta(payerAddress, mintPk);
+      const metadata = await findMetadataPda(mintPk);
+      const edition = await findMasterEditionPda(mintPk);
+
+      const blockhashResponse = await connection
+        .getLatestBlockhash({ commitment: 'finalized' })
+        .send();
+
+      const { blockhash, lastValidBlockHeight } = blockhashResponse.value;
 
       const sig8 = await anchorSighash('mint_nft');
 
-      // Data layout must match IDL: tier_id, design_choice, kyc_proof, invite_proof
-      let data: Uint8Array;
+      let instructionData: Uint8Array;
 
       if (tierId === 0) {
-        // tierId=0 = Tree/Steel requires design_choice Some(u8)
         if (!design) {
           setMintMsg(t('nft.design.select'));
           return;
@@ -1197,11 +1233,10 @@ export default function NftDetails({
 
         let dc: number | null = null;
 
-        // Tree/Steel: map UI design ids to the program enum values (1/2).
         if (design === 'tree' || design === 'wood' || design === 'tree-wood') {
-          dc = 1; // TR = Tree
+          dc = 1;
         } else if (design === 'steel' || design === 'tree-steel') {
-          dc = 2; // FE = Steel
+          dc = 2;
         }
 
         if (dc == null) {
@@ -1209,135 +1244,88 @@ export default function NftDetails({
           return;
         }
 
-        // 8 (sighash) + 1 (tier_id) + 2 (design_choice Some) + 1 (kyc None) + 1 (invite None) = 13
-        data = new Uint8Array(13);
-        data.set(sig8, 0);
-        data[8] = tierId & 0xff;
-        data[9] = 1;          // design_choice = Some
-        data[10] = dc & 0xff; // design_choice value
-        data[11] = 0;         // kyc_proof = None
-        data[12] = 0;         // invite_proof = None
+        instructionData = new Uint8Array(13);
+        instructionData.set(sig8, 0);
+        instructionData[8] = tierId & 0xff;
+        instructionData[9] = 1;
+        instructionData[10] = dc & 0xff;
+        instructionData[11] = 0;
+        instructionData[12] = 0;
       } else {
-
-        // 8 + 1 (tier_id) + 1 (design_choice None) + 1 (kyc None) + 1 (invite None) = 12
-        data = new Uint8Array(12);
-        data.set(sig8, 0);
-        data[8] = tierId & 0xff;
-        data[9] = 0;  // design_choice = None
-        data[10] = 0; // kyc_proof = None
-        data[11] = 0; // invite_proof = None
+        instructionData = new Uint8Array(12);
+        instructionData.set(sig8, 0);
+        instructionData[8] = tierId & 0xff;
+        instructionData[9] = 0;
+        instructionData[10] = 0;
+        instructionData[11] = 0;
       }
 
-      // Collection accounts: mainnet VIGRI Presale Collection
-      const COLLECTION_MINT = new PublicKey(
-        '7wGaXNPmB14HmhiYybf8o8Vb9jA7eVSNRDLWnYjDKYwt',
+      const collectionMint = address('7wGaXNPmB14HmhiYybf8o8Vb9jA7eVSNRDLWnYjDKYwt');
+      const collectionMetadata = await findMetadataPda(collectionMint);
+      const collectionMasterEdition = await findMasterEditionPda(collectionMint);
+
+      const computeIx: Instruction = {
+        programAddress: COMPUTE_BUDGET_PROGRAM_ID,
+        accounts: [],
+        data: new Uint8Array([2, 224, 147, 4, 0]), // setComputeUnitLimit(300000)
+      };
+
+      const ix: Instruction = {
+        programAddress: presaleProgramId(),
+        accounts: [
+          { address: payerAddress, role: AccountRole.WRITABLE_SIGNER },
+          { address: globalConfig, role: AccountRole.WRITABLE },
+          { address: admin, role: AccountRole.WRITABLE },
+          { address: collectionMint, role: AccountRole.READONLY },
+          { address: collectionMetadata, role: AccountRole.WRITABLE },
+          { address: collectionMasterEdition, role: AccountRole.WRITABLE },
+          { address: mintPk, role: AccountRole.WRITABLE_SIGNER },
+          { address: payerAta, role: AccountRole.WRITABLE },
+          { address: metadata, role: AccountRole.WRITABLE },
+          { address: edition, role: AccountRole.WRITABLE },
+          { address: TOKEN_METADATA_PROGRAM_ID, role: AccountRole.READONLY },
+          { address: TOKEN_PROGRAM_ID, role: AccountRole.READONLY },
+          { address: ASSOCIATED_TOKEN_PROGRAM_ID, role: AccountRole.READONLY },
+          { address: SYSTEM_PROGRAM_ID, role: AccountRole.READONLY },
+          { address: SYSVAR_RENT_ADDRESS, role: AccountRole.READONLY },
+        ],
+        data: instructionData,
+      };
+
+      const message = appendTransactionMessageInstructions(
+        [computeIx, ix],
+        setTransactionMessageLifetimeUsingBlockhash(
+          { blockhash, lastValidBlockHeight },
+          setTransactionMessageFeePayer(
+            payerAddress,
+            createTransactionMessage({ version: 0 }),
+          ),
+        ),
       );
 
-      // Derive collection metadata PDA (same pattern as for NFT metadata)
-      const COLLECTION_METADATA = findMetadataPda(COLLECTION_MINT);
-
-      // Derive collection master edition PDA
-      const [COLLECTION_MASTER_EDITION] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('metadata'),
-          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-          COLLECTION_MINT.toBuffer(),
-          Buffer.from('edition'),
-        ],
-        TOKEN_METADATA_PROGRAM_ID,
+      const partiallySignedTx = await partiallySignTransactionWithSigners(
+        [mintSigner],
+        compileTransaction(message),
       );
 
-      const ix = new TransactionInstruction({
-        programId: presaleProgramId(),
-        keys: [
-          { pubkey: publicKey, isSigner: true, isWritable: true },         // payer
-          { pubkey: globalConfig, isSigner: false, isWritable: true },     // global_config (PDA)
-          { pubkey: admin, isSigner: false, isWritable: true },            // admin / treasury
-          { pubkey: COLLECTION_MINT, isSigner: false, isWritable: false },  // collection_mint (placeholder)
-          { pubkey: COLLECTION_METADATA, isSigner: false, isWritable: true }, // collection_metadata (placeholder)
-          { pubkey: COLLECTION_MASTER_EDITION, isSigner: false, isWritable: true }, // collection_master_edition (placeholder)
-          { pubkey: mintPk, isSigner: true, isWritable: true },            // mint (init)
-          { pubkey: payerAta, isSigner: false, isWritable: true },         // payer_token_account (init ATA)
-          { pubkey: metadata, isSigner: false, isWritable: true },         // metadata PDA
-          { pubkey: edition, isSigner: false, isWritable: true },          // master edition PDA
-          { pubkey: TOKEN_METADATA_PROGRAM_ID, isSigner: false, isWritable: false },
-          { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-          { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-          { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
-        ],
-        data: Buffer.from(data),
-      });
-
-      // give more compute units for metadata + master edition + collection link
-      const computeIx = ComputeBudgetProgram.setComputeUnitLimit({
-        units: 300000,
-      });
-
-      const { blockhash, lastValidBlockHeight } =
-        await connection.getLatestBlockhash('finalized');
-
-      const tx = new Transaction({
-        feePayer: publicKey,
-        blockhash,
-        lastValidBlockHeight,
-      });
-
-      tx.add(computeIx, ix);
-
-      // Prefer multi-signer safe flow:
-      // 1) Wallet signs (fee payer) via signTransaction
-      // 2) Then we add the mint signature
-      // 3) Then we send via our RPC
       let sig = '';
 
       if (typeof provider.signTransaction === 'function') {
-        const walletSignedTx = await provider.signTransaction(tx);
+        const walletSignedTx = await provider.signTransaction(partiallySignedTx);
+        const wireTransaction = getBase64EncodedWireTransaction(walletSignedTx as never);
 
-        // Add mint signature after the wallet signature
-        walletSignedTx.partialSign(mintKp);
-
-        sig = await connection.sendRawTransaction(walletSignedTx.serialize(), {
-          skipPreflight: false,
-        });
+        sig = await connection
+          .sendTransaction(wireTransaction, {
+            encoding: 'base64',
+            skipPreflight: false,
+          })
+          .send();
       } else {
-        // Fallback: wallet does not support signTransaction (rare)
-        tx.partialSign(mintKp);
-        const res = await provider.signAndSendTransaction(tx);
+        const res = await provider.signAndSendTransaction(partiallySignedTx);
         sig = typeof res === 'string' ? res : (res.signature ?? '');
       }
 
-      // Confirm transaction, but handle "block height exceeded" gracefully
-      try {
-        await connection.confirmTransaction(
-          { signature: sig, blockhash, lastValidBlockHeight },
-          'confirmed',
-        );
-      } catch (confirmErr) {
-        const text = confirmErr instanceof Error ? confirmErr.message : String(confirmErr);
-        const low = text.toLowerCase();
-
-        const maybeExpired =
-          low.includes('block height exceeded') ||
-          low.includes('has expired');
-
-        if (maybeExpired) {
-          // Fallback: check final status directly by signature
-          const statuses = await connection.getSignatureStatuses([sig]);
-          const info = statuses && statuses.value && statuses.value[0];
-
-          if (info && !info.err) {
-            // Transaction actually succeeded on-chain — treat as success
-            // and continue (do not rethrow).
-          } else {
-            // Real failure — bubble up to outer catch
-            throw confirmErr;
-          }
-        } else {
-          // Any other error — bubble up
-          throw confirmErr;
-        }
-      }
+      await new Promise((resolve) => setTimeout(resolve, 2_000));
 
       let designChoiceLog: number | null = null;
       if (tierId === 0) {

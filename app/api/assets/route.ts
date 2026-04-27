@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCookie } from '@/lib/cookies';
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { address, createSolanaRpc } from '@solana/kit';
 import { SOLANA_RPC_URL } from '@/lib/config';
 
 const COOKIE = 'vigri_assets';
@@ -253,10 +253,10 @@ export async function GET(req: NextRequest) {
 
   if (wallet) {
     try {
-      const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
-      const pubkey = new PublicKey(wallet);
-      const balanceLamports = await connection.getBalance(pubkey);
-      s.balances.SOL = balanceLamports / LAMPORTS_PER_SOL;
+      const rpc = createSolanaRpc(SOLANA_RPC_URL);
+      const balanceLamports = await rpc.getBalance(address(wallet), { commitment: 'confirmed' }).send();
+
+      s.balances.SOL = Number(balanceLamports.value) / 1_000_000_000;
     } catch (e) {
       console.error('Failed to load SOL balance', e);
       s.balances.SOL = 0;

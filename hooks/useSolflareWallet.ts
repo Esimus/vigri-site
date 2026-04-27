@@ -2,11 +2,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { createSolanaRpc, address as solanaAddress } from '@solana/kit';
 import { SOLANA_RPC_URL } from '@/lib/config';
 
 const CLUSTER = 'mainnet' as const;
-const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+const rpc = createSolanaRpc(SOLANA_RPC_URL);
 
 const DISCONNECT_FLAG_KEY = 'vigri_solflare_disconnected';
 
@@ -32,10 +32,14 @@ function hasManualDisconnectFlag(): boolean {
   }
 }
 
+type WalletPublicKey = {
+  toBase58: () => string;
+};
+
 type SolflareProvider = {
   isSolflare?: boolean;
-  publicKey?: PublicKey;
-  connect: (options?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: PublicKey }>;
+  publicKey?: WalletPublicKey;
+  connect: (options?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: WalletPublicKey }>;
   disconnect: () => Promise<void>;
   on: (event: string, handler: (...args: unknown[]) => void) => void;
   off: (event: string, handler: (...args: unknown[]) => void) => void;
@@ -50,27 +54,30 @@ function getSolflareProvider(): SolflareProvider | null {
 type WalletState = {
   connected: boolean;
   address: string | null;
-  publicKey: PublicKey | null;
+  publicKey: WalletPublicKey | null;
   balance: number | null;
   connecting: boolean;
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
-  connection: Connection;
+  connection: typeof rpc;
   cluster: string;
 };
 
 export function useSolflareWallet(): WalletState {
   const [address, setAddress] = useState<string | null>(null);
-  const [publicKey, setPublicKey] = useState<PublicKey | null>(null);
+  const [publicKey, setPublicKey] = useState<WalletPublicKey | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBalance = useCallback(async (pubkey: PublicKey) => {
+  const fetchBalance = useCallback(async (pubkey: WalletPublicKey) => {
     try {
-      const lamports = await connection.getBalance(pubkey);
-      setBalance(lamports / LAMPORTS_PER_SOL);
+      const lamports = await rpc
+        .getBalance(solanaAddress(pubkey.toBase58()), { commitment: 'confirmed' })
+        .send();
+
+      setBalance(Number(lamports.value) / 1_000_000_000);
     } catch (err) {
       console.error('Failed to load SOL balance', err);
       setBalance(null);
@@ -89,7 +96,7 @@ export function useSolflareWallet(): WalletState {
     try {
       setConnecting(true);
       const res = await provider.connect({ onlyIfTrusted: false });
-      const pubkey: PublicKey = res.publicKey;
+      const pubkey: WalletPublicKey = res.publicKey;
       const addr = pubkey.toBase58();
       setPublicKey(pubkey);
       setAddress(addr);
@@ -130,7 +137,7 @@ export function useSolflareWallet(): WalletState {
     const provider = getSolflareProvider();
     if (!provider) return;
 
-    const updateFromPubkey = (pubkey: PublicKey) => {
+    const updateFromPubkey = (pubkey: WalletPublicKey) => {
       const addr = pubkey.toBase58();
       setPublicKey(pubkey);
       setAddress(addr);
@@ -141,7 +148,7 @@ export function useSolflareWallet(): WalletState {
     const handleConnect = (...args: unknown[]) => {
       const first = args[0];
       if (!first) return;
-      const pubkey = first as PublicKey;
+      const pubkey = first as WalletPublicKey;
       updateFromPubkey(pubkey);
     };
 
@@ -153,7 +160,7 @@ export function useSolflareWallet(): WalletState {
 
     const handleAccountChanged = (...args: unknown[]) => {
       const first = args[0];
-      const pubkey = (first ?? null) as PublicKey | null;
+      const pubkey = (first ?? null) as WalletPublicKey | null;
 
       if (!pubkey) {
         handleDisconnect();
@@ -188,7 +195,7 @@ export function useSolflareWallet(): WalletState {
     error,
     connect,
     disconnect,
-    connection,
+    connection: rpc,
     cluster: CLUSTER,
   };
 }

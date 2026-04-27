@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSolanaConnection } from '@/lib/solana/vigriPresale';
 import { fetchGlobalConfigDecoded } from '@/lib/solana/vigriPresaleAccounts';
-import { PublicKey } from '@solana/web3.js';
+import { address } from '@solana/kit';
 
 const CLUSTER = 'mainnet' as const;
 type Network = typeof CLUSTER;
@@ -10,9 +10,8 @@ type Network = typeof CLUSTER;
 function toBase58Maybe(v: unknown): string | null {
   if (!v) return null;
   try {
-    if (typeof v === 'string') return new PublicKey(v).toBase58();
-    // Most Anchor decoders return PublicKey or Uint8Array-like values here
-    return new PublicKey(v as never).toBase58();
+    if (typeof v === 'string') return address(v);
+    return address(String(v));
   } catch {
     return null;
   }
@@ -136,7 +135,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const cfg = decoded.account as GlobalConfigWithTiers;
+    const cfg = decoded.account as unknown as GlobalConfigWithTiers;
     const tiersArray: RawTier[] = Array.isArray(cfg.tiers) ? cfg.tiers : [];
 
     const tiers = tiersArray.map((tier) => {

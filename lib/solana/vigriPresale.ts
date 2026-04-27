@@ -1,6 +1,11 @@
 // lib/solana/vigriPresale.ts
-import { Connection, PublicKey } from '@solana/web3.js';
-import { Buffer } from 'buffer';
+import {
+  address,
+  createSolanaRpc,
+  getProgramDerivedAddress,
+  type Address,
+} from '@solana/kit';
+import { getUtf8Encoder } from '@solana/codecs-strings';
 import { CONFIG, SOLANA_RPC_URL } from '@/lib/config';
 
 /**
@@ -9,8 +14,10 @@ import { CONFIG, SOLANA_RPC_URL } from '@/lib/config';
 
 export type SolanaCluster = 'devnet' | 'mainnet';
 
+export type SolanaRpc = ReturnType<typeof createSolanaRpc>;
+
 // Mainnet ProgramId (source of truth fallback)
-export const VIGRI_PRESALE_PROGRAM_ID_MAINNET = new PublicKey(
+export const VIGRI_PRESALE_PROGRAM_ID_MAINNET = address(
   'GmrUAwBvC3ijaM2L7kjddQFMWHevxRnArngf7jFx1yEk',
 );
 
@@ -20,7 +27,7 @@ function assertMainnet(cluster: SolanaCluster) {
   }
 }
 
-export function getPresaleProgramId(cluster?: SolanaCluster): PublicKey {
+export function getPresaleProgramId(cluster?: SolanaCluster): Address {
   const cl = cluster ?? (CONFIG.CLUSTER as SolanaCluster);
 
   assertMainnet(cl);
@@ -30,7 +37,7 @@ export function getPresaleProgramId(cluster?: SolanaCluster): PublicKey {
     process.env.VIGRI_PRESALE_PROGRAM_ID_MAINNET ||
     '';
 
-  if (s) return new PublicKey(s);
+  if (s) return address(s);
 
   return VIGRI_PRESALE_PROGRAM_ID_MAINNET;
 }
@@ -38,26 +45,25 @@ export function getPresaleProgramId(cluster?: SolanaCluster): PublicKey {
 // PDA seed for GlobalConfig
 export const VIGRI_PRESALE_GLOBAL_CONFIG_SEED = 'vigri-presale-config';
 
-// Create a Solana connection (mainnet-only)
-export function getSolanaConnection(cluster?: SolanaCluster): Connection {
+// Create a Solana RPC client (mainnet-only)
+export function getSolanaConnection(cluster?: SolanaCluster): SolanaRpc {
   const cl = cluster ?? (CONFIG.CLUSTER as SolanaCluster);
   assertMainnet(cl);
 
-  // single source of truth for RPC
-  return new Connection(SOLANA_RPC_URL, 'confirmed');
+  return createSolanaRpc(SOLANA_RPC_URL);
 }
 
 // Derive GlobalConfig PDA (mainnet-only)
-export function getGlobalConfigPda(cluster?: SolanaCluster): PublicKey {
+export async function getGlobalConfigPda(cluster?: SolanaCluster): Promise<Address> {
   const cl = cluster ?? (CONFIG.CLUSTER as SolanaCluster);
   assertMainnet(cl);
 
   const programId = getPresaleProgramId(cl);
 
-  const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from(VIGRI_PRESALE_GLOBAL_CONFIG_SEED)],
-    programId,
-  );
+  const [pda] = await getProgramDerivedAddress({
+    programAddress: programId,
+    seeds: [getUtf8Encoder().encode(VIGRI_PRESALE_GLOBAL_CONFIG_SEED)],
+  });
 
   return pda;
 }

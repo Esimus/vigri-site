@@ -1,19 +1,18 @@
 // src/lib/solana/presaleTx.ts
-import { Connection, ParsedTransactionWithMeta, TokenBalance } from '@solana/web3.js';
+import { createSolanaRpc, signature as solanaSignature } from '@solana/kit';
 import { SOLANA_RPC_URL } from '@/lib/config';
 
 export type SolanaCluster = 'devnet' | 'mainnet';
 
-type SolanaTx = ParsedTransactionWithMeta;
-type GetTxConfig = Parameters<Connection['getParsedTransaction']>[1];
+type UiTokenAmount = { amount?: string; decimals?: number };
+type TokenBalance = { mint?: string; uiTokenAmount?: UiTokenAmount };
+type SolanaTx = {
+  meta?: {
+    preTokenBalances?: TokenBalance[];
+    postTokenBalances?: TokenBalance[];
+  };
+};
 
-/**
- * Try to determine the minted token mint by comparing pre/post token balances.
- * We assume:
- *  - The presale mint transaction mints exactly one new token
- *  - That token is the one present in postTokenBalances and absent in preTokenBalances
- *  - If multiple candidates exist, we prefer NFT-like (decimals=0, amount=1)
- */
 function tryMintFromTokenBalances(tx: SolanaTx | null): string | null {
   const pre: TokenBalance[] = tx?.meta?.preTokenBalances ?? [];
   const post: TokenBalance[] = tx?.meta?.postTokenBalances ?? [];
@@ -39,7 +38,6 @@ function tryMintFromTokenBalances(tx: SolanaTx | null): string | null {
     return String(only.mint);
   }
 
-  // If multiple, prefer NFT-like: decimals=0 and amount=1
   const nftLike = candidates.filter((b) => {
     const ui = b.uiTokenAmount;
     return ui?.decimals === 0 && ui?.amount === '1';
@@ -54,31 +52,26 @@ function tryMintFromTokenBalances(tx: SolanaTx | null): string | null {
   return null;
 }
 
-/**
- * Extracts the NFT mint address from a mint transaction on a given cluster.
- * We do not try to validate the program id here; we trust that the txSignature
- * in NftMintEvent refers to a successful mint.
- */
 export async function getMintFromPresaleTx(
   signature: string,
   cluster: SolanaCluster,
 ): Promise<string | null> {
-  // Mainnet-only in production: block devnet usage explicitly.
   if (process.env.NODE_ENV === 'production' && cluster === 'devnet') {
     console.error('PRESALE_TX_DEVNET_BLOCKED_IN_PROD', { signature });
     return null;
   }
 
-  // Single source of truth for RPC across the app.
-  const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+  const rpc = createSolanaRpc(SOLANA_RPC_URL);
 
-  const config: GetTxConfig = {
-    commitment: 'confirmed',
-    maxSupportedTransactionVersion: 0,
-  };
+  const tx = await rpc
+    .getTransaction(solanaSignature(signature), {
+      commitment: 'confirmed',
+      maxSupportedTransactionVersion: 0,
+      encoding: 'jsonParsed',
+    })
+    .send();
 
-  const tx = (await connection.getParsedTransaction(signature, config)) as SolanaTx | null;
   if (!tx) return null;
 
-  return tryMintFromTokenBalances(tx);
+  return tryMintFromTokenBalances(tx as unknown as SolanaTx);
 }

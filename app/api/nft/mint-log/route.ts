@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { SESSION_COOKIE } from '@/lib/session';
 import { creditEcho } from '@/lib/echo';
-import { Connection } from '@solana/web3.js';
+import { createSolanaRpc, signature } from '@solana/kit';
 import { SOLANA_RPC_URL } from '@/lib/config';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -287,10 +287,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify tx on-chain + derive actual minted NFTs for this wallet
-    const rpc = new Connection(SOLANA_RPC_URL, 'confirmed');
-    const parsed = await rpc.getParsedTransaction(txSignature, {
-      maxSupportedTransactionVersion: 0,
-    });
+    const rpc = createSolanaRpc(SOLANA_RPC_URL);
+    const parsedResponse = await rpc
+      .getTransaction(signature(txSignature), {
+        commitment: 'confirmed',
+        maxSupportedTransactionVersion: 0,
+        encoding: 'jsonParsed',
+      })
+      .send();
+
+    const parsed = parsedResponse;
 
     if (!parsed || parsed.meta?.err) {
       return NextResponse.json(

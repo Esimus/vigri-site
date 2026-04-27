@@ -1,5 +1,12 @@
 // src/lib/solana/metaplexMetadata.ts
-import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  address,
+  createSolanaRpc,
+  getAddressEncoder,
+  getProgramDerivedAddress,
+  type Address,
+} from '@solana/kit';
+import { getUtf8Encoder } from '@solana/codecs-strings';
 import {
   getMetadataAccountDataSerializer,
   type MetadataAccountData,
@@ -7,46 +14,40 @@ import {
 import type { SolanaCluster } from './presaleTx';
 import { SOLANA_RPC_URL } from '@/lib/config';
 
-const METAPLEX_METADATA_PROGRAM_ID = new PublicKey(
+const METAPLEX_METADATA_PROGRAM_ID = address(
   'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s',
 );
 
-function deriveMetadataPda(mint: PublicKey): PublicKey {
-  const seeds = [
-    Buffer.from('metadata'),
-    METAPLEX_METADATA_PROGRAM_ID.toBuffer(),
-    mint.toBuffer(),
-  ];
+async function deriveMetadataPda(mint: Address): Promise<Address> {
+  const [pda] = await getProgramDerivedAddress({
+    programAddress: METAPLEX_METADATA_PROGRAM_ID,
+    seeds: [
+      getUtf8Encoder().encode('metadata'),
+      getAddressEncoder().encode(METAPLEX_METADATA_PROGRAM_ID),
+      getAddressEncoder().encode(mint),
+    ],
+  });
 
-  const [pda] = PublicKey.findProgramAddressSync(
-    seeds,
-    METAPLEX_METADATA_PROGRAM_ID,
-  );
   return pda;
 }
 
 function normalizeUri(raw: string | undefined | null): string {
   if (!raw) return '';
-  // trim trailing NUL bytes and whitespace
   return raw.replace(/\0+$/g, '').trim();
 }
 
-/**
- * Load Metaplex metadata for a given mint and return the URI (if any).
- */
 export async function getMetadataUriForMint(
   mintAddress: string,
   cluster: SolanaCluster,
 ): Promise<string | null> {
-  // Mainnet-only in production: block devnet usage explicitly.
   if (process.env.NODE_ENV === 'production' && cluster === 'devnet') {
     console.error('MPL_METADATA_DEVNET_BLOCKED_IN_PROD', { mint: mintAddress });
     return null;
   }
 
-  let mint: PublicKey;
+  let mint: Address;
   try {
-    mint = new PublicKey(mintAddress);
+    mint = address(mintAddress);
   } catch (error) {
     console.error('MPL_METADATA_INVALID_MINT', {
       mintAddress,
@@ -56,17 +57,29 @@ export async function getMetadataUriForMint(
     return null;
   }
 
-  // Single source of truth for RPC across the app.
-  const connection = new Connection(SOLANA_RPC_URL, { commitment: 'confirmed' });
+  const rpc = createSolanaRpc(SOLANA_RPC_URL);
+  const metadataPda = await deriveMetadataPda(mint);
 
-  const metadataPda = deriveMetadataPda(mint);
+  const accountInfo = await rpc.getAccountInfo(metadataPda, {
+    commitment: 'confirmed',
+    encoding: 'base64',
+  }).send();
 
-  const accountInfo = await connection.getAccountInfo(metadataPda);
-  if (!accountInfo) {
+  if (!accountInfo.value) {
     console.error('MPL_METADATA_ACCOUNT_NOT_FOUND', {
       mint: mintAddress,
       cluster,
-      metadataPda: metadataPda.toBase58(),
+      metadataPda,
+    });
+    return null;
+  }
+
+  const accountData = accountInfo.value.data[0];
+  if (!accountData) {
+    console.error('MPL_METADATA_EMPTY_ACCOUNT_DATA', {
+      mint: mintAddress,
+      cluster,
+      metadataPda,
     });
     return null;
   }
@@ -75,13 +88,13 @@ export async function getMetadataUriForMint(
 
   let decoded: MetadataAccountData;
   try {
-    const [value] = serializer.deserialize(accountInfo.data);
+    const [value] = serializer.deserialize(Buffer.from(accountData, 'base64'));
     decoded = value;
   } catch (error) {
     console.error('MPL_METADATA_DESERIALIZE_FAILED', {
       mint: mintAddress,
       cluster,
-      metadataPda: metadataPda.toBase58(),
+      metadataPda,
       error: (error as Error).message,
     });
     return null;
@@ -93,7 +106,7 @@ export async function getMetadataUriForMint(
     console.error('MPL_METADATA_EMPTY_URI', {
       mint: mintAddress,
       cluster,
-      metadataPda: metadataPda.toBase58(),
+      metadataPda,
     });
     return null;
   }
