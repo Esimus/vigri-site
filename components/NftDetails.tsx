@@ -20,7 +20,6 @@ import {
   createTransactionMessage,
   generateKeyPairSigner,
   getAddressEncoder,
-  getBase64EncodedWireTransaction,
   getProgramDerivedAddress,
   partiallySignTransactionWithSigners,
   setTransactionMessageFeePayer,
@@ -29,6 +28,7 @@ import {
   type Blockhash,
   type Instruction,
 } from '@solana/kit';
+import { signTransactionWithWalletStandard } from '@/lib/solana/walletStandard';
 import { getUtf8Encoder } from '@solana/codecs-strings';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
@@ -1329,37 +1329,40 @@ export default function NftDetails({
 
       let sig = '';
 
-      if (typeof provider.signTransaction === 'function') {
-        const walletSignedTx = await provider.signTransaction(partiallySignedTx);
-        const wireTransaction = getBase64EncodedWireTransaction(walletSignedTx as never);
-
-        const sendRes = await fetch('/api/presale/send-transaction', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transaction: wireTransaction }),
-        });
-
-        const sendJson: unknown = await sendRes.json().catch(() => ({}));
-
-        if (
-          !sendRes.ok ||
-          !isObject(sendJson) ||
-          sendJson.ok !== true ||
-          typeof sendJson.signature !== 'string'
-        ) {
-          const details =
-            isObject(sendJson) && typeof sendJson.details === 'string'
-              ? sendJson.details
-              : 'Failed to send transaction';
-
-          throw new Error(details);
-        }
-
-        sig = sendJson.signature;
-      } else {
-        const res = await provider.signAndSendTransaction(partiallySignedTx);
-        sig = typeof res === 'string' ? res : (res.signature ?? '');
+      if (!activeWalletKind) {
+        setMintMsg(t('nft.mint.connectWallet'));
+        return;
       }
+
+      const wireTransaction = await signTransactionWithWalletStandard({
+        walletKind: activeWalletKind,
+        payerAddress,
+        transaction: partiallySignedTx,
+      });
+
+      const sendRes = await fetch('/api/presale/send-transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaction: wireTransaction }),
+      });
+
+      const sendJson: unknown = await sendRes.json().catch(() => ({}));
+
+      if (
+        !sendRes.ok ||
+        !isObject(sendJson) ||
+        sendJson.ok !== true ||
+        typeof sendJson.signature !== 'string'
+      ) {
+        const details =
+          isObject(sendJson) && typeof sendJson.details === 'string'
+            ? sendJson.details
+            : 'Failed to send transaction';
+
+        throw new Error(details);
+      }
+
+      sig = sendJson.signature;
 
       await new Promise((resolve) => setTimeout(resolve, 2_000));
 
