@@ -2,11 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createSolanaRpc, address as solanaAddress } from '@solana/kit';
-import { SOLANA_RPC_URL } from '@/lib/config';
-
 const CLUSTER = 'mainnet' as const;
-const rpc = createSolanaRpc(SOLANA_RPC_URL);
 
 const DISCONNECT_FLAG_KEY = 'vigri_solflare_disconnected';
 
@@ -60,7 +56,6 @@ type WalletState = {
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
-  connection: typeof rpc;
   cluster: string;
 };
 
@@ -73,11 +68,25 @@ export function useSolflareWallet(): WalletState {
 
   const fetchBalance = useCallback(async (pubkey: WalletPublicKey) => {
     try {
-      const lamports = await rpc
-        .getBalance(solanaAddress(pubkey.toBase58()), { commitment: 'confirmed' })
-        .send();
+      const res = await fetch(
+        `/api/solana/balance?wallet=${encodeURIComponent(pubkey.toBase58())}`,
+        { cache: 'no-store' },
+      );
 
-      setBalance(Number(lamports.value) / 1_000_000_000);
+      const data: unknown = await res.json().catch(() => ({}));
+
+      if (
+        res.ok &&
+        typeof data === 'object' &&
+        data !== null &&
+        'sol' in data &&
+        typeof (data as { sol?: unknown }).sol === 'number'
+      ) {
+        setBalance((data as { sol: number }).sol);
+        return;
+      }
+
+      setBalance(null);
     } catch (err) {
       console.error('Failed to load SOL balance', err);
       setBalance(null);
@@ -195,7 +204,6 @@ export function useSolflareWallet(): WalletState {
     error,
     connect,
     disconnect,
-    connection: rpc,
     cluster: CLUSTER,
   };
 }
