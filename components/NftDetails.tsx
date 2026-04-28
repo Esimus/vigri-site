@@ -26,6 +26,7 @@ import {
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   type Address,
+  type Blockhash,
   type Instruction,
 } from '@solana/kit';
 import { getUtf8Encoder } from '@solana/codecs-strings';
@@ -547,7 +548,6 @@ export default function NftDetails({
   const connected = !!activeWallet?.connected && !!activeWallet?.publicKey;
   const publicKey = activeWallet?.publicKey ?? null;
   const cluster = 'mainnet' as const;
-  const connection = activeWallet?.connection ?? phantom.connection;
 
   // Static catalog metadata for given id
   const meta = NFT_CATALOG[id];
@@ -1215,11 +1215,30 @@ export default function NftDetails({
       const metadata = await findMetadataPda(mintPk);
       const edition = await findMasterEditionPda(mintPk);
 
-      const blockhashResponse = await connection
-        .getLatestBlockhash({ commitment: 'finalized' })
-        .send();
+      const blockhashRes = await fetch('/api/presale/latest-blockhash', {
+        cache: 'no-store',
+      });
 
-      const { blockhash, lastValidBlockHeight } = blockhashResponse.value;
+      const blockhashJson: unknown = await blockhashRes.json().catch(() => ({}));
+
+      if (
+        !blockhashRes.ok ||
+        !isObject(blockhashJson) ||
+        blockhashJson.ok !== true ||
+        typeof blockhashJson.blockhash !== 'string' ||
+        typeof blockhashJson.lastValidBlockHeight !== 'string'
+      ) {
+        const details =
+          isObject(blockhashJson) && typeof blockhashJson.details === 'string'
+            ? blockhashJson.details
+            : 'Failed to fetch latest blockhash';
+
+        setMintMsg(`${t('nft.mint.failedPrefix')} ${details}`);
+        return;
+      }
+
+      const blockhash = blockhashJson.blockhash as Blockhash;
+      const lastValidBlockHeight = BigInt(blockhashJson.lastValidBlockHeight);
 
       const sig8 = await anchorSighash('mint_nft');
 
@@ -1314,12 +1333,29 @@ export default function NftDetails({
         const walletSignedTx = await provider.signTransaction(partiallySignedTx);
         const wireTransaction = getBase64EncodedWireTransaction(walletSignedTx as never);
 
-        sig = await connection
-          .sendTransaction(wireTransaction, {
-            encoding: 'base64',
-            skipPreflight: false,
-          })
-          .send();
+        const sendRes = await fetch('/api/presale/send-transaction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transaction: wireTransaction }),
+        });
+
+        const sendJson: unknown = await sendRes.json().catch(() => ({}));
+
+        if (
+          !sendRes.ok ||
+          !isObject(sendJson) ||
+          sendJson.ok !== true ||
+          typeof sendJson.signature !== 'string'
+        ) {
+          const details =
+            isObject(sendJson) && typeof sendJson.details === 'string'
+              ? sendJson.details
+              : 'Failed to send transaction';
+
+          throw new Error(details);
+        }
+
+        sig = sendJson.signature;
       } else {
         const res = await provider.signAndSendTransaction(partiallySignedTx);
         sig = typeof res === 'string' ? res : (res.signature ?? '');
