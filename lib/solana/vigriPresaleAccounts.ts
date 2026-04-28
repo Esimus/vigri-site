@@ -115,7 +115,10 @@ export async function fetchGlobalConfigDecoded(
   const conn = connection ?? getSolanaConnection();
   const pda = await getGlobalConfigPda();
 
-  const accountInfo = await conn.getAccountInfo(pda).send();
+  const accountInfo = await conn.getAccountInfo(pda, {
+    commitment: 'confirmed',
+    encoding: 'base64',
+  }).send();
   if (!accountInfo.value) {
     return null;
   }
