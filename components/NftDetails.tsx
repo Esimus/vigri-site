@@ -23,7 +23,6 @@ import {
   getBase64EncodedWireTransaction,
   getProgramDerivedAddress,
   partiallySignTransactionWithSigners,
-  signatureBytes,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   type Address,
@@ -84,20 +83,16 @@ type NftListResp = { ok: true; items: Item[] };
 type RightsResp = { ok: true; items: Rights[]; tgePriceEur?: number };
 type ClaimResp = { ok: true; vigriClaimed: number };
 type DiscountResp = { ok: true; vigriBought: number; unitEur: number };
-type LegacySolanaWalletProvider = {
-  signMessage?: (
-    message: Uint8Array,
-    display?: 'utf8' | 'hex',
-  ) => Promise<{ signature: Uint8Array } | Uint8Array>;
+type PhantomProviderLike = {
   signTransaction?: (tx: unknown) => Promise<unknown>;
-  signAndSendTransaction?: (tx: unknown) => Promise<{ signature?: string } | string>;
+  signAndSendTransaction: (tx: unknown) => Promise<{ signature?: string } | string>;
 };
 
-function getActiveWalletProvider(kind: 'phantom' | 'solflare' | null): LegacySolanaWalletProvider | null {
+function getActiveWalletProvider(kind: 'phantom' | 'solflare' | null): PhantomProviderLike | null {
   if (typeof window === 'undefined' || !kind) return null;
   const w = window as unknown as {
-    solana?: LegacySolanaWalletProvider;
-    solflare?: LegacySolanaWalletProvider;
+    solana?: PhantomProviderLike;
+    solflare?: PhantomProviderLike;
   };
 
   if (kind === 'phantom') {
@@ -1334,28 +1329,9 @@ export default function NftDetails({
 
       let sig = '';
 
-        if (typeof provider.signMessage !== 'function') {
-          throw new Error('Wallet does not support message signing');
-        }
-
-        const walletSignatureResult = await provider.signMessage(
-          new Uint8Array(partiallySignedTx.messageBytes),
-        );
-
-        const walletSignature =
-          walletSignatureResult instanceof Uint8Array
-            ? walletSignatureResult
-            : walletSignatureResult.signature;
-
-        const fullySignedTx = {
-          ...partiallySignedTx,
-          signatures: {
-            ...partiallySignedTx.signatures,
-            [payerAddress]: signatureBytes(walletSignature),
-          },
-        };
-
-        const wireTransaction = getBase64EncodedWireTransaction(fullySignedTx);
+      if (typeof provider.signTransaction === 'function') {
+        const walletSignedTx = await provider.signTransaction(partiallySignedTx);
+        const wireTransaction = getBase64EncodedWireTransaction(walletSignedTx as never);
 
         const sendRes = await fetch('/api/presale/send-transaction', {
           method: 'POST',
@@ -1380,6 +1356,10 @@ export default function NftDetails({
         }
 
         sig = sendJson.signature;
+      } else {
+        const res = await provider.signAndSendTransaction(partiallySignedTx);
+        sig = typeof res === 'string' ? res : (res.signature ?? '');
+      }
 
       await new Promise((resolve) => setTimeout(resolve, 2_000));
 
