@@ -1,6 +1,6 @@
 // lib/solana/vigriPresaleAccounts.ts
 import type { SolanaRpc } from './vigriPresale';
-import { address } from '@solana/kit';
+import { address, getBase58Decoder } from '@solana/kit';
 import { getSolanaConnection, getGlobalConfigPda } from './vigriPresale';
 import { Buffer } from 'buffer';
 
@@ -23,9 +23,11 @@ export interface GlobalConfigAccount {
   tiers: TierConfigAccount[];
 }
 
+const base58Decoder = getBase58Decoder();
+
 function readPubkey(data: Buffer, offset: number): { value: string; offset: number } {
   const bytes = data.subarray(offset, offset + 32);
-  return { value: address(bytes.toString('hex')), offset: offset + 32 };
+  return { value: address(base58Decoder.decode(bytes)), offset: offset + 32 };
 }
 
 function readU8(data: Buffer, offset: number): { value: number; offset: number } {
