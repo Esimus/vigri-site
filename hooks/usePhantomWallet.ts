@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { CONFIG } from '@/lib/config';
+import { setPreferredWalletKind } from '@/lib/wallet/preferredWallet';
 
 const DISCONNECT_FLAG_KEY = 'vigri_phantom_disconnected';
 
@@ -111,6 +112,7 @@ export function usePhantomWallet(): WalletState {
       setPublicKey(pubkey);
       setAddress(addr);
       setManualDisconnectFlag(false);
+      setPreferredWalletKind('phantom');
 
       await fetchBalance(pubkey);
     } catch (err: unknown) {

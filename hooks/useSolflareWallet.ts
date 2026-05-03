@@ -2,6 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { setPreferredWalletKind } from '@/lib/wallet/preferredWallet';
 const CLUSTER = 'mainnet' as const;
 
 const DISCONNECT_FLAG_KEY = 'vigri_solflare_disconnected';
@@ -110,6 +111,7 @@ export function useSolflareWallet(): WalletState {
       setPublicKey(pubkey);
       setAddress(addr);
       setManualDisconnectFlag(false);
+      setPreferredWalletKind('solflare');
       await fetchBalance(pubkey);
     } catch (err: unknown) {
       const e = err as { code?: number; message?: string };

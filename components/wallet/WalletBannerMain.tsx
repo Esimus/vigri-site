@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useI18n } from '@/hooks/useI18n';
 import { usePhantomWallet } from '@/hooks/usePhantomWallet';
 import { useSolflareWallet } from '@/hooks/useSolflareWallet';
+import { getPreferredWalletKind } from '@/lib/wallet/preferredWallet';
 
 type WalletBannerMainProps = {
   className?: string;
@@ -19,7 +20,16 @@ export default function WalletBannerMain({ className }: WalletBannerMainProps) {
   const solflare = useSolflareWallet();
 
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
-  const active = phantom.address ? phantom : solflare;
+  const preferredWalletKind = getPreferredWalletKind();
+
+  const active =
+    preferredWalletKind === 'solflare' && solflare.address
+      ? solflare
+      : preferredWalletKind === 'phantom' && phantom.address
+        ? phantom
+        : solflare.address
+          ? solflare
+          : phantom;
 
   const address = active.address;
   const disconnect = active.disconnect;

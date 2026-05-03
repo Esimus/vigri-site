@@ -34,6 +34,7 @@ import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
 import { WalletBannerMain } from '@/components/wallet';
 import { getPresaleProgramId, getGlobalConfigPda } from '@/lib/solana/vigriPresale';
+import { getPreferredWalletKind } from '@/lib/wallet/preferredWallet';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -531,12 +532,18 @@ export default function NftDetails({
   const phantom = usePhantomWallet();
   const solflare = useSolflareWallet();
 
+  const preferredWalletKind = getPreferredWalletKind();
+
   const activeWalletKind =
-    phantom.connected && phantom.publicKey
-      ? 'phantom'
-      : solflare.connected && solflare.publicKey
-        ? 'solflare'
-        : null;
+    preferredWalletKind === 'solflare' && solflare.connected && solflare.publicKey
+      ? 'solflare'
+      : preferredWalletKind === 'phantom' && phantom.connected && phantom.publicKey
+        ? 'phantom'
+        : solflare.connected && solflare.publicKey
+          ? 'solflare'
+          : phantom.connected && phantom.publicKey
+            ? 'phantom'
+            : null;
 
   const activeWallet =
     activeWalletKind === 'phantom'
