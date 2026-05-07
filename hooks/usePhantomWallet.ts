@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { CONFIG } from '@/lib/config';
-import { setPreferredWalletKind } from '@/lib/wallet/preferredWallet';
+import { getPreferredWalletKind, setPreferredWalletKind } from '@/lib/wallet/preferredWallet';
 
 const DISCONNECT_FLAG_KEY = 'vigri_phantom_disconnected';
 
@@ -150,7 +150,11 @@ export function usePhantomWallet(): WalletState {
     const provider = getPhantomProvider();
     if (!provider || !provider.isPhantom) return;
 
+    const shouldUseProviderUpdates = () => getPreferredWalletKind() !== 'solflare';
+
     const updateFromPubkey = (pubkey: WalletPublicKey) => {
+      if (!shouldUseProviderUpdates()) return;
+
       const addr = pubkey.toBase58();
       setPublicKey(pubkey);
       setAddress(addr);
@@ -180,14 +184,6 @@ export function usePhantomWallet(): WalletState {
         updateFromPubkey(pubkey);
       }
     };
-
-    // Session restore: if user did NOT manually disconnect and provider already has publicKey
-    if (!hasManualDisconnectFlag()) {
-      const existingPubkey = provider.publicKey ?? null;
-      if (existingPubkey) {
-        updateFromPubkey(existingPubkey);
-      }
-    }
 
     provider.on?.('connect', handleConnect);
     provider.on?.('disconnect', handleDisconnect);
