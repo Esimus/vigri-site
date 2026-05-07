@@ -103,8 +103,11 @@ export function usePhantomWallet(): WalletState {
       return;
     }
 
+    setPreferredWalletKind('phantom');
+
     try {
       setConnecting(true);
+
       const res = await provider.connect({ onlyIfTrusted: false });
       const pubkey: WalletPublicKey = res.publicKey;
       const addr = pubkey.toBase58();
@@ -112,8 +115,6 @@ export function usePhantomWallet(): WalletState {
       setPublicKey(pubkey);
       setAddress(addr);
       setManualDisconnectFlag(false);
-      setPreferredWalletKind('phantom');
-
       await fetchBalance(pubkey);
     } catch (err: unknown) {
       const e = err as { code?: number; message?: string };

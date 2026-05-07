@@ -103,15 +103,17 @@ export function useSolflareWallet(): WalletState {
       return;
     }
 
+    setPreferredWalletKind('solflare');
+
     try {
       setConnecting(true);
+
       const res = await provider.connect({ onlyIfTrusted: false });
       const pubkey: WalletPublicKey = res.publicKey;
       const addr = pubkey.toBase58();
       setPublicKey(pubkey);
       setAddress(addr);
       setManualDisconnectFlag(false);
-      setPreferredWalletKind('solflare');
       await fetchBalance(pubkey);
     } catch (err: unknown) {
       const e = err as { code?: number; message?: string };
