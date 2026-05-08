@@ -190,11 +190,28 @@ export function useSolflareWallet(): WalletState {
     provider.on?.('disconnect', handleDisconnect);
     provider.on?.('accountChanged', handleAccountChanged);
 
-    // Restore session after reload if user did not manually disconnect
-    const manuallyDisconnected = hasManualDisconnectFlag();
-    if (!manuallyDisconnected && provider.publicKey) {
-      updateFromPubkey(provider.publicKey);
-    }
+    // Restore session after reload if user did not manually disconnect.
+    // Solflare may expose publicKey later than Phantom after a hard reload,
+    // so we also try a trusted-only reconnect without opening an approval prompt.
+    const restoreTrustedSession = async () => {
+      if (hasManualDisconnectFlag()) return;
+      if (getPreferredWalletKind() === 'phantom') return;
+
+      const existingPubkey = provider.publicKey ?? null;
+      if (existingPubkey) {
+        updateFromPubkey(existingPubkey);
+        return;
+      }
+
+      try {
+        const res = await provider.connect({ onlyIfTrusted: true });
+        updateFromPubkey(res.publicKey);
+      } catch {
+        // Ignore silent restore failures.
+      }
+    };
+
+    void restoreTrustedSession();
 
     return () => {
       provider.off?.('connect', handleConnect);
