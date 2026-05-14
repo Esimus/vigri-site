@@ -1200,27 +1200,12 @@ export default function NftDetails({
         return pda;
       }
 
-      async function findMasterEditionPda(mint: Address): Promise<Address> {
-        const [pda] = await getProgramDerivedAddress({
-          programAddress: TOKEN_METADATA_PROGRAM_ID,
-          seeds: [
-            getUtf8Encoder().encode('metadata'),
-            getAddressEncoder().encode(TOKEN_METADATA_PROGRAM_ID),
-            getAddressEncoder().encode(mint),
-            getUtf8Encoder().encode('edition'),
-          ],
-        });
-
-        return pda;
-      }
-
       const mintSigner = await generateKeyPairSigner();
       const mintPk = mintSigner.address;
 
       const payerAddress = address(publicKey.toBase58());
       const payerAta = await findAta(payerAddress, mintPk);
       const metadata = await findMetadataPda(mintPk);
-      const edition = await findMasterEditionPda(mintPk);
 
       const blockhashRes = await fetch('/api/presale/latest-blockhash', {
         cache: 'no-store',
@@ -1286,10 +1271,6 @@ export default function NftDetails({
         instructionData[11] = 0;
       }
 
-      const collectionMint = address('7wGaXNPmB14HmhiYybf8o8Vb9jA7eVSNRDLWnYjDKYwt');
-      const collectionMetadata = await findMetadataPda(collectionMint);
-      const collectionMasterEdition = await findMasterEditionPda(collectionMint);
-
       const computeIx: Instruction = {
         programAddress: COMPUTE_BUDGET_PROGRAM_ID,
         accounts: [],
@@ -1302,13 +1283,9 @@ export default function NftDetails({
           { address: payerAddress, role: AccountRole.WRITABLE_SIGNER },
           { address: globalConfig, role: AccountRole.WRITABLE },
           { address: admin, role: AccountRole.WRITABLE },
-          { address: collectionMint, role: AccountRole.READONLY },
-          { address: collectionMetadata, role: AccountRole.WRITABLE },
-          { address: collectionMasterEdition, role: AccountRole.WRITABLE },
           { address: mintPk, role: AccountRole.WRITABLE_SIGNER },
           { address: payerAta, role: AccountRole.WRITABLE },
           { address: metadata, role: AccountRole.WRITABLE },
-          { address: edition, role: AccountRole.WRITABLE },
           { address: TOKEN_METADATA_PROGRAM_ID, role: AccountRole.READONLY },
           { address: TOKEN_PROGRAM_ID, role: AccountRole.READONLY },
           { address: ASSOCIATED_TOKEN_PROGRAM_ID, role: AccountRole.READONLY },
