@@ -21,6 +21,7 @@ import {
   generateKeyPairSigner,
   getAddressEncoder,
   getProgramDerivedAddress,
+  getBase64EncodedWireTransaction,
   partiallySignTransactionWithSigners,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
@@ -1310,6 +1311,31 @@ export default function NftDetails({
         [mintSigner],
         compileTransaction(message),
       );
+
+      const simulationTransaction = getBase64EncodedWireTransaction(partiallySignedTx);
+
+      const simulationRes = await fetch('/api/presale/simulate-transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaction: simulationTransaction }),
+      });
+
+      const simulationJson: unknown = await simulationRes.json().catch(() => ({}));
+
+      console.log('[presale mint simulation]', simulationJson);
+
+      if (
+        !simulationRes.ok ||
+        !isObject(simulationJson) ||
+        simulationJson.ok !== true
+      ) {
+        const details =
+          isObject(simulationJson) && typeof simulationJson.details === 'string'
+            ? simulationJson.details
+            : 'Simulation request failed';
+
+        throw new Error(details);
+      }
 
       let sig = '';
 
