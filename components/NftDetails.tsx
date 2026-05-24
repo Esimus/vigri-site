@@ -1337,6 +1337,34 @@ export default function NftDetails({
         throw new Error(details);
       }
 
+      const simulation = isObject(simulationJson.simulation)
+        ? simulationJson.simulation
+        : null;
+
+      const simulationValue =
+        simulation && isObject(simulation.value) ? simulation.value : null;
+
+      const simulationErr = simulationValue?.err ?? null;
+
+      if (simulationErr !== null) {
+        const simulationLogs = Array.isArray(simulationValue?.logs)
+          ? simulationValue.logs
+          : [];
+
+        console.error('[presale mint simulation failed]', {
+          err: simulationErr,
+          logs: simulationLogs,
+        });
+
+        const lastProgramLog =
+          simulationLogs
+            .filter((line): line is string => typeof line === 'string')
+            .slice(-6)
+            .join('\n') || 'No simulation logs returned';
+
+        throw new Error(`Simulation failed:\n${lastProgramLog}`);
+      }
+
       let sig = '';
 
       if (!activeWalletKind) {
