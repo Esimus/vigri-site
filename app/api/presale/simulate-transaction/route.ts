@@ -20,6 +20,14 @@ function isBase64String(value: string): boolean {
   return /^[A-Za-z0-9+/]+={0,2}$/.test(value);
 }
 
+function toJsonSafe(value: unknown): unknown {
+  return JSON.parse(
+    JSON.stringify(value, (_key, item: unknown) =>
+      typeof item === 'bigint' ? item.toString() : item,
+    ),
+  ) as unknown;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: unknown = await req.json().catch(() => null);
@@ -69,11 +77,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ok: true,
-        simulation,
+        simulation: toJsonSafe(simulation),
         cluster: 'mainnet',
       },
       { status: 200 },
     );
+    
   } catch (error: unknown) {
     console.error('[presale/simulate-transaction] POST error:', error);
 
