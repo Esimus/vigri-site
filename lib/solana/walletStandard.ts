@@ -215,3 +215,52 @@ export async function signAndSendTransactionWithWalletStandard(params: {
     `${expectedWalletName} does not expose Wallet Standard sign-and-send transaction for the connected account`,
   );
 }
+
+export async function signTransactionObjectWithWalletStandard(params: {
+  walletKind: WalletKind;
+  payerAddress: Address;
+  transaction: Transaction;
+}): Promise<Transaction> {
+  const payerAddressString = String(params.payerAddress);
+  const expectedWalletName = walletNameForKind(params.walletKind);
+  const wallets = await getRegisteredWallets();
+
+  for (const wallet of wallets) {
+    if (wallet.name !== expectedWalletName) continue;
+    if (!wallet.chains.includes(SOLANA_MAINNET_CHAIN)) continue;
+
+    const feature = wallet.features[SOLANA_SIGN_TRANSACTION_FEATURE];
+    if (!isSignTransactionFeature(feature)) continue;
+
+    const account = wallet.accounts.find(
+      (candidate) =>
+        candidate.address === payerAddressString &&
+        candidate.chains.includes(SOLANA_MAINNET_CHAIN) &&
+        candidate.features.includes(SOLANA_SIGN_TRANSACTION_FEATURE),
+    );
+
+    if (!account) continue;
+
+    const transactionCodec = getTransactionCodec();
+    const transactionBytes = transactionCodec.encode(params.transaction) as Uint8Array;
+
+    const [result] = await feature.signTransaction({
+      account,
+      chain: SOLANA_MAINNET_CHAIN,
+      transaction: transactionBytes,
+      options: {
+        preflightCommitment: 'confirmed',
+      },
+    });
+
+    if (!result || !isUint8Array(result.signedTransaction)) {
+      throw new Error('Wallet did not return a signed transaction');
+    }
+
+    return transactionCodec.decode(result.signedTransaction);
+  }
+
+  throw new Error(
+    `${expectedWalletName} does not expose Wallet Standard transaction signing for the connected account`,
+  );
+}

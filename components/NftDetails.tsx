@@ -29,7 +29,10 @@ import {
   type Blockhash,
   type Instruction,
 } from '@solana/kit';
-import { signAndSendTransactionWithWalletStandard } from '@/lib/solana/walletStandard';
+import {
+  signAndSendTransactionWithWalletStandard,
+  signTransactionObjectWithWalletStandard,
+} from '@/lib/solana/walletStandard';
 import { getUtf8Encoder } from '@solana/codecs-strings';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
@@ -1330,9 +1333,11 @@ export default function NftDetails({
         ),
       );
 
+      const compiledTx = compileTransaction(message);
+
       const partiallySignedTx = await partiallySignTransactionWithSigners(
         [mintSigner],
-        compileTransaction(message),
+        compiledTx,
       );
 
       const simulationTransaction = getBase64EncodedWireTransaction(partiallySignedTx);
@@ -1395,11 +1400,50 @@ export default function NftDetails({
         return;
       }
 
+      if (activeWalletKind === 'phantom') {
+      const walletSignedTx = await signTransactionObjectWithWalletStandard({
+        walletKind: activeWalletKind,
+        payerAddress,
+        transaction: compiledTx,
+      });
+
+      const fullySignedTx = await partiallySignTransactionWithSigners(
+        [mintSigner],
+        walletSignedTx,
+      );
+
+      const wireTransaction = getBase64EncodedWireTransaction(fullySignedTx);
+
+      const sendRes = await fetch('/api/presale/send-transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaction: wireTransaction }),
+      });
+
+      const sendJson: unknown = await sendRes.json().catch(() => ({}));
+
+      if (
+        !sendRes.ok ||
+        !isObject(sendJson) ||
+        sendJson.ok !== true ||
+        typeof sendJson.signature !== 'string'
+      ) {
+        const details =
+          isObject(sendJson) && typeof sendJson.details === 'string'
+            ? sendJson.details
+            : 'Failed to send transaction';
+
+        throw new Error(details);
+      }
+
+      sig = sendJson.signature;
+    } else {
       sig = await signAndSendTransactionWithWalletStandard({
         walletKind: activeWalletKind,
         payerAddress,
         transaction: partiallySignedTx,
       });
+    }
 
       await new Promise((resolve) => setTimeout(resolve, 2_000));
 
