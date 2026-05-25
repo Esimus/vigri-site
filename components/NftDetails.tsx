@@ -1340,59 +1340,6 @@ export default function NftDetails({
         compiledTx,
       );
 
-      const simulationTransaction = getBase64EncodedWireTransaction(partiallySignedTx);
-
-      const simulationRes = await fetch('/api/presale/simulate-transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transaction: simulationTransaction }),
-      });
-
-      const simulationJson: unknown = await simulationRes.json().catch(() => ({}));
-
-      console.log('[presale mint simulation]', simulationJson);
-
-      if (
-        !simulationRes.ok ||
-        !isObject(simulationJson) ||
-        simulationJson.ok !== true
-      ) {
-        const details =
-          isObject(simulationJson) && typeof simulationJson.details === 'string'
-            ? simulationJson.details
-            : 'Simulation request failed';
-
-        throw new Error(details);
-      }
-
-      const simulation = isObject(simulationJson.simulation)
-        ? simulationJson.simulation
-        : null;
-
-      const simulationValue =
-        simulation && isObject(simulation.value) ? simulation.value : null;
-
-      const simulationErr = simulationValue?.err ?? null;
-
-      if (simulationErr !== null) {
-        const simulationLogs = Array.isArray(simulationValue?.logs)
-          ? simulationValue.logs
-          : [];
-
-        console.error('[presale mint simulation failed]', {
-          err: simulationErr,
-          logs: simulationLogs,
-        });
-
-        const lastProgramLog =
-          simulationLogs
-            .filter((line): line is string => typeof line === 'string')
-            .slice(-6)
-            .join('\n') || 'No simulation logs returned';
-
-        throw new Error(`Simulation failed:\n${lastProgramLog}`);
-      }
-
       let sig = '';
 
       if (!activeWalletKind) {
