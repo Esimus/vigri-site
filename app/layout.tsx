@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import CookieConsentGate from "@/components/CookieConsentGate";
+import WalletUiProvider from "@/components/wallet/WalletUiProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
@@ -69,7 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="page-bg">
-        {children}
+        <WalletUiProvider>{children}</WalletUiProvider>
         {/* Cookie consent banner (server-aware) */}
         <CookieConsentGate />
       </body>
