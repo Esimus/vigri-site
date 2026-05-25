@@ -3,7 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import CookieConsentGate from "@/components/CookieConsentGate";
-import WalletUiProvider from "@/components/wallet/WalletUiProvider";
+import { WalletUiProvider } from "@/components/wallet";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
