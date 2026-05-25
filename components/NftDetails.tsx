@@ -29,7 +29,7 @@ import {
   type Blockhash,
   type Instruction,
 } from '@solana/kit';
-import { signTransactionWithWalletStandard } from '@/lib/solana/walletStandard';
+import { signAndSendTransactionWithWalletStandard } from '@/lib/solana/walletStandard';
 import { getUtf8Encoder } from '@solana/codecs-strings';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
@@ -1395,35 +1395,11 @@ export default function NftDetails({
         return;
       }
 
-      const wireTransaction = await signTransactionWithWalletStandard({
+      sig = await signAndSendTransactionWithWalletStandard({
         walletKind: activeWalletKind,
         payerAddress,
         transaction: partiallySignedTx,
       });
-
-      const sendRes = await fetch('/api/presale/send-transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transaction: wireTransaction }),
-      });
-
-      const sendJson: unknown = await sendRes.json().catch(() => ({}));
-
-      if (
-        !sendRes.ok ||
-        !isObject(sendJson) ||
-        sendJson.ok !== true ||
-        typeof sendJson.signature !== 'string'
-      ) {
-        const details =
-          isObject(sendJson) && typeof sendJson.details === 'string'
-            ? sendJson.details
-            : 'Failed to send transaction';
-
-        throw new Error(details);
-      }
-
-      sig = sendJson.signature;
 
       await new Promise((resolve) => setTimeout(resolve, 2_000));
 
