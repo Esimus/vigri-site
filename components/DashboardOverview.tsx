@@ -8,8 +8,7 @@ import { useI18n } from '@/hooks/useI18n';
 import StatCarousel from '@/components/ui/StatCarousel';
 import MyNftsStrip from '@/components/MyNftsStrip';
 import WalletBannerMain from '@/components/wallet/WalletBannerMain';
-import { usePhantomWallet } from '@/hooks/usePhantomWallet';
-import { useSolflareWallet } from '@/hooks/useSolflareWallet';
+import { useWalletUi } from '@wallet-ui/react';
 import InlineLoader from '@/components/ui/InlineLoader';
 
 type Rights = {
@@ -162,9 +161,8 @@ const fetchRights = async (): Promise<RightsResp | null> => {
 
 export default function DashboardOverview() {
   const { t } = useI18n();
-  const phantom = usePhantomWallet();
-  const solflare = useSolflareWallet();
-  const address = phantom.address || solflare.address;
+  const walletUi = useWalletUi();
+  const address = walletUi.account?.address ?? null;
 
   const [now] = useState(() => Date.now());
 

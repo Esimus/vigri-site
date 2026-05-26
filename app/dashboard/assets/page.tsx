@@ -4,8 +4,7 @@
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { useI18n } from '@/hooks/useI18n';
-import { usePhantomWallet } from '@/hooks/usePhantomWallet';
-import { useSolflareWallet } from '@/hooks/useSolflareWallet';
+import { useWalletUi } from '@wallet-ui/react';
 import WalletBannerMain from '@/components/wallet/WalletBannerMain';
 import InlineLoader from '@/components/ui/InlineLoader';
 
@@ -96,11 +95,10 @@ const fetcher = async (url: string): Promise<GetResp | null> => {
 export default function AssetsPage() {
   const { t } = useI18n();
 
-  const phantom = usePhantomWallet();
-  const solflare = useSolflareWallet();
+  const walletUi = useWalletUi();
 
   // Active wallet address for API calls (/api/assets)
-  const address = phantom.address || solflare.address;
+  const address = walletUi.account?.address ?? null;
 
   // Key for SWR: when no wallet -> do not fetch at all
   const swrKey = address

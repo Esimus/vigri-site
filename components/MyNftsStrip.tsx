@@ -6,8 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/useI18n';
-import { usePhantomWallet } from '@/hooks/usePhantomWallet';
-import { useSolflareWallet } from '@/hooks/useSolflareWallet';
+import { useWalletUi } from '@wallet-ui/react';
 import { NFT_CATALOG } from '@/constants/nftCatalog';
 
 type CSSWithExtras = React.CSSProperties & {
@@ -95,11 +94,8 @@ function shortTx(sig: string, prefix = 14, suffix = 10): string {
 
 export default function MyNftsStrip() {
   const { t } = useI18n();
-  const { address: phantomAddress } = usePhantomWallet();
-  const { address: solflareAddress } = useSolflareWallet();
-
-  // Универсальный адрес: сначала Phantom, если нет — Solflare
-  const walletAddress = phantomAddress ?? solflareAddress ?? null;
+  const walletUi = useWalletUi();
+  const walletAddress = walletUi.account?.address ?? null;
 
   const [groups, setGroups] = useState<Group[]>([]);
   const [events, setEvents] = useState<MintEvent[]>([]);
