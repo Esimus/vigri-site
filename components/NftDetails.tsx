@@ -1229,12 +1229,13 @@ export default function NftDetails({
         instructionData[11] = 0;
         instructionData[12] = 0;
       } else {
-        instructionData = new Uint8Array(12);
+        instructionData = new Uint8Array(13);
         instructionData.set(sig8, 0);
         instructionData[8] = tierId & 0xff;
         instructionData[9] = 0;
         instructionData[10] = 0;
         instructionData[11] = 0;
+        instructionData[12] = 0;
       }
 
       const collectionMint = address('7wGaXNPmB14HmhiYybf8o8Vb9jA7eVSNRDLWnYjDKYwt');
