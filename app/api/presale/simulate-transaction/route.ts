@@ -21,6 +21,27 @@ function isBase64String(value: string): boolean {
   return /^[A-Za-z0-9+/]+={0,2}$/.test(value);
 }
 
+function toJsonSafe(value: unknown): unknown {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(toJsonSafe);
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, entry]) => [
+        key,
+        toJsonSafe(entry),
+      ]),
+    );
+  }
+
+  return value;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: unknown = await req.json().catch(() => null);
@@ -70,7 +91,7 @@ export async function POST(req: NextRequest) {
       {
         ok: true,
         cluster: 'mainnet',
-        value: simulation.value,
+        value: toJsonSafe(simulation.value),
       },
       { status: 200 },
     );
