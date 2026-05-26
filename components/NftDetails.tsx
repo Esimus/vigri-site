@@ -10,7 +10,7 @@ import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
 import InlineLoader from '@/components/ui/InlineLoader';
 import SalesBar from '@/components/ui/SalesBar';
 import { useWalletUi } from '@wallet-ui/react';
-import { createTransactionSendingSignerFromWalletAccount } from '@solana/wallet-account-signer';
+import { createTransactionSignerFromWalletAccount } from '@solana/wallet-account-signer';
 import { getKycBadgeStateForNftList } from '@/lib/kyc/getKycUiState';
 import {
   AccountRole,
@@ -21,14 +21,15 @@ import {
   generateKeyPairSigner,
   getAddressEncoder,
   getProgramDerivedAddress,
-  signAndSendTransactionWithSigners,
+  getBase64EncodedWireTransaction,
+  partiallySignTransactionWithSigners,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   type Address,
   type Blockhash,
   type Instruction,
 } from '@solana/kit';
-import { getBase58Decoder, getUtf8Encoder } from '@solana/codecs-strings';
+import { getUtf8Encoder } from '@solana/codecs-strings';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
 import { WalletBannerMain } from '@/components/wallet';
@@ -1281,17 +1282,51 @@ export default function NftDetails({
 
       const compiledTx = compileTransaction(message);
 
-      const walletSigner = createTransactionSendingSignerFromWalletAccount(
+      const walletSigner = createTransactionSignerFromWalletAccount(
         walletUiAccount,
         'solana:mainnet',
       );
 
-      const signatureBytes = await signAndSendTransactionWithSigners(
-        [mintSigner, walletSigner],
+      const walletSignedTransactions = await walletSigner.modifyAndSignTransactions([
         compiledTx,
+      ]);
+
+      const walletSignedTx = walletSignedTransactions[0];
+
+      if (!walletSignedTx) {
+        throw new Error('Wallet did not return a signed transaction');
+      }
+
+      const fullySignedTx = await partiallySignTransactionWithSigners(
+        [mintSigner],
+        walletSignedTx,
       );
 
-      const sig = getBase58Decoder().decode(signatureBytes);
+      const wireTransaction = getBase64EncodedWireTransaction(fullySignedTx);
+
+      const sendRes = await fetch('/api/presale/send-transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaction: wireTransaction }),
+      });
+
+      const sendJson: unknown = await sendRes.json().catch(() => ({}));
+
+      if (
+        !sendRes.ok ||
+        !isObject(sendJson) ||
+        sendJson.ok !== true ||
+        typeof sendJson.signature !== 'string'
+      ) {
+        const details =
+          isObject(sendJson) && typeof sendJson.details === 'string'
+            ? sendJson.details
+            : 'Failed to send transaction';
+
+        throw new Error(details);
+      }
+
+      const sig = sendJson.signature;
 
       await new Promise((resolve) => setTimeout(resolve, 2_000));
 
