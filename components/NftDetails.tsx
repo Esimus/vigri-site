@@ -9,8 +9,8 @@ import PillCarousel from '@/components/ui/PillCarousel';
 import { NFT_CATALOG, NFT_NAV, NftMeta } from '@/constants/nftCatalog';
 import InlineLoader from '@/components/ui/InlineLoader';
 import SalesBar from '@/components/ui/SalesBar';
-import { usePhantomWallet } from '@/hooks/usePhantomWallet';
-import { useSolflareWallet } from '@/hooks/useSolflareWallet';
+import { useWalletUi } from '@wallet-ui/react';
+import { createTransactionSendingSignerFromWalletAccount } from '@solana/wallet-account-signer';
 import { getKycBadgeStateForNftList } from '@/lib/kyc/getKycUiState';
 import {
   AccountRole,
@@ -21,24 +21,18 @@ import {
   generateKeyPairSigner,
   getAddressEncoder,
   getProgramDerivedAddress,
-  getBase64EncodedWireTransaction,
-  partiallySignTransactionWithSigners,
+  signAndSendTransactionWithSigners,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   type Address,
   type Blockhash,
   type Instruction,
 } from '@solana/kit';
-import {
-  signAndSendTransactionWithWalletStandard,
-  signTransactionObjectWithWalletStandard,
-} from '@/lib/solana/walletStandard';
-import { getUtf8Encoder } from '@solana/codecs-strings';
+import { getBase58Decoder, getUtf8Encoder } from '@solana/codecs-strings';
 import { getKycUiState } from '@/lib/kycUi';
 import type { KycUiPill } from '@/lib/kycUi';
 import { WalletBannerMain } from '@/components/wallet';
 import { getPresaleProgramId, getGlobalConfigPda } from '@/lib/solana/vigriPresale';
-import { getPreferredWalletKind } from '@/lib/wallet/preferredWallet';
 
 type Design = { id: string; label: string; rarity?: number };
 type Item = {
@@ -88,26 +82,6 @@ type NftListResp = { ok: true; items: Item[] };
 type RightsResp = { ok: true; items: Rights[]; tgePriceEur?: number };
 type ClaimResp = { ok: true; vigriClaimed: number };
 type DiscountResp = { ok: true; vigriBought: number; unitEur: number };
-type PhantomProviderLike = {
-  signTransaction?: (tx: unknown) => Promise<unknown>;
-  signAndSendTransaction: (tx: unknown) => Promise<{ signature?: string } | string>;
-};
-
-function getActiveWalletProvider(kind: 'phantom' | 'solflare' | null): PhantomProviderLike | null {
-  if (typeof window === 'undefined' || !kind) return null;
-  const w = window as unknown as {
-    solana?: PhantomProviderLike;
-    solflare?: PhantomProviderLike;
-  };
-
-  if (kind === 'phantom') {
-    return w.solana ?? null;
-  }
-  if (kind === 'solflare') {
-    return w.solflare ?? null;
-  }
-  return null;
-}
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
@@ -533,31 +507,10 @@ export default function NftDetails({
   const { t } = useI18n();
   const listHref = mode === 'public' ? '/nft' : '/dashboard/nft';
 
-  const phantom = usePhantomWallet();
-  const solflare = useSolflareWallet();
-
-  const preferredWalletKind = getPreferredWalletKind();
-
-  const activeWalletKind =
-    preferredWalletKind === 'solflare' && solflare.connected && solflare.publicKey
-      ? 'solflare'
-      : preferredWalletKind === 'phantom' && phantom.connected && phantom.publicKey
-        ? 'phantom'
-        : solflare.connected && solflare.publicKey
-          ? 'solflare'
-          : phantom.connected && phantom.publicKey
-            ? 'phantom'
-            : null;
-
-  const activeWallet =
-    activeWalletKind === 'phantom'
-      ? phantom
-      : activeWalletKind === 'solflare'
-        ? solflare
-        : null;
-
-  const connected = !!activeWallet?.connected && !!activeWallet?.publicKey;
-  const publicKey = activeWallet?.publicKey ?? null;
+  const walletUi = useWalletUi();
+  const walletUiAccount = walletUi.account ?? null;
+  const walletAddress = walletUiAccount?.address ?? null;
+  const connected = Boolean(walletUi.connected && walletUiAccount && walletAddress);
   const cluster = 'mainnet' as const;
 
   // Static catalog metadata for given id
@@ -1046,15 +999,8 @@ export default function NftDetails({
     return;
   }
 
-  if (!connected || !publicKey) {
+  if (!connected || !walletUiAccount || !walletAddress) {
     setMintMsg(t('nft.mint.connectWallet'));
-    return;
-  }
-
-  const provider = getActiveWalletProvider(activeWalletKind);
-  if (!provider) {
-    // Keep legacy i18n key: here it means "wallet provider not found".
-    setMintMsg(t('nft.mint.phantomNotFound'));
     return;
   }
 
@@ -1221,7 +1167,7 @@ export default function NftDetails({
       const mintSigner = await generateKeyPairSigner();
       const mintPk = mintSigner.address;
 
-      const payerAddress = address(publicKey.toBase58());
+      const payerAddress = address(walletAddress);
       const payerAta = await findAta(payerAddress, mintPk);
       const metadata = await findMetadataPda(mintPk);
       const edition = await findMasterEditionPda(mintPk);
@@ -1335,62 +1281,17 @@ export default function NftDetails({
 
       const compiledTx = compileTransaction(message);
 
-      const partiallySignedTx = await partiallySignTransactionWithSigners(
-        [mintSigner],
+      const walletSigner = createTransactionSendingSignerFromWalletAccount(
+        walletUiAccount,
+        'solana:mainnet',
+      );
+
+      const signatureBytes = await signAndSendTransactionWithSigners(
+        [mintSigner, walletSigner],
         compiledTx,
       );
 
-      let sig = '';
-
-      if (!activeWalletKind) {
-        setMintMsg(t('nft.mint.connectWallet'));
-        return;
-      }
-
-      if (activeWalletKind === 'phantom') {
-      const walletSignedTx = await signTransactionObjectWithWalletStandard({
-        walletKind: activeWalletKind,
-        payerAddress,
-        transaction: compiledTx,
-      });
-
-      const fullySignedTx = await partiallySignTransactionWithSigners(
-        [mintSigner],
-        walletSignedTx,
-      );
-
-      const wireTransaction = getBase64EncodedWireTransaction(fullySignedTx);
-
-      const sendRes = await fetch('/api/presale/send-transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transaction: wireTransaction }),
-      });
-
-      const sendJson: unknown = await sendRes.json().catch(() => ({}));
-
-      if (
-        !sendRes.ok ||
-        !isObject(sendJson) ||
-        sendJson.ok !== true ||
-        typeof sendJson.signature !== 'string'
-      ) {
-        const details =
-          isObject(sendJson) && typeof sendJson.details === 'string'
-            ? sendJson.details
-            : 'Failed to send transaction';
-
-        throw new Error(details);
-      }
-
-      sig = sendJson.signature;
-    } else {
-      sig = await signAndSendTransactionWithWalletStandard({
-        walletKind: activeWalletKind,
-        payerAddress,
-        transaction: partiallySignedTx,
-      });
-    }
+      const sig = getBase58Decoder().decode(signatureBytes);
 
       await new Promise((resolve) => setTimeout(resolve, 2_000));
 
@@ -1411,7 +1312,7 @@ export default function NftDetails({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            wallet: publicKey!.toBase58(),
+            wallet: walletAddress,
             tierId,
             quantity: 1,
             txSignature: sig,
