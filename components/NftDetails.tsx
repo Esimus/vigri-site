@@ -1322,16 +1322,21 @@ export default function NftDetails({
       );
 
       const walletSignedTransactions = await walletSigner.modifyAndSignTransactions([
-          simulationTx,
-        ]);
+        compiledTx,
+      ]);
 
       const walletSignedTx = walletSignedTransactions[0];
 
-        if (!walletSignedTx) {
-          throw new Error('Wallet did not return a signed transaction');
-        }
+      if (!walletSignedTx) {
+        throw new Error('Wallet did not return a signed transaction');
+      }
 
-      const wireTransaction = getBase64EncodedWireTransaction(walletSignedTx);
+      const fullySignedTx = await partiallySignTransactionWithSigners(
+        [mintSigner],
+        walletSignedTx,
+      );
+
+      const wireTransaction = getBase64EncodedWireTransaction(fullySignedTx);
 
       const sendRes = await fetch('/api/presale/send-transaction', {
         method: 'POST',
