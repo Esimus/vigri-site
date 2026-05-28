@@ -1283,39 +1283,6 @@ export default function NftDetails({
 
       const compiledTx = compileTransaction(message);
 
-            const simulationTx = await partiallySignTransactionWithSigners(
-        [mintSigner],
-        compiledTx,
-      );
-
-      const simulationWireTransaction = getBase64EncodedWireTransaction(simulationTx);
-
-      const simulationRes = await fetch('/api/presale/simulate-transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transaction: simulationWireTransaction }),
-      });
-
-      const simulationJson: unknown = await simulationRes.json().catch(() => ({}));
-
-      console.info('[presale/simulate-transaction]', simulationJson);
-
-      const simulationValue =
-        isObject(simulationJson) && isObject(simulationJson.value)
-          ? simulationJson.value
-          : null;
-
-      const simulationError =
-        simulationValue && 'err' in simulationValue ? simulationValue.err : null;
-
-      if (!simulationRes.ok || simulationError) {
-        console.error('[presale/simulate-transaction] failed', simulationJson);
-        setMintMsg(
-          `${t('nft.mint.failedPrefix')} Transaction simulation failed. See browser console.`,
-        );
-        return;
-      }
-
       const walletSigner = createTransactionSignerFromWalletAccount(
         walletUiAccount,
         'solana:mainnet',
