@@ -143,7 +143,9 @@ export default function AdminClubsPage() {
   }, []);
 
   React.useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   const canSubmit = name.trim().length > 1 && !saving && !uploadingKind;

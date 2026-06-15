@@ -240,7 +240,9 @@ export default function RewardsPage() {
   }, [userId]);
 
   useEffect(() => {
-    setPage(1);
+    queueMicrotask(() => {
+      setPage(1);
+    });
   }, [userId]);
 
   const referralUrl = userId ? `${baseUrl}/?ref=${encodeURIComponent(userId)}` : '';

@@ -20,7 +20,7 @@
     "@wallet-standard/app": "^1.1.0",
     "@wallet-ui/react": "^4.1.0",
     "next": "^16.2.4",
-    "nodemailer": "8.0.5",
+    "nodemailer": "^8.0.11",
     "pdf-lib": "^1.17.1",
     "pg": "^8.16.3",
     "postcss": "^8.5.12",
@@ -33,7 +33,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.2.4",
     "@types/node": "^24",
-    "@types/nodemailer": "^7.0.4",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -48,7 +48,7 @@
   "engines": {
     "node": ">=24.11.0"
   },
-  "packageManager": "npm@11.15.0",
+  "packageManager": "npm@11.17.0",
   "overrides": {
     "postcss": "$postcss",
     "hono": "4.12.23",
@@ -60,5 +60,12 @@
     "lodash": "^4.17.23",
     "minimatch": "^10.2.4",
     "effect": "3.21.0"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.8.0": true,
+    "esbuild@0.28.1": true,
+    "prisma@7.8.0": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true
   }
 }

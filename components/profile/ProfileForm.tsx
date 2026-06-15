@@ -462,9 +462,12 @@ export function ProfileForm() {
   }, [loadMe, tr]);
 
     useEffect(() => {
-    if (!signedIn) return;
-    void loadKycData();
-  }, [signedIn, loadKycData]);
+      if (!signedIn) return;
+
+      queueMicrotask(() => {
+        void loadKycData();
+      });
+    }, [signedIn, loadKycData]);
 
   const submitKyc = useCallback(async () => {
     setKycBusy(true);
@@ -639,8 +642,11 @@ export function ProfileForm() {
   useEffect(() => {
     if (!data.countryResidence) return;
     const dial = getDialByCountry(data.countryResidence);
-    setPhoneCode(dial || '');
-    setPhoneLocalMasked(formatLocalByIso(data.countryResidence, phoneLocalRaw));
+
+    queueMicrotask(() => {
+      setPhoneCode(dial || '');
+      setPhoneLocalMasked(formatLocalByIso(data.countryResidence, phoneLocalRaw));
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.countryResidence]);
 

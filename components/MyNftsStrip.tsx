@@ -104,12 +104,13 @@ export default function MyNftsStrip() {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!walletAddress) {
-      // очищаем только если что-то было
+  if (!walletAddress) {
+    queueMicrotask(() => {
       setGroups((prev) => (prev.length ? [] : prev));
       setEvents((prev) => (prev.length ? [] : prev));
-      return;
-    }
+    });
+    return;
+  }
 
     let cancelled = false;
 
@@ -343,7 +344,7 @@ export default function MyNftsStrip() {
     );
   };
 
-  const PlusTile = () => (
+  const plusTile = (
     <Link
       href="/dashboard/nft"
       className="grid place-items-center rounded-xl border border-dashed snap-start"
@@ -428,7 +429,7 @@ export default function MyNftsStrip() {
                 <Stack key={g.id} g={g} />
               ),
             )}
-          <PlusTile />
+          {plusTile}
           <div aria-hidden style={{ width: GAP }} />
         </div>
 

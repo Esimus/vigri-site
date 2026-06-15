@@ -182,7 +182,9 @@ export default function AdminClubEditPage() {
   }, [id]);
 
   React.useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   async function uploadImage(kind: "logo" | "photo", file: File) {

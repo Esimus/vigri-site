@@ -224,17 +224,19 @@ export default function AdminSupportPage() {
     const urlKind = (searchParams.get("kind") || "").trim() as KindFilter;
     const urlStatus = (searchParams.get("status") || "").trim() as StatusFilter;
 
-    setQ(urlQ);
-    setKind(urlKind === "club_pilot" || urlKind === "ambassador" || urlKind === "club_gift" ? urlKind : "all");
-    setStatus(
-      urlStatus === "new" ||
-        urlStatus === "in_review" ||
-        urlStatus === "done" ||
-        urlStatus === "spam" ||
-        urlStatus === "archived"
-        ? urlStatus
-        : "all",
-    );
+    queueMicrotask(() => {
+      setQ(urlQ);
+      setKind(urlKind === "club_pilot" || urlKind === "ambassador" || urlKind === "club_gift" ? urlKind : "all");
+      setStatus(
+        urlStatus === "new" ||
+          urlStatus === "in_review" ||
+          urlStatus === "done" ||
+          urlStatus === "spam" ||
+          urlStatus === "archived"
+          ? urlStatus
+          : "all",
+      );
+    });
 
     const controller = new AbortController();
 

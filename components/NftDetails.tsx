@@ -673,8 +673,10 @@ export default function NftDetails({
   );
 
     useEffect(() => {
-    void loadAll(true);
-  }, [loadAll]);
+      queueMicrotask(() => {
+        void loadAll(true);
+      });
+    }, [loadAll]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1478,12 +1480,28 @@ export default function NftDetails({
     await loadAll(false);
   };
 
+  const rightsExpiresAt = rights?.expiresAt ?? null;
+  const [daysLeftNowMs, setDaysLeftNowMs] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!rightsExpiresAt) {
+      queueMicrotask(() => {
+        setDaysLeftNowMs(null);
+      });
+      return;
+    }
+
+    queueMicrotask(() => {
+      setDaysLeftNowMs(Date.now());
+    });
+  }, [rightsExpiresAt]);
+
   const daysLeft = useMemo(() => {
-    if (!rights?.expiresAt) return null;
-    const diff = new Date(rights.expiresAt).getTime() - Date.now();
+    if (!rightsExpiresAt || daysLeftNowMs === null) return null;
+    const diff = new Date(rightsExpiresAt).getTime() - daysLeftNowMs;
     if (diff <= 0) return 0;
     return Math.ceil(diff / (24 * 60 * 60 * 1000));
-  }, [rights?.expiresAt]);
+  }, [rightsExpiresAt, daysLeftNowMs]);
 
   if (!item) {
     // Пока грузится — показываем скелет

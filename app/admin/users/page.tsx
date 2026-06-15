@@ -102,19 +102,20 @@ export default function AdminUsersPage() {
     const urlQ = (searchParams.get("q") || "").trim();
     const urlStatus = (searchParams.get("status") || "").trim() as KycStatus;
 
-    setQ(urlQ);
+    queueMicrotask(() => {
+      setQ(urlQ);
 
-    if (
-      urlStatus === "none" ||
-      urlStatus === "pending" ||
-      urlStatus === "approved" ||
-      urlStatus === "rejected"
-    ) {
-      setStatus(urlStatus);
-    } else {
-      setStatus("all");
-    }
-
+      if (
+        urlStatus === "none" ||
+        urlStatus === "pending" ||
+        urlStatus === "approved" ||
+        urlStatus === "rejected"
+      ) {
+        setStatus(urlStatus);
+      } else {
+        setStatus("all");
+      }
+    });
     const controller = new AbortController();
 
     async function load() {

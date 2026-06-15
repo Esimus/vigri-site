@@ -107,15 +107,19 @@ export default function NftSalesReportClient() {
       params.set("start", def.start);
       params.set("end", def.end);
       router.replace(`/admin/reports?${params.toString()}`, { scroll: false });
-      setStart(def.start);
-      setEnd(def.end);
-      setInitialized(true);
+      queueMicrotask(() => {
+        setStart(def.start);
+        setEnd(def.end);
+        setInitialized(true);
+      });
       return;
     }
 
-    setStart(urlStart);
-    setEnd(urlEnd);
-    setInitialized(true);
+    queueMicrotask(() => {
+      setStart(urlStart);
+      setEnd(urlEnd);
+      setInitialized(true);
+    });
 
     const controller = new AbortController();
 
