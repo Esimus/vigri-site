@@ -8,7 +8,8 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Key features
 
-- **Next.js App Router** (Next.js 16.2.4)
+- **Next.js App Router** (Next.js 16.2.9)
+- **Wallet UI integration** with persistent wallet connection, wallet menu, disconnect, and address copy
 - **Modern Solana transaction pipeline** (Kit-based, no Anchor/web3.js)
 - **i18n (EN / RU / ET)** via JSON dictionaries in `locales/`
 - **User dashboard** (profile completion, KYC/AML gating)
@@ -24,12 +25,14 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Tech stack
 
-- **Frontend / Server:** Next.js (App Router) 16.2.4, TypeScript 6.0.3
-- **Styling:** Tailwind CSS v4.2.4
+- **Frontend / Server:** Next.js (App Router) 16.2.9, React 19.2.7, TypeScript 6.0.3
+- **Styling:** Tailwind CSS v4.3.1
 - **Database:** PostgreSQL + Prisma 7.8.0
-- **Solana:** `@solana/kit` 6.8.0 (mainnet RPC, modern SDK)
-- Removed legacy `@solana/web3.js` and Anchor dependency from frontend
-- **Ops (production):** typically behind Nginx + process manager (e.g., PM2)
+- **Solana:** `@solana/kit` 6.9.0, `@solana/wallet-account-signer` 6.9.0
+- **Wallets:** `@wallet-ui/react` 4.2.0, Wallet Standard app integration
+- **Email:** Nodemailer 9.0.1
+- Removed legacy `@solana/web3.js`, Anchor dependency, and custom Phantom/Solflare hooks from the frontend
+- **Ops (production):** Nginx + PM2
 
 ---
 
@@ -44,7 +47,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 ## Requirements
 
 - Node.js **24.13.0** (see `.nvmrc`)
-- npm **11.12.1** (see `package.json#packageManager`)
+- npm **11.17.0** (see `package.json#packageManager`)
 - PostgreSQL **14+** (or compatible managed Postgres)
 
 ---
@@ -134,7 +137,8 @@ npx prisma migrate deploy
 - `app/` — Next.js App Router (pages + API routes)
 - `app/api/` — server routes (presale config, mint logging, auth, etc.)
 - `components/` — UI components (dashboard, NFT cards, etc.)
-- `hooks/` — wallet integrations, i18n, client utilities
+- `components/wallet/` — Wallet UI provider and wallet connection components
+- `hooks/` — i18n and client utilities
 - `lib/` — shared utilities & config
 - `src/` — services and Solana helpers (transactions/enrichment, etc.)
 - `prisma/` — Prisma schema and migrations
