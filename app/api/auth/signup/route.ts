@@ -21,6 +21,7 @@ export async function POST(req: Request) {
   const body = isObject(bodyUnknown) ? bodyUnknown : {};
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
   const password = typeof body.password === 'string' ? body.password.trim() : '';
+  const accountType = body.accountType === 'company' ? 'company' : 'person';
 
   if (!email || !password) {
     return NextResponse.json({ ok: false, error: 'bad_request' }, { status: 400 });
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
 
   // create user
   const user = await prisma.user.create({
-    data: { email },
+    data: { email, accountType },
   });
 
   await sendAdminAlert({
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
       text:
         `User ID: ${user.id}\n` +
         `Email: ${user.email}\n` +
+        `Account type: ${user.accountType}\n` +
         `Created at: ${new Date().toISOString()}\n`,
     }).catch((e: unknown) => {
       console.error('sendAdminAlert failed (signup):', e);

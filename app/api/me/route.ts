@@ -9,6 +9,7 @@ import type {
   Session,
   User,
   UserProfile,
+  CompanyProfile,
   KycStatus,
   CountryZone as DbCountryZone,
 } from '@/generated/prisma';
@@ -19,7 +20,10 @@ type KycState = KycStatus;
 type CountryZone = DbCountryZone;
 
 type DbSession = Pick<Session, 'userId' | 'idleExpires'>;
-type DbUserWithProfile = User & { profile: UserProfile | null };
+type DbUserWithProfile = User & {
+  profile: UserProfile | null;
+  companyProfile: CompanyProfile | null;
+};
 
 type Profile = {
   firstName?: string;
@@ -40,6 +44,18 @@ type Profile = {
   addressPostal?: string;
 
   photo?: string; // dataURL (small, capped)
+};
+
+type CompanyProfilePayload = {
+  companyName?: string;
+  registryCode?: string;
+  vatNumber?: string;
+  country?: string;
+  legalAddress?: string;
+  contactPerson?: string;
+  contactEmail?: string;
+  website?: string;
+  sponsorshipPurpose?: string;
 };
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -117,6 +133,53 @@ function mapProfileFromDb(p: UserProfile | null): Profile {
     language: p.language ?? undefined,
     photo: p.photo ?? undefined,
   });
+}
+
+function sanitizeCompanyProfile(p: unknown): CompanyProfilePayload {
+  if (!isObject(p)) return {};
+  const src = p as CompanyProfilePayload;
+
+  const out: CompanyProfilePayload = {
+    companyName: clip(src.companyName),
+    registryCode: clip(src.registryCode, 64),
+    vatNumber: clip(src.vatNumber, 64),
+    country: clip(src.country, 2)?.toUpperCase(),
+    legalAddress: clip(src.legalAddress, 500),
+    contactPerson: clip(src.contactPerson),
+    contactEmail: clip(src.contactEmail, 254),
+    website: clip(src.website, 300),
+    sponsorshipPurpose: clip(src.sponsorshipPurpose, 1000),
+  };
+
+  return Object.fromEntries(
+    Object.entries(out).filter(([, v]) => v !== undefined),
+  ) as CompanyProfilePayload;
+}
+
+function mapCompanyProfileFromDb(p: CompanyProfile | null): CompanyProfilePayload {
+  if (!p) return {};
+
+  return sanitizeCompanyProfile({
+    companyName: p.companyName,
+    registryCode: p.registryCode,
+    vatNumber: p.vatNumber ?? undefined,
+    country: p.country,
+    legalAddress: p.legalAddress ?? undefined,
+    contactPerson: p.contactPerson,
+    contactEmail: p.contactEmail ?? undefined,
+    website: p.website ?? undefined,
+    sponsorshipPurpose: p.sponsorshipPurpose ?? undefined,
+  });
+}
+
+function isCompanyProfileCompleted(p?: CompanyProfilePayload) {
+  if (!p) return false;
+  return Boolean(
+    p.companyName &&
+      p.registryCode &&
+      p.country &&
+      p.contactPerson,
+  );
 }
 
 function profileToDbData(
@@ -467,6 +530,9 @@ export async function GET(req: Request) {
     let userSummary: { id: string; email: string } | null = null;
     let profile: Profile = {};
 
+    let companyProfile: CompanyProfilePayload = {};
+    let accountType: 'person' | 'company' = 'person';
+
     let kycStatus: KycState = 'none';
     let kycCountryZone: CountryZone | null = null;
     let profileCompleted = false;
@@ -491,7 +557,7 @@ export async function GET(req: Request) {
           const user = (await prisma.user
             .findUnique({
               where: { id: session.userId },
-              include: { profile: true },
+              include: { profile: true, companyProfile: true },
             })
             .catch(() => null)) as DbUserWithProfile | null;
 
@@ -499,17 +565,24 @@ export async function GET(req: Request) {
             userSummary = { id: user.id, email: user.email };
             profile = mapProfileFromDb(user.profile);
 
+            accountType = user.accountType;
+            companyProfile = mapCompanyProfileFromDb(user.companyProfile);
+
             kycStatus = user.kycStatus;
 
             if (user.kycStatus === 'approved') {
               await awardKycEcho(user.id);
             }
 
-            const liveZone = resolveZoneFromProfile({
+            const personalZone = resolveZoneFromProfile({
               countryResidence: profile.countryResidence ?? null,
               countryCitizenship: profile.countryCitizenship ?? null,
               countryTax: profile.countryTax ?? null,
             });
+
+            const companyZone = resolveCountryZone(companyProfile.country ?? null);
+
+            const liveZone = accountType === 'company' ? companyZone : personalZone;
 
             // Snapshot must be used only after KYC has started.
             // Before KYC: follow live profile zone so UI + DB don't desync.
@@ -520,7 +593,7 @@ export async function GET(req: Request) {
 
             kycCountryZone = zone;
 
-            profileCompleted = isProfileCompleted({
+            const personalCompleted = isProfileCompleted({
               firstName: profile.firstName ?? null,
               lastName: profile.lastName ?? null,
               birthDate: profile.birthDate ?? null,
@@ -531,8 +604,12 @@ export async function GET(req: Request) {
               language: profile.language ?? null,
             });
 
+            const companyCompleted = isCompanyProfileCompleted(companyProfile);
+
+            profileCompleted = accountType === 'company' ? companyCompleted : personalCompleted;
+
             countryBlocked = zone === 'red';
-            canBuyLowTier = profileCompleted && !countryBlocked;
+            canBuyLowTier = profileCompleted && !countryBlocked && Boolean(zone);
             canBuyHighTier = canBuyLowTier && kycStatus === 'approved';
 
             const agg = await prisma.kycDataArchive.aggregate({
@@ -552,6 +629,8 @@ export async function GET(req: Request) {
       ok: true,
       signedIn: !!userSummary,
       user: userSummary,
+      accountType,
+      companyProfile,
       kyc: kycStatus, // legacy field for the current UI
       kycStatus,
       kycCountryZone,

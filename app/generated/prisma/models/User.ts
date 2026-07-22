@@ -43,6 +43,7 @@ export type UserMinAggregateOutputType = {
   passwordHash: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  accountType: $Enums.AccountType | null
   role: $Enums.UserRole | null
   balanceEcho: number | null
   participationScore: number | null
@@ -61,6 +62,7 @@ export type UserMaxAggregateOutputType = {
   passwordHash: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  accountType: $Enums.AccountType | null
   role: $Enums.UserRole | null
   balanceEcho: number | null
   participationScore: number | null
@@ -79,6 +81,7 @@ export type UserCountAggregateOutputType = {
   passwordHash: number
   createdAt: number
   updatedAt: number
+  accountType: number
   role: number
   balanceEcho: number
   participationScore: number
@@ -109,6 +112,7 @@ export type UserMinAggregateInputType = {
   passwordHash?: true
   createdAt?: true
   updatedAt?: true
+  accountType?: true
   role?: true
   balanceEcho?: true
   participationScore?: true
@@ -127,6 +131,7 @@ export type UserMaxAggregateInputType = {
   passwordHash?: true
   createdAt?: true
   updatedAt?: true
+  accountType?: true
   role?: true
   balanceEcho?: true
   participationScore?: true
@@ -145,6 +150,7 @@ export type UserCountAggregateInputType = {
   passwordHash?: true
   createdAt?: true
   updatedAt?: true
+  accountType?: true
   role?: true
   balanceEcho?: true
   participationScore?: true
@@ -250,6 +256,7 @@ export type UserGroupByOutputType = {
   passwordHash: string
   createdAt: Date
   updatedAt: Date
+  accountType: $Enums.AccountType
   role: $Enums.UserRole
   balanceEcho: number
   participationScore: number
@@ -291,6 +298,7 @@ export type UserWhereInput = {
   passwordHash?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  accountType?: Prisma.EnumAccountTypeFilter<"User"> | $Enums.AccountType
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   balanceEcho?: Prisma.IntFilter<"User"> | number
   participationScore?: Prisma.IntFilter<"User"> | number
@@ -309,6 +317,7 @@ export type UserWhereInput = {
   referrer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   referrals?: Prisma.UserListRelationFilter
   profile?: Prisma.XOR<Prisma.UserProfileNullableScalarRelationFilter, Prisma.UserProfileWhereInput> | null
+  companyProfile?: Prisma.XOR<Prisma.CompanyProfileNullableScalarRelationFilter, Prisma.CompanyProfileWhereInput> | null
   kycData?: Prisma.XOR<Prisma.KycDataNullableScalarRelationFilter, Prisma.KycDataWhereInput> | null
   formSubmissions?: Prisma.FormSubmissionListRelationFilter
   kycArchives?: Prisma.KycDataArchiveListRelationFilter
@@ -322,6 +331,7 @@ export type UserOrderByWithRelationInput = {
   passwordHash?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  accountType?: Prisma.SortOrder
   role?: Prisma.SortOrder
   balanceEcho?: Prisma.SortOrder
   participationScore?: Prisma.SortOrder
@@ -340,6 +350,7 @@ export type UserOrderByWithRelationInput = {
   referrer?: Prisma.UserOrderByWithRelationInput
   referrals?: Prisma.UserOrderByRelationAggregateInput
   profile?: Prisma.UserProfileOrderByWithRelationInput
+  companyProfile?: Prisma.CompanyProfileOrderByWithRelationInput
   kycData?: Prisma.KycDataOrderByWithRelationInput
   formSubmissions?: Prisma.FormSubmissionOrderByRelationAggregateInput
   kycArchives?: Prisma.KycDataArchiveOrderByRelationAggregateInput
@@ -357,6 +368,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   passwordHash?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  accountType?: Prisma.EnumAccountTypeFilter<"User"> | $Enums.AccountType
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   balanceEcho?: Prisma.IntFilter<"User"> | number
   participationScore?: Prisma.IntFilter<"User"> | number
@@ -374,6 +386,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   referrer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   referrals?: Prisma.UserListRelationFilter
   profile?: Prisma.XOR<Prisma.UserProfileNullableScalarRelationFilter, Prisma.UserProfileWhereInput> | null
+  companyProfile?: Prisma.XOR<Prisma.CompanyProfileNullableScalarRelationFilter, Prisma.CompanyProfileWhereInput> | null
   kycData?: Prisma.XOR<Prisma.KycDataNullableScalarRelationFilter, Prisma.KycDataWhereInput> | null
   formSubmissions?: Prisma.FormSubmissionListRelationFilter
   kycArchives?: Prisma.KycDataArchiveListRelationFilter
@@ -387,6 +400,7 @@ export type UserOrderByWithAggregationInput = {
   passwordHash?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  accountType?: Prisma.SortOrder
   role?: Prisma.SortOrder
   balanceEcho?: Prisma.SortOrder
   participationScore?: Prisma.SortOrder
@@ -413,6 +427,7 @@ export type UserScalarWhereWithAggregatesInput = {
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  accountType?: Prisma.EnumAccountTypeWithAggregatesFilter<"User"> | $Enums.AccountType
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
   balanceEcho?: Prisma.IntWithAggregatesFilter<"User"> | number
   participationScore?: Prisma.IntWithAggregatesFilter<"User"> | number
@@ -431,6 +446,7 @@ export type UserCreateInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -448,6 +464,7 @@ export type UserCreateInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -461,6 +478,7 @@ export type UserUncheckedCreateInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -478,6 +496,7 @@ export type UserUncheckedCreateInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -491,6 +510,7 @@ export type UserUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -508,6 +528,7 @@ export type UserUpdateInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -521,6 +542,7 @@ export type UserUncheckedUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -538,6 +560,7 @@ export type UserUncheckedUpdateInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -551,6 +574,7 @@ export type UserCreateManyInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -569,6 +593,7 @@ export type UserUpdateManyMutationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -586,6 +611,7 @@ export type UserUncheckedUpdateManyInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -619,6 +645,7 @@ export type UserCountOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  accountType?: Prisma.SortOrder
   role?: Prisma.SortOrder
   balanceEcho?: Prisma.SortOrder
   participationScore?: Prisma.SortOrder
@@ -642,6 +669,7 @@ export type UserMaxOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  accountType?: Prisma.SortOrder
   role?: Prisma.SortOrder
   balanceEcho?: Prisma.SortOrder
   participationScore?: Prisma.SortOrder
@@ -660,6 +688,7 @@ export type UserMinOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  accountType?: Prisma.SortOrder
   role?: Prisma.SortOrder
   balanceEcho?: Prisma.SortOrder
   participationScore?: Prisma.SortOrder
@@ -711,6 +740,10 @@ export type BoolFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type EnumAccountTypeFieldUpdateOperationsInput = {
+  set?: $Enums.AccountType
 }
 
 export type EnumUserRoleFieldUpdateOperationsInput = {
@@ -863,6 +896,20 @@ export type UserUpdateOneRequiredWithoutProfileNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProfileInput, Prisma.UserUpdateWithoutProfileInput>, Prisma.UserUncheckedUpdateWithoutProfileInput>
 }
 
+export type UserCreateNestedOneWithoutCompanyProfileInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCompanyProfileInput, Prisma.UserUncheckedCreateWithoutCompanyProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCompanyProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCompanyProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCompanyProfileInput, Prisma.UserUncheckedCreateWithoutCompanyProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCompanyProfileInput
+  upsert?: Prisma.UserUpsertWithoutCompanyProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCompanyProfileInput, Prisma.UserUpdateWithoutCompanyProfileInput>, Prisma.UserUncheckedUpdateWithoutCompanyProfileInput>
+}
+
 export type UserCreateNestedOneWithoutKycDataInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutKycDataInput, Prisma.UserUncheckedCreateWithoutKycDataInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutKycDataInput
@@ -946,6 +993,7 @@ export type UserCreateWithoutReferralsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -962,6 +1010,7 @@ export type UserCreateWithoutReferralsInput = {
   echoLogs?: Prisma.EchoLogCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -975,6 +1024,7 @@ export type UserUncheckedCreateWithoutReferralsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -991,6 +1041,7 @@ export type UserUncheckedCreateWithoutReferralsInput = {
   resetTokens?: Prisma.ResetPasswordTokenUncheckedCreateNestedManyWithoutUserInput
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1009,6 +1060,7 @@ export type UserCreateWithoutReferrerInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1025,6 +1077,7 @@ export type UserCreateWithoutReferrerInput = {
   echoLogs?: Prisma.EchoLogCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -1038,6 +1091,7 @@ export type UserUncheckedCreateWithoutReferrerInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1054,6 +1108,7 @@ export type UserUncheckedCreateWithoutReferrerInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1088,6 +1143,7 @@ export type UserUpdateWithoutReferralsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1104,6 +1160,7 @@ export type UserUpdateWithoutReferralsInput = {
   echoLogs?: Prisma.EchoLogUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -1117,6 +1174,7 @@ export type UserUncheckedUpdateWithoutReferralsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1133,6 +1191,7 @@ export type UserUncheckedUpdateWithoutReferralsInput = {
   resetTokens?: Prisma.ResetPasswordTokenUncheckedUpdateManyWithoutUserNestedInput
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -1165,6 +1224,7 @@ export type UserScalarWhereInput = {
   passwordHash?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  accountType?: Prisma.EnumAccountTypeFilter<"User"> | $Enums.AccountType
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   balanceEcho?: Prisma.IntFilter<"User"> | number
   participationScore?: Prisma.IntFilter<"User"> | number
@@ -1183,6 +1243,7 @@ export type UserCreateWithoutKeysInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1199,6 +1260,7 @@ export type UserCreateWithoutKeysInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -1212,6 +1274,7 @@ export type UserUncheckedCreateWithoutKeysInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1228,6 +1291,7 @@ export type UserUncheckedCreateWithoutKeysInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1257,6 +1321,7 @@ export type UserUpdateWithoutKeysInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1273,6 +1338,7 @@ export type UserUpdateWithoutKeysInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -1286,6 +1352,7 @@ export type UserUncheckedUpdateWithoutKeysInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1302,6 +1369,7 @@ export type UserUncheckedUpdateWithoutKeysInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -1315,6 +1383,7 @@ export type UserCreateWithoutSessionsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1331,6 +1400,7 @@ export type UserCreateWithoutSessionsInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -1344,6 +1414,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1360,6 +1431,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1389,6 +1461,7 @@ export type UserUpdateWithoutSessionsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1405,6 +1478,7 @@ export type UserUpdateWithoutSessionsInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -1418,6 +1492,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1434,6 +1509,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -1447,6 +1523,7 @@ export type UserCreateWithoutVerifyTokensInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1463,6 +1540,7 @@ export type UserCreateWithoutVerifyTokensInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -1476,6 +1554,7 @@ export type UserUncheckedCreateWithoutVerifyTokensInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1492,6 +1571,7 @@ export type UserUncheckedCreateWithoutVerifyTokensInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1521,6 +1601,7 @@ export type UserUpdateWithoutVerifyTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1537,6 +1618,7 @@ export type UserUpdateWithoutVerifyTokensInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -1550,6 +1632,7 @@ export type UserUncheckedUpdateWithoutVerifyTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1566,6 +1649,7 @@ export type UserUncheckedUpdateWithoutVerifyTokensInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -1579,6 +1663,7 @@ export type UserCreateWithoutResetTokensInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1595,6 +1680,7 @@ export type UserCreateWithoutResetTokensInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -1608,6 +1694,7 @@ export type UserUncheckedCreateWithoutResetTokensInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1624,6 +1711,7 @@ export type UserUncheckedCreateWithoutResetTokensInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1653,6 +1741,7 @@ export type UserUpdateWithoutResetTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1669,6 +1758,7 @@ export type UserUpdateWithoutResetTokensInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -1682,6 +1772,7 @@ export type UserUncheckedUpdateWithoutResetTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1698,6 +1789,7 @@ export type UserUncheckedUpdateWithoutResetTokensInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -1711,6 +1803,7 @@ export type UserCreateWithoutEchoLogsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1727,6 +1820,7 @@ export type UserCreateWithoutEchoLogsInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -1740,6 +1834,7 @@ export type UserUncheckedCreateWithoutEchoLogsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1756,6 +1851,7 @@ export type UserUncheckedCreateWithoutEchoLogsInput = {
   resetTokens?: Prisma.ResetPasswordTokenUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1785,6 +1881,7 @@ export type UserUpdateWithoutEchoLogsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1801,6 +1898,7 @@ export type UserUpdateWithoutEchoLogsInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -1814,6 +1912,7 @@ export type UserUncheckedUpdateWithoutEchoLogsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1830,6 +1929,7 @@ export type UserUncheckedUpdateWithoutEchoLogsInput = {
   resetTokens?: Prisma.ResetPasswordTokenUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -1843,6 +1943,7 @@ export type UserCreateWithoutProfileInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1859,6 +1960,7 @@ export type UserCreateWithoutProfileInput = {
   echoLogs?: Prisma.EchoLogCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -1872,6 +1974,7 @@ export type UserUncheckedCreateWithoutProfileInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1888,6 +1991,7 @@ export type UserUncheckedCreateWithoutProfileInput = {
   resetTokens?: Prisma.ResetPasswordTokenUncheckedCreateNestedManyWithoutUserInput
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -1917,6 +2021,7 @@ export type UserUpdateWithoutProfileInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1933,6 +2038,7 @@ export type UserUpdateWithoutProfileInput = {
   echoLogs?: Prisma.EchoLogUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -1946,6 +2052,7 @@ export type UserUncheckedUpdateWithoutProfileInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1962,19 +2069,21 @@ export type UserUncheckedUpdateWithoutProfileInput = {
   resetTokens?: Prisma.ResetPasswordTokenUncheckedUpdateManyWithoutUserNestedInput
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutArchivedByNestedInput
 }
 
-export type UserCreateWithoutKycDataInput = {
+export type UserCreateWithoutCompanyProfileInput = {
   id?: string
   email: string
   emailVerified?: boolean
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -1992,18 +2101,20 @@ export type UserCreateWithoutKycDataInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
   kycArchivesAsActor?: Prisma.KycDataArchiveCreateNestedManyWithoutArchivedByInput
 }
 
-export type UserUncheckedCreateWithoutKycDataInput = {
+export type UserUncheckedCreateWithoutCompanyProfileInput = {
   id?: string
   email: string
   emailVerified?: boolean
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2021,6 +2132,147 @@ export type UserUncheckedCreateWithoutKycDataInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
+  formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
+  kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
+  kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutArchivedByInput
+}
+
+export type UserCreateOrConnectWithoutCompanyProfileInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCompanyProfileInput, Prisma.UserUncheckedCreateWithoutCompanyProfileInput>
+}
+
+export type UserUpsertWithoutCompanyProfileInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCompanyProfileInput, Prisma.UserUncheckedUpdateWithoutCompanyProfileInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCompanyProfileInput, Prisma.UserUncheckedCreateWithoutCompanyProfileInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCompanyProfileInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCompanyProfileInput, Prisma.UserUncheckedUpdateWithoutCompanyProfileInput>
+}
+
+export type UserUpdateWithoutCompanyProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
+  participationScore?: Prisma.IntFieldUpdateOperationsInput | number
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycStatus?: Prisma.EnumKycStatusFieldUpdateOperationsInput | $Enums.KycStatus
+  kycCountryZone?: Prisma.NullableEnumCountryZoneFieldUpdateOperationsInput | $Enums.CountryZone | null
+  kycUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  kycNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  keys?: Prisma.KeyUpdateManyWithoutUserNestedInput
+  verifyTokens?: Prisma.VerifyEmailTokenUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.ResetPasswordTokenUpdateManyWithoutUserNestedInput
+  echoLogs?: Prisma.EchoLogUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
+  formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
+  kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
+  kycArchivesAsActor?: Prisma.KycDataArchiveUpdateManyWithoutArchivedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCompanyProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
+  participationScore?: Prisma.IntFieldUpdateOperationsInput | number
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referrerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycStatus?: Prisma.EnumKycStatusFieldUpdateOperationsInput | $Enums.KycStatus
+  kycCountryZone?: Prisma.NullableEnumCountryZoneFieldUpdateOperationsInput | $Enums.CountryZone | null
+  kycUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  kycNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  keys?: Prisma.KeyUncheckedUpdateManyWithoutUserNestedInput
+  verifyTokens?: Prisma.VerifyEmailTokenUncheckedUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.ResetPasswordTokenUncheckedUpdateManyWithoutUserNestedInput
+  echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
+  formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
+  kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
+  kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutArchivedByNestedInput
+}
+
+export type UserCreateWithoutKycDataInput = {
+  id?: string
+  email: string
+  emailVerified?: boolean
+  passwordHash?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accountType?: $Enums.AccountType
+  role?: $Enums.UserRole
+  balanceEcho?: number
+  participationScore?: number
+  referralCode?: string | null
+  kycStatus?: $Enums.KycStatus
+  kycCountryZone?: $Enums.CountryZone | null
+  kycUpdatedAt?: Date | string | null
+  kycNote?: string | null
+  adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  keys?: Prisma.KeyCreateNestedManyWithoutUserInput
+  verifyTokens?: Prisma.VerifyEmailTokenCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.ResetPasswordTokenCreateNestedManyWithoutUserInput
+  echoLogs?: Prisma.EchoLogCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
+  formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
+  kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
+  kycArchivesAsActor?: Prisma.KycDataArchiveCreateNestedManyWithoutArchivedByInput
+}
+
+export type UserUncheckedCreateWithoutKycDataInput = {
+  id?: string
+  email: string
+  emailVerified?: boolean
+  passwordHash?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accountType?: $Enums.AccountType
+  role?: $Enums.UserRole
+  balanceEcho?: number
+  participationScore?: number
+  referralCode?: string | null
+  referrerId?: string | null
+  kycStatus?: $Enums.KycStatus
+  kycCountryZone?: $Enums.CountryZone | null
+  kycUpdatedAt?: Date | string | null
+  kycNote?: string | null
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  keys?: Prisma.KeyUncheckedCreateNestedManyWithoutUserInput
+  verifyTokens?: Prisma.VerifyEmailTokenUncheckedCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.ResetPasswordTokenUncheckedCreateNestedManyWithoutUserInput
+  echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutArchivedByInput
@@ -2049,6 +2301,7 @@ export type UserUpdateWithoutKycDataInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2066,6 +2319,7 @@ export type UserUpdateWithoutKycDataInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUpdateManyWithoutArchivedByNestedInput
@@ -2078,6 +2332,7 @@ export type UserUncheckedUpdateWithoutKycDataInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2095,6 +2350,7 @@ export type UserUncheckedUpdateWithoutKycDataInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutArchivedByNestedInput
@@ -2107,6 +2363,7 @@ export type UserCreateWithoutFormSubmissionsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2124,6 +2381,7 @@ export type UserCreateWithoutFormSubmissionsInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
   kycArchivesAsActor?: Prisma.KycDataArchiveCreateNestedManyWithoutArchivedByInput
@@ -2136,6 +2394,7 @@ export type UserUncheckedCreateWithoutFormSubmissionsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2153,6 +2412,7 @@ export type UserUncheckedCreateWithoutFormSubmissionsInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutArchivedByInput
@@ -2181,6 +2441,7 @@ export type UserUpdateWithoutFormSubmissionsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2198,6 +2459,7 @@ export type UserUpdateWithoutFormSubmissionsInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUpdateManyWithoutArchivedByNestedInput
@@ -2210,6 +2472,7 @@ export type UserUncheckedUpdateWithoutFormSubmissionsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2227,6 +2490,7 @@ export type UserUncheckedUpdateWithoutFormSubmissionsInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutArchivedByNestedInput
@@ -2239,6 +2503,7 @@ export type UserCreateWithoutAdminAuditLogsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2255,6 +2520,7 @@ export type UserCreateWithoutAdminAuditLogsInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -2268,6 +2534,7 @@ export type UserUncheckedCreateWithoutAdminAuditLogsInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2284,6 +2551,7 @@ export type UserUncheckedCreateWithoutAdminAuditLogsInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -2313,6 +2581,7 @@ export type UserUpdateWithoutAdminAuditLogsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2329,6 +2598,7 @@ export type UserUpdateWithoutAdminAuditLogsInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -2342,6 +2612,7 @@ export type UserUncheckedUpdateWithoutAdminAuditLogsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2358,6 +2629,7 @@ export type UserUncheckedUpdateWithoutAdminAuditLogsInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -2371,6 +2643,7 @@ export type UserCreateWithoutKycArchivesInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2388,6 +2661,7 @@ export type UserCreateWithoutKycArchivesInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchivesAsActor?: Prisma.KycDataArchiveCreateNestedManyWithoutArchivedByInput
@@ -2400,6 +2674,7 @@ export type UserUncheckedCreateWithoutKycArchivesInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2417,6 +2692,7 @@ export type UserUncheckedCreateWithoutKycArchivesInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutArchivedByInput
@@ -2434,6 +2710,7 @@ export type UserCreateWithoutKycArchivesAsActorInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2451,6 +2728,7 @@ export type UserCreateWithoutKycArchivesAsActorInput = {
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveCreateNestedManyWithoutUserInput
@@ -2463,6 +2741,7 @@ export type UserUncheckedCreateWithoutKycArchivesAsActorInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2480,6 +2759,7 @@ export type UserUncheckedCreateWithoutKycArchivesAsActorInput = {
   echoLogs?: Prisma.EchoLogUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput
+  companyProfile?: Prisma.CompanyProfileUncheckedCreateNestedOneWithoutUserInput
   kycData?: Prisma.KycDataUncheckedCreateNestedOneWithoutUserInput
   formSubmissions?: Prisma.FormSubmissionUncheckedCreateNestedManyWithoutUserInput
   kycArchives?: Prisma.KycDataArchiveUncheckedCreateNestedManyWithoutUserInput
@@ -2508,6 +2788,7 @@ export type UserUpdateWithoutKycArchivesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2525,6 +2806,7 @@ export type UserUpdateWithoutKycArchivesInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUpdateManyWithoutArchivedByNestedInput
@@ -2537,6 +2819,7 @@ export type UserUncheckedUpdateWithoutKycArchivesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2554,6 +2837,7 @@ export type UserUncheckedUpdateWithoutKycArchivesInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchivesAsActor?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutArchivedByNestedInput
@@ -2577,6 +2861,7 @@ export type UserUpdateWithoutKycArchivesAsActorInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2594,6 +2879,7 @@ export type UserUpdateWithoutKycArchivesAsActorInput = {
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -2606,6 +2892,7 @@ export type UserUncheckedUpdateWithoutKycArchivesAsActorInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2623,6 +2910,7 @@ export type UserUncheckedUpdateWithoutKycArchivesAsActorInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -2635,6 +2923,7 @@ export type UserCreateManyReferrerInput = {
   passwordHash?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  accountType?: $Enums.AccountType
   role?: $Enums.UserRole
   balanceEcho?: number
   participationScore?: number
@@ -2652,6 +2941,7 @@ export type UserUpdateWithoutReferrerInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2668,6 +2958,7 @@ export type UserUpdateWithoutReferrerInput = {
   echoLogs?: Prisma.EchoLogUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUpdateManyWithoutUserNestedInput
@@ -2681,6 +2972,7 @@ export type UserUncheckedUpdateWithoutReferrerInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2697,6 +2989,7 @@ export type UserUncheckedUpdateWithoutReferrerInput = {
   echoLogs?: Prisma.EchoLogUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput
+  companyProfile?: Prisma.CompanyProfileUncheckedUpdateOneWithoutUserNestedInput
   kycData?: Prisma.KycDataUncheckedUpdateOneWithoutUserNestedInput
   formSubmissions?: Prisma.FormSubmissionUncheckedUpdateManyWithoutUserNestedInput
   kycArchives?: Prisma.KycDataArchiveUncheckedUpdateManyWithoutUserNestedInput
@@ -2710,6 +3003,7 @@ export type UserUncheckedUpdateManyWithoutReferrerInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountType?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   balanceEcho?: Prisma.IntFieldUpdateOperationsInput | number
   participationScore?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2839,6 +3133,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   passwordHash?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  accountType?: boolean
   role?: boolean
   balanceEcho?: boolean
   participationScore?: boolean
@@ -2857,6 +3152,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
   referrals?: boolean | Prisma.User$referralsArgs<ExtArgs>
   profile?: boolean | Prisma.User$profileArgs<ExtArgs>
+  companyProfile?: boolean | Prisma.User$companyProfileArgs<ExtArgs>
   kycData?: boolean | Prisma.User$kycDataArgs<ExtArgs>
   formSubmissions?: boolean | Prisma.User$formSubmissionsArgs<ExtArgs>
   kycArchives?: boolean | Prisma.User$kycArchivesArgs<ExtArgs>
@@ -2871,6 +3167,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  accountType?: boolean
   role?: boolean
   balanceEcho?: boolean
   participationScore?: boolean
@@ -2890,6 +3187,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  accountType?: boolean
   role?: boolean
   balanceEcho?: boolean
   participationScore?: boolean
@@ -2909,6 +3207,7 @@ export type UserSelectScalar = {
   passwordHash?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  accountType?: boolean
   role?: boolean
   balanceEcho?: boolean
   participationScore?: boolean
@@ -2920,7 +3219,7 @@ export type UserSelectScalar = {
   kycNote?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "passwordHash" | "createdAt" | "updatedAt" | "role" | "balanceEcho" | "participationScore" | "referralCode" | "referrerId" | "kycStatus" | "kycCountryZone" | "kycUpdatedAt" | "kycNote", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "passwordHash" | "createdAt" | "updatedAt" | "accountType" | "role" | "balanceEcho" | "participationScore" | "referralCode" | "referrerId" | "kycStatus" | "kycCountryZone" | "kycUpdatedAt" | "kycNote", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminAuditLogs?: boolean | Prisma.User$adminAuditLogsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -2931,6 +3230,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
   referrals?: boolean | Prisma.User$referralsArgs<ExtArgs>
   profile?: boolean | Prisma.User$profileArgs<ExtArgs>
+  companyProfile?: boolean | Prisma.User$companyProfileArgs<ExtArgs>
   kycData?: boolean | Prisma.User$kycDataArgs<ExtArgs>
   formSubmissions?: boolean | Prisma.User$formSubmissionsArgs<ExtArgs>
   kycArchives?: boolean | Prisma.User$kycArchivesArgs<ExtArgs>
@@ -2956,6 +3256,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     referrer: Prisma.$UserPayload<ExtArgs> | null
     referrals: Prisma.$UserPayload<ExtArgs>[]
     profile: Prisma.$UserProfilePayload<ExtArgs> | null
+    companyProfile: Prisma.$CompanyProfilePayload<ExtArgs> | null
     kycData: Prisma.$KycDataPayload<ExtArgs> | null
     formSubmissions: Prisma.$FormSubmissionPayload<ExtArgs>[]
     kycArchives: Prisma.$KycDataArchivePayload<ExtArgs>[]
@@ -2968,6 +3269,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     passwordHash: string
     createdAt: Date
     updatedAt: Date
+    accountType: $Enums.AccountType
     role: $Enums.UserRole
     balanceEcho: number
     participationScore: number
@@ -3380,6 +3682,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   referrer<T extends Prisma.User$referrerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referrerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   referrals<T extends Prisma.User$referralsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   profile<T extends Prisma.User$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$profileArgs<ExtArgs>>): Prisma.Prisma__UserProfileClient<runtime.Types.Result.GetResult<Prisma.$UserProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  companyProfile<T extends Prisma.User$companyProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$companyProfileArgs<ExtArgs>>): Prisma.Prisma__CompanyProfileClient<runtime.Types.Result.GetResult<Prisma.$CompanyProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   kycData<T extends Prisma.User$kycDataArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$kycDataArgs<ExtArgs>>): Prisma.Prisma__KycDataClient<runtime.Types.Result.GetResult<Prisma.$KycDataPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   formSubmissions<T extends Prisma.User$formSubmissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$formSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FormSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   kycArchives<T extends Prisma.User$kycArchivesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$kycArchivesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$KycDataArchivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3419,6 +3722,7 @@ export interface UserFieldRefs {
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly accountType: Prisma.FieldRef<"User", 'AccountType'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
   readonly balanceEcho: Prisma.FieldRef<"User", 'Int'>
   readonly participationScore: Prisma.FieldRef<"User", 'Int'>
@@ -4032,6 +4336,25 @@ export type User$profileArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    */
   include?: Prisma.UserProfileInclude<ExtArgs> | null
   where?: Prisma.UserProfileWhereInput
+}
+
+/**
+ * User.companyProfile
+ */
+export type User$companyProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CompanyProfile
+   */
+  select?: Prisma.CompanyProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CompanyProfile
+   */
+  omit?: Prisma.CompanyProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CompanyProfileInclude<ExtArgs> | null
+  where?: Prisma.CompanyProfileWhereInput
 }
 
 /**

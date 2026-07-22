@@ -78,3 +78,11 @@ export const UserRole = {
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
+
+
+export const AccountType = {
+  person: 'person',
+  company: 'company'
+} as const
+
+export type AccountType = (typeof AccountType)[keyof typeof AccountType]

@@ -8,6 +8,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StepBar } from '@/components/ui/StepBar';
 import { ProfileForm } from '@/components/profile/ProfileForm';
+import { CompanyProfileForm } from '@/components/profile/CompanyProfileForm';
 
 // UI status for badges/progress (3 states)
 type KycState = 'none' | 'pending' | 'approved';
@@ -21,6 +22,7 @@ type MeOk = {
   kyc: KycStatusApi; // from /api/me
   kycStatus?: KycStatusApi;
   profileCompleted?: boolean;
+  accountType?: 'person' | 'company';
   user?: { id: string; email: string } | null;
 };
 
@@ -54,6 +56,7 @@ export default function ProfilePage() {
 
   const progressCurrent = kyc === 'approved' ? 3 : kyc === 'pending' ? 2 : 0;
   const stepLabels = [t('kyc.step.start'), t('kyc.step.submit'), t('kyc.step.review')];
+  const accountType = me?.accountType ?? 'person';
 
   // Пока грузим /api/me: показываем "none" (и UI не прыгает), либо можно добавить небольшую подсказку
   const statusLabel = isLoading ? (t('loading') || 'Loading…') : t(`kyc.status.${kyc}`);
@@ -145,7 +148,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <ProfileForm />
+      {accountType === 'company' ? <CompanyProfileForm /> : <ProfileForm />}
     </div>
   );
 }

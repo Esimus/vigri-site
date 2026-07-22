@@ -59,6 +59,7 @@ export const ModelName = {
   ResetPasswordToken: 'ResetPasswordToken',
   EchoLog: 'EchoLog',
   UserProfile: 'UserProfile',
+  CompanyProfile: 'CompanyProfile',
   KycData: 'KycData',
   FormSubmission: 'FormSubmission',
   PilotClub: 'PilotClub',
@@ -89,6 +90,7 @@ export const UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  accountType: 'accountType',
   role: 'role',
   balanceEcho: 'balanceEcho',
   participationScore: 'participationScore',
@@ -212,6 +214,24 @@ export const UserProfileScalarFieldEnum = {
 } as const
 
 export type UserProfileScalarFieldEnum = (typeof UserProfileScalarFieldEnum)[keyof typeof UserProfileScalarFieldEnum]
+
+
+export const CompanyProfileScalarFieldEnum = {
+  userId: 'userId',
+  companyName: 'companyName',
+  registryCode: 'registryCode',
+  vatNumber: 'vatNumber',
+  country: 'country',
+  legalAddress: 'legalAddress',
+  contactPerson: 'contactPerson',
+  contactEmail: 'contactEmail',
+  website: 'website',
+  sponsorshipPurpose: 'sponsorshipPurpose',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanyProfileScalarFieldEnum = (typeof CompanyProfileScalarFieldEnum)[keyof typeof CompanyProfileScalarFieldEnum]
 
 
 export const KycDataScalarFieldEnum = {

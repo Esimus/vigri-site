@@ -576,6 +576,7 @@ export default function NftDetails({
   const [countryBlocked, setCountryBlocked] = useState<boolean>(false);
   const [canBuyLowTier, setCanBuyLowTier] = useState<boolean>(false);
   const [canBuyHighTier, setCanBuyHighTier] = useState<boolean>(false);
+  const [accountType, setAccountType] = useState<'person' | 'company'>('person');
 
   const [meProfile, setMeProfile] = useState<{
     countryResidence?: string | null;
@@ -701,6 +702,7 @@ export default function NftDetails({
 
         setIsAuthenticated(authed);
         if (!authed) {
+          setAccountType('person');
           setMeLoaded(true);
           return;
         }
@@ -723,6 +725,9 @@ export default function NftDetails({
         setCountryBlocked(Boolean((j as Record<string, unknown>)['countryBlocked']));
         setCanBuyLowTier(Boolean((j as Record<string, unknown>)['canBuyLowTier']));
         setCanBuyHighTier(Boolean((j as Record<string, unknown>)['canBuyHighTier']));
+
+        const accountTypeRaw = (j as Record<string, unknown>)['accountType'];
+        setAccountType(accountTypeRaw === 'company' ? 'company' : 'person');
 
         const zRaw = (j as Record<string, unknown>)['kycCountryZone'];
         setCountryZone(isZone(zRaw) ? (zRaw as CountryZone) : null);
@@ -887,6 +892,7 @@ export default function NftDetails({
 
   const rawPills = getKycUiState({
     tierId,
+    accountType,
     profileCompleted,
     countryBlocked,
     kycStatus,
@@ -917,6 +923,7 @@ export default function NftDetails({
   const hasIsikukood = typeof meProfile?.isikukood === 'string' && meProfile.isikukood.trim().length > 0;
 
   const silverEeNoKyc =
+    accountType !== 'company' &&
     tierId === 2 &&
     countryZone === 'green' &&
     isEeTriple &&
@@ -948,6 +955,7 @@ export default function NftDetails({
         isEe: isEeForBadges,
         kycStatus,
         kycRequired: item.kycRequired,
+        accountType,
       })
     : { blockedByAml: false, showKycBadge: false };
 
@@ -1062,6 +1070,7 @@ export default function NftDetails({
           canBuyLowTier?: boolean;
           canBuyHighTier?: boolean;
           profileCompleted?: boolean;
+          accountType?: 'person' | 'company';
           profile?: {
             countryCitizenship?: string | null;
             countryResidence?: string | null;
@@ -1089,7 +1098,7 @@ export default function NftDetails({
           cRes === 'EE' &&
           cTax === 'EE';
         const hasIsik = (prof.isikukood ?? '').trim().length > 0;
-        const eeNoKyc = isEe && hasIsik;
+        const eeNoKyc = aml.accountType !== 'company' && isEe && hasIsik;
 
         // 3) Decide which tier group the current NFT belongs to
         // 0 = Tree/Steel, 1 = Bronze, 2 = Silver, 3 = Gold, 4 = Platinum, 5 = WS-20

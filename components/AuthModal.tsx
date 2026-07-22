@@ -6,6 +6,7 @@ import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { useI18n } from '@/hooks/useI18n';
 
 type Mode = 'login' | 'signup' | 'forgot' | 'reset' | null;
+type AccountType = 'person' | 'company';
 
 type ApiOk = { ok: true };
 type ApiFail = { ok: false; error?: string };
@@ -56,6 +57,7 @@ export default function AuthModal() {
 
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptTouched, setAcceptTouched] = useState(false);
+  const [accountType, setAccountType] = useState<AccountType>('person');
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
@@ -270,7 +272,11 @@ export default function AuthModal() {
       const r = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pass }),
+        body: JSON.stringify(
+          isSignup
+            ? { email, password: pass, accountType }
+            : { email, password: pass },
+        ),
       });
       const j: unknown = await r.json().catch(() => ({} as unknown));
 
@@ -699,6 +705,46 @@ export default function AuthModal() {
             </form>
           ) : (
             <form onSubmit={onSubmitAuth} className="px-5 py-5 space-y-4">
+              {isSignup && (
+                <div className="rounded-2xl border border-[color:var(--border)] bg-[var(--card)] p-3 space-y-2">
+                  <div className="text-xs font-medium">
+                    {tf('auth.account_type', 'Account type')}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAccountType('person')}
+                      className={`rounded-xl border px-3 py-2 text-left text-sm ${
+                        accountType === 'person'
+                          ? 'border-blue-500 bg-blue-50 text-blue-950 dark:bg-blue-950/30 dark:text-blue-100'
+                          : 'border-[color:var(--border)] bg-transparent'
+                      }`}
+                    >
+                      <div className="font-medium">{tf('auth.account_type_person', 'Private person')}</div>
+                      <div className="mt-1 text-xs opacity-70">
+                        {tf('auth.account_type_person_hint', 'Personal profile and individual KYC.')}
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setAccountType('company')}
+                      className={`rounded-xl border px-3 py-2 text-left text-sm ${
+                        accountType === 'company'
+                          ? 'border-blue-500 bg-blue-50 text-blue-950 dark:bg-blue-950/30 dark:text-blue-100'
+                          : 'border-[color:var(--border)] bg-transparent'
+                      }`}
+                    >
+                      <div className="font-medium">{tf('auth.account_type_company', 'Company')}</div>
+                      <div className="mt-1 text-xs opacity-70">
+                        {tf('auth.account_type_company_hint', 'Corporate profile for sponsorship and charity.')}
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {emailInput}
               {passwordInput}
               {confirmInput}

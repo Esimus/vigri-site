@@ -86,6 +86,20 @@ export type Profile = {
   country?: string; // legacy
 };
 
+export type AccountType = 'person' | 'company';
+
+export type CompanyProfile = {
+  companyName?: string;
+  registryCode?: string;
+  vatNumber?: string;
+  country?: string;
+  legalAddress?: string;
+  contactPerson?: string;
+  contactEmail?: string;
+  website?: string;
+  sponsorshipPurpose?: string;
+};
+
 class ApiClient {
   me() {
     return request<
@@ -93,7 +107,9 @@ class ApiClient {
         signedIn: boolean;
         kyc: boolean | 'none' | 'pending' | 'approved';
         user?: { id: string; email: string } | null;
+        accountType?: AccountType;
         profile?: Profile;
+        companyProfile?: CompanyProfile;
       }>
     >('/api/me', 'GET');
   }
@@ -108,6 +124,28 @@ class ApiClient {
     },
     save(partial: Partial<Profile>) {
       return request<ApiResponse<Empty>>('/api/me', 'POST', { profile: partial });
+    },
+  };
+
+  companyProfile = {
+    async get() {
+      const r = await request<ApiResponse<{ accountType?: AccountType; companyProfile?: CompanyProfile }>>(
+        '/api/company-profile',
+        'GET',
+      );
+
+      if ('ok' in r && r.ok === true) {
+        return {
+          ok: true,
+          accountType: r.accountType ?? 'person',
+          companyProfile: (r.companyProfile ?? {}) as CompanyProfile,
+        } satisfies ApiOk<{ accountType: AccountType; companyProfile: CompanyProfile }>;
+      }
+
+      return r as ApiFail;
+    },
+    save(partial: Partial<CompanyProfile>) {
+      return request<ApiResponse<Empty>>('/api/company-profile', 'POST', { companyProfile: partial });
     },
   };
 

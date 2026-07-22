@@ -1,8 +1,8 @@
 // src/lib/kyc/getKycUiState.ts
 
 export type CountryZone = 'green' | 'grey' | 'red' | null;
-
 export type KycStatus = 'none' | 'pending' | 'approved' | 'rejected';
+export type AccountType = 'person' | 'company';
 
 export type KycBadgeState = {
   blockedByAml: boolean;
@@ -72,8 +72,9 @@ export function getKycBadgeStateForNftList(opts: {
   isEe: boolean;
   kycStatus: KycStatus;
   kycRequired?: boolean;
+  accountType?: AccountType;
 }): KycBadgeState {
-  const { nftId, zone, isEe, kycStatus, kycRequired } = opts;
+  const { nftId, zone, isEe, kycStatus, kycRequired, accountType = 'person' } = opts;
 
   const tierGroup = classifyTierFromNftId(nftId);
   const blockedByAml = zone === 'red';
@@ -89,8 +90,8 @@ export function getKycBadgeStateForNftList(opts: {
         // Green + low tier: no KYC
         kycNeeded = false;
       } else if (tierGroup === 'silver') {
-        // Silver + EE/EE/EE: special exemption (profile only)
-        kycNeeded = !isEe;
+        // Silver + EE/EE/EE: special exemption for private persons only
+        kycNeeded = accountType === 'company' ? true : !isEe;
       } else if (tierGroup === 'high') {
         // Green + high tiers: KYC required
         kycNeeded = true;

@@ -60,13 +60,19 @@ enum UserRole {
   support
 }
 
+enum AccountType {
+  person
+  company
+}
+
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  emailVerified Boolean  @default(false)
-  passwordHash  String   @default("")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String      @id @default(cuid())
+  email         String      @unique
+  emailVerified Boolean     @default(false)
+  passwordHash  String      @default("")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  accountType   AccountType @default(person)
 
   // admin panel
   role           UserRole        @default(user)
@@ -89,7 +95,8 @@ model User {
   referrals    User[]  @relation("UserRef")
 
   // 1:1 profile (создаётся, когда пользователь впервые заполняет профиль)
-  profile UserProfile?
+  profile        UserProfile?
+  companyProfile CompanyProfile?
 
   // KYC
   kycStatus       KycStatus        @default(none)
@@ -240,6 +247,28 @@ model UserProfile {
   updatedAt DateTime @updatedAt
 }
 
+model CompanyProfile {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName        String
+  registryCode       String
+  vatNumber          String?
+  country            String
+  legalAddress       String?
+  contactPerson      String
+  contactEmail       String?
+  website            String?
+  sponsorshipPurpose String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([country, registryCode])
+  @@index([country])
+  @@index([registryCode])
+}
+
 model KycData {
   userId String @id
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -319,15 +348,15 @@ model FormSubmission {
 }
 
 model PilotClub {
-  id        String          @id @default(cuid())
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   status    PilotClubStatus @default(draft)
   sortOrder Int             @default(0)
 
   name     String
-  slug     String?          @unique
+  slug     String?            @unique
   category PilotClubCategory?
 
   city    String?

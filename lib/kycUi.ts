@@ -2,6 +2,7 @@
 
 export type KycStatus = 'none' | 'pending' | 'approved' | 'rejected';
 export type CountryZone = 'green' | 'grey' | 'red' | null;
+export type AccountType = 'person' | 'company';
 
 export type KycUiLevel = 'error' | 'warning' | 'success' | 'info';
 
@@ -15,6 +16,7 @@ export type KycUiPill =
 
 export type KycUiInput = {
   tierId: number; // 0..5
+  accountType?: AccountType;
   profileCompleted: boolean;
   countryBlocked: boolean;
   kycStatus: KycStatus;
@@ -60,6 +62,7 @@ export function getKycUiState(input: KycUiInput): KycUiPill[] {
     canBuyLowTier,
     canBuyHighTier,
     profile,
+    accountType = 'person',
   } = input;
 
   const zoneIsRed = kycCountryZone === 'red';
@@ -91,8 +94,12 @@ export function getKycUiState(input: KycUiInput): KycUiPill[] {
   }
 
   // High-tier (2..5)
-  const silverEeNoKyc =
-    tierId === 2 && zone === 'green' && isEeTriple(profile) && hasIsikukood(profile);
+    const silverEeNoKyc =
+      accountType !== 'company' &&
+      tierId === 2 &&
+      zone === 'green' &&
+      isEeTriple(profile) &&
+      hasIsikukood(profile);
 
   if (silverEeNoKyc) {
     return [{ type: 'silverEeNoKyc', level: 'info', i18nKey: 'nft.kyc.silver.eeNoKyc' }];
