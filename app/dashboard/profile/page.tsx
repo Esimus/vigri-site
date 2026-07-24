@@ -38,6 +38,11 @@ const fetchMe = async (): Promise<MeOk | null> => {
   return isMeOk(r) ? r : null;
 };
 
+const tr = (t: (key: string) => string, key: string, fallback: string) => {
+  const v = t(key);
+  return v && v !== key ? v : fallback;
+};
+
 export default function ProfilePage() {
   const { t } = useI18n();
 
@@ -55,18 +60,34 @@ export default function ProfilePage() {
   }, [me]);
 
   const progressCurrent = kyc === 'approved' ? 3 : kyc === 'pending' ? 2 : 0;
-  const stepLabels = [t('kyc.step.start'), t('kyc.step.submit'), t('kyc.step.review')];
   const accountType = me?.accountType ?? 'person';
+  const isCompany = accountType === 'company';
 
-  // Пока грузим /api/me: показываем "none" (и UI не прыгает), либо можно добавить небольшую подсказку
-  const statusLabel = isLoading ? (t('loading') || 'Loading…') : t(`kyc.status.${kyc}`);
+  const stepLabels = isCompany
+    ? [
+        tr(t, 'kyb.step.start', 'Company profile'),
+        tr(t, 'kyb.step.submit', 'Submit verification'),
+        tr(t, 'kyb.step.review', 'Review'),
+      ]
+    : [
+        tr(t, 'kyc.step.start', 'Start'),
+        tr(t, 'kyc.step.submit', 'Submit'),
+        tr(t, 'kyc.step.review', 'Review'),
+      ];
+
+  const verificationLabel = isCompany
+    ? tr(t, 'kyb.status', 'Company verification')
+    : tr(t, 'kyc.status', 'KYC status');
+
+  // While /api/me is loading, keep a stable fallback state to avoid UI jumps.
+  const statusLabel = isLoading ? tr(t, 'loading', 'Loading…') : tr(t, `kyc.status.${kyc}`, kyc);
 
   return (
     <div className="space-y-4">
       <div className="card p-4 text-sm space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <div>
-            {t('kyc.status')}:&nbsp;&nbsp;
+            {verificationLabel}:&nbsp;&nbsp;
             <StatusBadge status={kyc}>{statusLabel}</StatusBadge>
           </div>
         </div>
