@@ -8,7 +8,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Key features
 
-- **Next.js App Router** (Next.js 16.2.9)
+- **Next.js App Router** (Next.js 16.3.1)
 - **Wallet UI integration** with persistent wallet connection, wallet menu, disconnect, and address copy
 - **Modern Solana transaction pipeline** (Kit-based, no Anchor/web3.js)
 - **i18n (EN / RU / ET)** via JSON dictionaries in `locales/`
@@ -25,12 +25,12 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Tech stack
 
-- **Frontend / Server:** Next.js (App Router) 16.2.9, React 19.2.7, TypeScript 6.0.3
-- **Styling:** Tailwind CSS v4.3.1
-- **Database:** PostgreSQL + Prisma 7.8.0
-- **Solana:** `@solana/kit` 6.9.0, `@solana/wallet-account-signer` 6.9.0
-- **Wallets:** `@wallet-ui/react` 4.2.0, Wallet Standard app integration
-- **Email:** Nodemailer 9.0.1
+- **Frontend / Server:** Next.js (App Router) 16.3.1, React 19.2.8, TypeScript 6.0.3
+- **Styling:** Tailwind CSS v4.3.3
+- **Database:** PostgreSQL + Prisma 7.9.1
+- **Solana:** `@solana/kit` 7.1.0, `@solana/wallet-account-signer` 7.1.0
+- **Wallets:** `@wallet-ui/react` 4.2.1, Wallet Standard app integration
+- **Email:** Nodemailer 9.0.5
 - Removed legacy `@solana/web3.js`, Anchor dependency, and custom Phantom/Solflare hooks from the frontend
 - **Ops (production):** Nginx + PM2
 
@@ -46,8 +46,8 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Requirements
 
-- Node.js **24.13.0** (see `.nvmrc`)
-- npm **11.17.0** (see `package.json#packageManager`)
+- Node.js **24.19.0** (project version via `.nvmrc`; `package.json` requires `>=24.11.0`)
+- npm **11.19.0** (see `package.json#packageManager`)
 - PostgreSQL **14+** (or compatible managed Postgres)
 
 ---
