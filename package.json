@@ -3,9 +3,9 @@
   "version": "0.3.2",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
+    "dev": "NODE_OPTIONS=\"--no-experimental-webstorage\" next dev --turbopack",
+    "build": "NODE_OPTIONS=\"--no-experimental-webstorage\" next build --turbopack",
+    "start": "NODE_OPTIONS=\"--no-experimental-webstorage\" next start",
     "lint": "eslint . --max-warnings=0",
     "backup": "scripts/backup.sh",
     "typecheck": "tsc --noEmit"
@@ -33,7 +33,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^24.13.3",
+    "@types/node": "^26.2.0",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.21.0",
     "@types/react": "^19.2.18",
@@ -47,7 +47,7 @@
     "typescript-eslint": "^8.67.0"
   },
   "engines": {
-    "node": ">=24.11.0"
+    "node": ">=26.7.0"
   },
   "packageManager": "npm@11.19.0",
   "overrides": {

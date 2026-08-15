@@ -46,7 +46,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Requirements
 
-- Node.js **24.19.0** (project version via `.nvmrc`; `package.json` requires `>=24.11.0`)
+- Node.js **26.7.0** (project version via `.nvmrc`; `package.json` requires `>=26.7.0`)
 - npm **11.19.0** (see `package.json#packageManager`)
 - PostgreSQL **14+** (or compatible managed Postgres)
 
