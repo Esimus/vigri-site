@@ -12,3 +12,6 @@
 *.yaml text eol=lf
 *.css  text eol=lf
 *.txt  text eol=lf
+
+# Prisma generated code
+app/generated/prisma/** -whitespace
