@@ -98,68 +98,48 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
 
       <AuthModal />
 
-      {/* Floating auth strip under header (global, no layout shift) */}
-      <div className="relative z-20">
-        <div className="mx-auto max-w-6xl px-4">
-          {/* zero-height wrapper so this doesn't push content */}
-          <div className="relative h-0">
-            <div className="absolute right-4 md:right-0 top-2 md:top-4 flex items-center gap-2 floating-auth px-2 py-1">
-              <a
-                href={CONFIG.TELEGRAM_URL}
-                target="_blank"
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm hover:bg-zinc-100"
-              >
-                {t('btn_telegram')}
-              </a>
-
-              <button
-                type="button"
-                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
-                disabled
-              >
-                {t('btn_trade')} <span aria-hidden>→</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Hero */}
-      <section id="home" className="relative overflow-hidden -mt-6 md:-mt-8 hero-blobs">
-        <div className="relative z-10 mx-auto max-w-6xl px-4 pt-16 pb-10 md:pt-20 md:pb-12 grid md:grid-cols-2 gap-12 items-center">
+      <section id="home" className="relative overflow-hidden hero-blobs">
+        <div
+          id="about"
+          className="relative z-10 mx-auto max-w-6xl scroll-mt-24 px-4 py-10 md:py-12 grid md:grid-cols-2 gap-8 lg:gap-10 items-center"
+        >
           <div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+            <h1 className="text-[32px] sm:text-[42px] font-extrabold tracking-tight leading-[1.15]">
               {t('hero_title')}
             </h1>
-            <p className="mt-5 text-lg text-zinc-600">{t('hero_subtitle')}</p>
+            <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-300">
+              {t('hero_subtitle')}
+            </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
-                disabled
+              <Link
+                href="/channels"
+                className="btn btn-primary px-3.5 py-1.5 text-[13px] leading-5"
               >
-                {t('btn_buy_on_dex')}
-              </button>
-              <a href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline rounded-2xl">
-                {t('btn_community')}
-              </a>
-              <a href="#tokenomics" className="btn btn-outline rounded-2xl">
-                {t('btn_tokenomics')}
-              </a>
+                {t('home_about_community')}
+              </Link>
+              <Link
+                href="/clubs"
+                className="btn btn-outline px-3.5 py-1.5 text-[13px] leading-5"
+              >
+                {t('home_about_clubs')}
+              </Link>
             </div>
-            <div className="mt-6 text-xs text-zinc-500">{t('disclaimer')}</div>
           </div>
 
-          <div className="relative">
-            {/* Auth CTA above presale card */}
-            <div className="rounded-3xl border border-zinc-400 surface-accent shadow-md px-6 pb-6 pt-8">
-              <PresaleWidget t={t} me={me} openAuth={openAuth} />
-            </div>
-            {!isMainnet && (
-              <div className="absolute -bottom-4 -left-4 rotate-2 badge-primary">
-                {clusterLabel} / test page
-              </div>
-            )}
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 surface-accent p-5 sm:p-6">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {t('home_about_status_title')}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+              {t('home_about_status_current')}
+            </p>
+            <p className="mt-3 text-sm leading-6 font-medium">
+              {t('home_about_status_next')}
+            </p>
+            <p className="mt-4 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+              {t('home_about_status_note')}
+            </p>
           </div>
         </div>
       </section>
@@ -213,6 +193,26 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
         </div>
 
         <div className="mt-8 text-sm text-zinc-500">{t('why_social_fund')}</div>
+      </section>
+
+      {/* NFT collection */}
+      <section id="home-nft" className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mx-auto max-w-xl">
+          <div className="relative">
+            {/* NFT purchase widget */}
+            <div className="rounded-3xl border border-zinc-400 surface-accent shadow-md px-6 pb-6 pt-8">
+              <PresaleWidget t={t} me={me} openAuth={openAuth} />
+            </div>
+            {!isMainnet && (
+              <div className="absolute -bottom-4 -left-4 rotate-2 badge-primary">
+                {clusterLabel} / test page
+              </div>
+            )}
+          </div>
+          <p className="mt-6 text-xs leading-5 text-zinc-500">
+            {t('disclaimer')}
+          </p>
+        </div>
       </section>
 
       {/* Why name + Tokenomics with right image column (compact spacing) */}

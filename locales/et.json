@@ -625,8 +625,14 @@
   "header.mail_empty": "Uusi teateid pole",
   "header.mail_open": "Ava postkast",
 
-  "hero_title": "$VIGRI — token spordi, tantsu ja fännide jaoks — kõigile, kellele läheb korda",
-  "hero_subtitle": "$VIGRI on Solana utiliit-token maksete, soodustuste ja ligipääsu jaoks spordiklubide ja tantsustuudiote teenustele ning kogemustele. Osa Lumirose ökosüsteemist.",
+  "home_about_status_title": "Vigri täna",
+  "home_about_status_current": "Veebileht ja kasutajakonto juba toimivad ning NFT-kollektsioon on saadaval.",
+  "home_about_status_next": "Järgmine samm on Vigri rakenduse loomine.",
+  "home_about_status_note": "Projekt areneb järk-järgult vastavalt looja võimalustele ja kogukonna huvile.",
+  "home_about_community": "Vigri kogukond",
+  "home_about_clubs": "Klubidele ja stuudiotele",
+  "hero_title": "Vigri — sport, tants ja looming",
+  "hero_subtitle": "Loome rakendust, mis aitab leida klubisid, sportlasi, tantsijaid ja loomeinimesi, jälgida nende lugusid ning toetada nende tegevust.",
 
   "presale_title": "Eelmüük",
   "live_until": "Kuni",

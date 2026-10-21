@@ -625,8 +625,14 @@
   "header.mail_empty": "No new messages",
   "header.mail_open": "Open inbox",
 
-  "hero_title": "$VIGRI — a token for sports, dance, fans — and everyone who cares",
-  "hero_subtitle": "$VIGRI is a utility token on Solana for payments, discounts, and access to services and experiences from sports clubs and dance studios. Part of the Lumiros ecosystem.",
+  "home_about_status_title": "Vigri today",
+  "home_about_status_current": "The website, personal dashboard and NFT collection are already available.",
+  "home_about_status_next": "The next step is to build the Vigri app.",
+  "home_about_status_note": "The project develops gradually, as its creator's resources and community interest allow.",
+  "home_about_community": "Vigri community",
+  "home_about_clubs": "For clubs and studios",
+  "hero_title": "Vigri — sports, dance and arts",
+  "hero_subtitle": "We are creating an app to help people discover clubs, athletes, dancers and creators, follow their stories and support their work.",
 
   "presale_title": "Presale",
   "live_until": "Live until",
