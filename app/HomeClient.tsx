@@ -402,6 +402,9 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
           <div>
             <div className="font-semibold">VIGRI • Lumiros</div>
             <div className="mt-2 text-sm text-zinc-600 max-w-md">{t('footer_note')}</div>
+            <Link href="/contact" className="mt-3 inline-block text-sm hover:underline">
+              {t('footer_contact')}
+            </Link>
           </div>
 
           <div className="md:pl-6">

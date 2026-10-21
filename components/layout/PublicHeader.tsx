@@ -12,13 +12,10 @@ export default function PublicHeader() {
   const { lang, setLang, t } = useI18n();
   const [me, setMe] = useState<{ email: string } | null>(null);
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const [isLegalOpen, setIsLegalOpen] = useState(false);
-  const [isLegalGroupOpen, setIsLegalGroupOpen] = useState(false);
   const [isFaqOpen, setIsFaqOpen] = useState(false);
   const [isFaqGroupOpen, setIsFaqGroupOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const legalRef = useRef<HTMLDivElement | null>(null);
   const faqRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -43,15 +40,13 @@ export default function PublicHeader() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // close dropdowns on outside click
+  // Close the FAQ dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
 
-      if (legalRef.current && legalRef.current.contains(target)) return;
       if (faqRef.current && faqRef.current.contains(target)) return;
 
-      setIsLegalOpen(false);
       setIsFaqOpen(false);
     };
 
@@ -59,13 +54,17 @@ export default function PublicHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const homeLabelRaw = t('nav_home');
-  const homeLabel = homeLabelRaw === 'nav_home' ? 'Home' : homeLabelRaw;
-
   const safeT = (key: string, fallback: string) => {
     const v = t(key);
     return v === key ? fallback : v;
   };
+
+  const mainNavItems = [
+    { href: '/#about', label: safeT('nav_about', 'About Vigri') },
+    { href: '/clubs', label: safeT('nav_clubs', 'For participants') },
+    { href: '/nft', label: safeT('nav_nft', 'NFT') },
+    { href: '/channels', label: safeT('nav_channels', 'Community') },
+  ];
 
   const desktopNavItemBase =
     'text-[13px] leading-[18px] font-medium transition-colors text-zinc-700 hover:text-zinc-900 dark:text-zinc-100 dark:hover:text-white';
@@ -86,16 +85,12 @@ export default function PublicHeader() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-5 text-[13px]">
-            <Link href="/nft" className={desktopNavItemBase}>
-              {safeT('nav_nft', 'NFT')}
-            </Link>
-            <Link href="/channels" className={desktopNavItemBase}>
-              {t('nav_channels')}
-            </Link>
-            <Link href="/clubs" className={desktopNavItemBase}>
-              {safeT('nav_clubs', 'For clubs')}
-            </Link>
+          <nav className="hidden lg:flex items-center gap-5 text-[13px]">
+            {mainNavItems.map((item) => (
+              <Link key={item.href} href={item.href} className={desktopNavItemBase}>
+                {item.label}
+              </Link>
+            ))}
 
             {/* FAQ dropdown (desktop) */}
             <div ref={faqRef} className="relative">
@@ -112,7 +107,7 @@ export default function PublicHeader() {
 
               {isFaqOpen && (
                 <div
-                  className="absolute left-0 mt-2 w-64 rounded-xl border border-zinc-200 bg-white shadow-lg py-2 text-sm"
+                  className="absolute left-0 mt-2 w-64 rounded-xl border border-zinc-200 bg-white shadow-lg py-2 text-[13px] leading-[18px]"
                   role="menu"
                   onMouseLeave={() => setIsFaqOpen(false)}
                 >
@@ -151,62 +146,6 @@ export default function PublicHeader() {
                 </div>
               )}
             </div>
-
-            {/* Legal dropdown (desktop) */}
-            <div ref={legalRef} className="relative">
-              <button
-                type="button"
-                className={desktopNavItemBase + ' inline-flex items-center gap-1'}
-                onClick={() => setIsLegalOpen((v) => !v)}
-                aria-haspopup="menu"
-                aria-expanded={isLegalOpen ? 'true' : 'false'}
-              >
-                {t('nav_legal')}
-                <span aria-hidden className="text-[10px]">▾</span>
-              </button>
-
-              {isLegalOpen && (
-                <div
-                  className="absolute left-0 mt-2 w-56 rounded-xl border border-zinc-200 bg-white shadow-lg py-2 text-sm"
-                  role="menu"
-                  onMouseLeave={() => setIsLegalOpen(false)}
-                >
-                  <Link
-                    href="/contact"
-                    className="block px-3 py-2 hover:bg-zinc-100"
-                    onClick={() => setIsLegalOpen(false)}
-                    role="menuitem"
-                  >
-                    {t('footer_contact')}
-                  </Link>
-                  <Link
-                    href="/compliance"
-                    className="block px-3 py-2 hover:bg-zinc-100"
-                    onClick={() => setIsLegalOpen(false)}
-                    role="menuitem"
-                  >
-                    {t('footer_compliance')}
-                  </Link>
-                  <Link
-                    href="/privacy"
-                    className="block px-3 py-2 hover:bg-zinc-100"
-                    onClick={() => setIsLegalOpen(false)}
-                    role="menuitem"
-                  >
-                    {t('footer_privacy')}
-                  </Link>
-                  <Link
-                    href="/terms"
-                    className="block px-3 py-2 hover:bg-zinc-100"
-                    onClick={() => setIsLegalOpen(false)}
-                    role="menuitem"
-                  >
-                    {t('footer_terms')}
-                  </Link>
-                </div>
-              )}
-            </div>
-
 
           </nav>
 
@@ -267,7 +206,7 @@ export default function PublicHeader() {
       <button
         type="button"
         className={[
-          'fixed left-4 top-[4.5rem] z-40 md:hidden',
+          'fixed left-4 top-[4.5rem] z-40 lg:hidden',
           'btn btn-outline rounded-full h-9 w-9 p-0 flex items-center justify-center',
           'transition-opacity duration-150',
           scrolled ? 'opacity-60' : 'opacity-90',
@@ -293,7 +232,7 @@ export default function PublicHeader() {
 
       {/* Mobile sidebar */}
       {isNavOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <button
             className="absolute inset-0 bg-black/30"
             aria-label="Close navigation"
@@ -325,34 +264,16 @@ export default function PublicHeader() {
             </div>
 
             <nav className="px-4 py-3 space-y-2 text-sm">
-              <Link
-                href="/"
-                className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
-                onClick={() => setIsNavOpen(false)}
-              >
-                {homeLabel}
-              </Link>
-              <Link
-                href="/nft"
-                className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
-                onClick={() => setIsNavOpen(false)}
-              >
-                {safeT('nav_nft', 'NFT')}
-              </Link>
-              <Link
-                href="/channels"
-                className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
-                onClick={() => setIsNavOpen(false)}
-              >
-                {t('nav_channels')}
-              </Link>
-              <Link
-                href="/clubs"
-                className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
-                onClick={() => setIsNavOpen(false)}
-              >
-                {safeT('nav_clubs', 'For clubs')}
-              </Link>
+              {mainNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
 
               {/* FAQ group (mobile) */}
               <div className="pt-2 mt-2 border-t border-zinc-200/70">
@@ -401,55 +322,6 @@ export default function PublicHeader() {
                   </div>
                 )}
               </div>
-
-              {/* Legal group (mobile) */}
-              <div className="pt-2 mt-2 border-t border-zinc-200/70">
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 hover:bg-zinc-100"
-                  onClick={() => setIsLegalGroupOpen((v) => !v)}
-                  aria-expanded={isLegalGroupOpen ? 'true' : 'false'}
-                >
-                  <span>{t('nav_legal')}</span>
-                  <span className="text-xs" aria-hidden>
-                    {isLegalGroupOpen ? '▴' : '▾'}
-                  </span>
-                </button>
-
-                {isLegalGroupOpen && (
-                  <div className="mt-1 space-y-1 pl-3">
-                    <Link
-                      href="/contact"
-                      className="block rounded-lg px-3 py-2 text-sm hover:bg-zinc-100"
-                      onClick={() => setIsNavOpen(false)}
-                    >
-                      {t('footer_contact')}
-                    </Link>
-                    <Link
-                      href="/compliance"
-                      className="block rounded-lg px-3 py-2 text-sm hover:bg-zinc-100"
-                      onClick={() => setIsNavOpen(false)}
-                    >
-                      {t('footer_compliance')}
-                    </Link>
-                    <Link
-                      href="/privacy"
-                      className="block rounded-lg px-3 py-2 text-sm hover:bg-zinc-100"
-                      onClick={() => setIsNavOpen(false)}
-                    >
-                      {t('footer_privacy')}
-                    </Link>
-                    <Link
-                      href="/terms"
-                      className="block rounded-lg px-3 py-2 text-sm hover:bg-zinc-100"
-                      onClick={() => setIsNavOpen(false)}
-                    >
-                      {t('footer_terms')}
-                    </Link>
-                  </div>
-                )}
-              </div>
-
 
             </nav>
           </div>
