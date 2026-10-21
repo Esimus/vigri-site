@@ -68,25 +68,25 @@ export default function PublicHeader() {
   };
 
   const desktopNavItemBase =
-    'text-sm font-medium transition-colors text-zinc-700 hover:text-zinc-900 dark:text-zinc-100 dark:hover:text-white';
+    'text-[13px] leading-[18px] font-medium transition-colors text-zinc-700 hover:text-zinc-900 dark:text-zinc-100 dark:hover:text-white';
 
   return (
     <>
       {/* Sticky header */}
       <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-zinc-200 dark:bg-card/80">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="h-11 w-11 overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white">
-              <VigriLogo className="shrink-0 size-11" />
+        <div className="mx-auto max-w-6xl px-4 py-2.5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[14px] ring-1 ring-zinc-200 bg-white">
+              <VigriLogo className="shrink-0 size-10" />
             </div>
             <div>
-              <div className="font-semibold tracking-tight">VIGRI</div>
-              <div className="text-xs text-zinc-500">Solana Utility Token</div>
+              <div className="text-sm leading-5 font-semibold tracking-tight">VIGRI</div>
+              <div className="text-[11px] leading-4 text-zinc-500">Sports · Dance · Arts</div>
             </div>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm">
+          <nav className="hidden md:flex items-center gap-5 text-[13px]">
             <Link href="/nft" className={desktopNavItemBase}>
               {safeT('nav_nft', 'NFT')}
             </Link>
@@ -207,9 +207,7 @@ export default function PublicHeader() {
               )}
             </div>
 
-            <Link href="/#contract" className="btn btn-primary">
-              {t('nav_contract')}
-            </Link>
+
           </nav>
 
           <div className="flex items-center gap-3">
@@ -256,7 +254,7 @@ export default function PublicHeader() {
             ) : (
               <>
                 <LanguageSwitcher lang={lang} onChange={setLang} />
-                <Link href="/?auth=login" className="btn btn-outline">
+                <Link href="/?auth=login" className="btn btn-outline px-3.5 py-1.5 text-[13px] leading-5">
                   {t('common.sign_in') || 'Sign in'}
                 </Link>
               </>
@@ -269,7 +267,7 @@ export default function PublicHeader() {
       <button
         type="button"
         className={[
-          'fixed left-4 top-20 z-40 md:hidden',
+          'fixed left-4 top-[4.5rem] z-40 md:hidden',
           'btn btn-outline rounded-full h-9 w-9 p-0 flex items-center justify-center',
           'transition-opacity duration-150',
           scrolled ? 'opacity-60' : 'opacity-90',
@@ -452,13 +450,7 @@ export default function PublicHeader() {
                 )}
               </div>
 
-              <Link
-                href="/#contract"
-                className="block rounded-lg px-3 py-2 hover:bg-zinc-100"
-                onClick={() => setIsNavOpen(false)}
-              >
-                {t('nav_contract')}
-              </Link>
+
             </nav>
           </div>
         </div>

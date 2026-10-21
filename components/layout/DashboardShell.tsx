@@ -186,7 +186,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <div className="leading-tight">
                 <div className="font-semibold tracking-tight">VIGRI</div>
                 <div className="text-[11px] md:text-xs text-zinc-500">
-                  Solana Utility Token
+                  Sports · Dance · Arts
                 </div>
               </div>
             </Link>
