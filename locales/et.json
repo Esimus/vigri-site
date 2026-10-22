@@ -656,8 +656,14 @@
   "read_litepaper": "Loe litepaperit",
   "of": "eesmärgist",
 
-  "why_title": "Miks $VIGRI",
-  "why_intro": "$VIGRI platvorm on koht, kus spordiklubid ja tantsustuudiod pakuvad tasulisi teenuseid ja ainulaadseid fännikogemusi $VIGRI toel. Fännid saavad ligipääsu merch’ile, tegevustele ja digikogutavatele, klubid aga uue tuluallika ja kaasamisvahendid. Klubi lehtedel on selged pakkumised, läbipaistev infrastruktuuri rahastus ja $VIGRI maksed; aktiivsed toetajad teenivad staatuseid ja soodustusi. $VIGRI muudab meem-tokkeni praktiliseks toetusvahendiks — lihtne sild Web3-st igapäevasesse väärtusesse.",
+  "app_idea_title": "Rakenduse idee",
+  "app_idea_intro": "Vigri idee on tuua klubid, meeskonnad, sportlased, tantsijad ja loomeinimesed kokku oma publikuga. Tulevase rakenduse keskmes on kolm suunda.",
+  "app_idea_discover_title": "Leia",
+  "app_idea_discover_desc": "Klubid, stuudiod, meeskonnad ja üksikisikud — otsing linna, tegevusala ja huvide järgi.",
+  "app_idea_follow_title": "Jälgi",
+  "app_idea_follow_desc": "Lood, uudised, saavutused ja sündmused inimestelt, kes sind huvitavad — igapäevastest harjutustest esinemiste ja võistlusteni.",
+  "app_idea_support_title": "Osale ja toeta",
+  "app_idea_support_desc": "Sündmused, piletid, klubi meened, autorilooming ja raha kogumine konkreetsete eesmärkide jaoks — võimalused toetada sulle olulisi inimesi ja projekte.",
   "tokenomics_title": "Tokenoomika",
   "how_title": "Kuidas osta",
   "step": "SAMM",
@@ -666,18 +672,6 @@
   "how_step3": "Ava DEX (Raydium/Orca) alloleva lingi kaudu.",
   "how_step4": "Vaheta SOL → VIGRI ja lisa token oma rahakotti.",
 
-  "why_card_payments_title": "Ostud ja maksed",
-  "why_card_payments_desc": "Fännidel kiire kassasooritus merch’i, passide ja kogemuste jaoks; klubidel kohesed $VIGRI laekumised ja läbipaistev arvestus.",
-  "why_card_passes_title": "Pääsmed ja kogemused",
-  "why_card_passes_desc": "Tokeniseeritud passid ja piletid: treeningud, backstage, privaatsed kohtumised, välismängude tripid jpm.",
-  "why_card_crowd_title": "Ühisrahastus ja infrastruktuur",
-  "why_card_crowd_desc": "Läbipaistev rahastus saalidele, sõitudele, varustusele ja klubi arengule — otse fännidelt.",
-  "why_card_merch_title": "Merch ja kollektsioneeritavad esemed",
-  "why_card_merch_desc": "Eeltellimused ametlikule merch’ile ja piiratud digitaalsetele kollektsioonidele.",
-  "why_card_status_title": "Staatus ja tunnustus",
-  "why_card_status_desc": "Aktiivsed toetajad teenivad tiitleid, märke ja soodustusi — „Kuu fänn“, tiimi shout-out’id, rollid kogukonnas, tugi välismängudel.",
-  "why_card_clubpages_title": "Klubilehed ja pakkumised",
-  "why_card_clubpages_desc": "Iga klubi eraldi leht pakkumiste, passide ja merchi müügiga, $VIGRI panustega ja fänni-üritustega.",
 
   "why_name_title": "Miks nimi “VIGRI”?",
   "why_name_text": "Õrn viide 1980. aastale Läänemerel — purjetamine, fair play ja sõbralik avatuse ning toe vaim. Hoiame alles vaimu, mitte ühtegi ametlikku kaubamärki: soe sümbol fännidele ja klubidele.",
@@ -983,7 +977,6 @@
   "tokenomics_note": "Maksu jaotuse mehhanika (turundus/likviidsus/arendus) on rakendatud ahelas töötava programmiga ning seda võidakse arenduse käigus täpsustada. Täielikud üksikasjad avaldatakse dokumentatsioonis.",
 
   "disclaimer": "Tähtis: see ei ole investeerimisnõuanne. VIGRI on utiliit-token; ostud teete omal vastutusel.",
-  "why_social_fund": "Osa vahenditest ja tegevusest läheb sotsiaalfondi, mis toetab sportlasi ja klubisid kriisiaegadel.",
 
   "reset.title": "Parooli lähtestamine",
   "reset.missing": "Link on puudulik. Palun ava link oma e-kirjast.",

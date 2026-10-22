@@ -656,8 +656,14 @@
   "read_litepaper": "Read litepaper",
   "of": "of",
 
-  "why_title": "Why $VIGRI",
-  "why_intro": "$VIGRI Platform is where sports clubs and dance studios offer paid services and unique fan experiences powered by $VIGRI. Fans get access to merch, activities, and digital collectibles, while clubs gain a new revenue stream and engagement tools. Club pages host clear offers, transparent infrastructure funding, and $VIGRI payments; active supporters earn status and perks. $VIGRI turns a meme token into a practical tool of support — a simple bridge from Web3 to everyday value.",
+  "app_idea_title": "The app idea",
+  "app_idea_intro": "Vigri is conceived as a place where clubs, teams, athletes, dancers and creators can connect with their audiences. The app concept has three main areas.",
+  "app_idea_discover_title": "Discover",
+  "app_idea_discover_desc": "Clubs, studios, teams and individuals — searchable by city, discipline and interests.",
+  "app_idea_follow_title": "Follow",
+  "app_idea_follow_desc": "Stories, news, achievements and events from the people you follow, from everyday practice to performances and competitions.",
+  "app_idea_support_title": "Take part and support",
+  "app_idea_support_desc": "Events, tickets, club merchandise, original works and fundraising for specific goals — ways to support the people and projects you care about.",
   "tokenomics_title": "Tokenomics",
   "how_title": "How to Buy",
   "step": "STEP",
@@ -666,18 +672,6 @@
   "how_step3": "Go to the DEX (Raydium/Orca) via the link below.",
   "how_step4": "Swap SOL → VIGRI and add the token to your wallet.",
 
-  "why_card_payments_title": "Purchases & Payments",
-  "why_card_payments_desc": "Fans get fast checkout for merch, passes, and experiences; clubs get instant $VIGRI receipts and transparent accounting.",
-  "why_card_passes_title": "Passes & Experiences",
-  "why_card_passes_desc": "Tokenized passes and tickets: training sessions, backstage, private meetups, away trips with the team, and more.",
-  "why_card_crowd_title": "Crowdfunding & Infrastructure",
-  "why_card_crowd_desc": "Transparent funding for training facilities, travel, equipment, and other club development — directly from fans.",
-  "why_card_merch_title": "Merch & Collectibles",
-  "why_card_merch_desc": "Pre-orders for official club merch and limited digital collectibles.",
-  "why_card_status_title": "Status & Recognition",
-  "why_card_status_desc": "Active supporters earn titles, badges, and special opportunities — 'Fan of the Month', team shout-outs, community roles, and away-game support.",
-  "why_card_clubpages_title": "Club Pages & Offers",
-  "why_card_clubpages_desc": "Dedicated pages for each club to publish offers, sell passes & merch, take $VIGRI contributions, and run fan activities.",
 
   "why_name_title": "Why the name “VIGRI”?",
   "why_name_text": "A gentle nod to 1980 on the Baltic — sailing, fair play, and a friendly spirit of openness and support. We keep the spirit, not any official brand: a warm symbol for fans and clubs.",
@@ -983,7 +977,6 @@
   "tokenomics_note": "The distribution mechanics of the tax (marketing/liquidity/development) are enforced by the on-chain program and may be refined during development. Full details will be published in the docs.",
 
   "disclaimer": "Important: Not investment advice. VIGRI is a utility token; purchases are at your own risk.",
-  "why_social_fund": "A share of funds and activity goes to a social fund supporting athletes and clubs in times of crisis.",
 
   "reset.title": "Reset password",
   "reset.missing": "The link is incomplete. Please use the link from your email.",

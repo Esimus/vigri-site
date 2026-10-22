@@ -102,7 +102,7 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
       <section id="home" className="relative overflow-hidden hero-blobs">
         <div
           id="about"
-          className="relative z-10 mx-auto max-w-6xl scroll-mt-24 px-4 py-10 md:py-12 grid md:grid-cols-2 gap-8 lg:gap-10 items-center"
+          className="relative z-10 mx-auto max-w-6xl scroll-mt-24 px-4 pt-10 pb-6 md:pt-12 grid md:grid-cols-2 gap-8 lg:gap-10 items-center"
         >
           <div>
             <h1 className="text-[32px] sm:text-[42px] font-extrabold tracking-tight leading-[1.15]">
@@ -144,55 +144,44 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
         </div>
       </section>
 
-      {/* Utility */}
-      <section id="utility" className="relative mx-auto max-w-6xl px-4 section">
-        <h2 className="text-2xl font-bold tracking-tight">{t('why_title')}</h2>
-        <p className="mt-3 text-zinc-600 max-w-3xl">{t('why_intro')}</p>
+      {/* App concept */}
+      <section id="utility" className="mx-auto max-w-6xl px-4 pt-4 pb-8 md:pt-6 md:pb-10">
+        <div className="grid xl:grid-cols-[minmax(0,1fr)_18rem] gap-4 xl:gap-10 items-start">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t('app_idea_title')}
+            </h2>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600 dark:text-zinc-300">
+              {t('app_idea_intro')}
+            </p>
+          </div>
 
-        {/* Mobile figure (football) */}
-        <div className="xl:hidden mt-6 flex justify-center">
           <Image
             src="/images/figures/figure-football.png"
             alt=""
             width={1232}
             height={928}
-            priority={false}
             aria-hidden
-            className="hidden xl:block w-[22.5rem] h-auto pointer-events-none select-none absolute -top-10 right-12 translate-x-10 drop-shadow-xl"
-            sizes="(min-width:1280px) 360px, 0px"
+            className="block w-40 sm:w-48 xl:w-72 xl:-mt-[5.25rem] xl:relative xl:z-10 h-auto justify-self-center xl:justify-self-end pointer-events-none select-none drop-shadow-xl"
+            sizes="(min-width: 1280px) 288px, (min-width: 640px) 192px, 160px"
           />
         </div>
 
-        {/* Decorative figure (desktop only) */}
-        <Image
-          src="/images/figures/figure-football.png"
-          alt=""
-          width={360}
-          height={360}
-          priority={false}
-          aria-hidden
-          style={{ height: 'auto' }}
-          className="hidden xl:block pointer-events-none select-none absolute -top-10 right-12 translate-x-10 drop-shadow-xl"
-          sizes="(min-width:1280px) 360px, 0px"
-        />
-
-        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { t: t('why_card_payments_title'), d: t('why_card_payments_desc') },
-            { t: t('why_card_passes_title'), d: t('why_card_passes_desc') },
-            { t: t('why_card_crowd_title'), d: t('why_card_crowd_desc') },
-            { t: t('why_card_merch_title'), d: t('why_card_merch_desc') },
-            { t: t('why_card_status_title'), d: t('why_card_status_desc') },
-            { t: t('why_card_clubpages_title'), d: t('why_card_clubpages_desc') },
-          ].map((x) => (
-            <div key={x.t} className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
-              <div className="font-semibold">{x.t}</div>
-              <div className="mt-1.5 text-sm text-zinc-600">{x.d}</div>
+        <div className="mt-4 grid md:grid-cols-3 gap-5">
+          {['discover', 'follow', 'support'].map((item) => (
+            <div
+              key={item}
+              className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-card shadow-sm"
+            >
+              <h3 className="font-semibold">
+                {t(`app_idea_${item}_title`)}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                {t(`app_idea_${item}_desc`)}
+              </p>
             </div>
           ))}
         </div>
-
-        <div className="mt-8 text-sm text-zinc-500">{t('why_social_fund')}</div>
       </section>
 
       {/* NFT collection */}
