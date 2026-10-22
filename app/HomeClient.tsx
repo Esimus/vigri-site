@@ -12,7 +12,6 @@ import AuthModal from '@/components/AuthModal';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import VerifyBanner from '@/components/VerifyBanner';
 import PublicHeader from '@/components/layout/PublicHeader';
-import { ProgressDot } from '@/components/ui/ProgressDot';
 import PresaleWidget from '@/components/home/PresaleWidget';
 
 type MeUser = { email: string } | null;
@@ -350,33 +349,6 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
               <LinksCompact explorerQS={explorerQS} t={t} />
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Roadmap */}
-      <section id="roadmap" className="mx-auto max-w-6xl px-4 section -mt-6 md:-mt-10 scroll-mt-24">
-        <h2 className="text-2xl font-bold tracking-tight">{t('roadmap_title')}</h2>
-        <div className="mt-6 grid gap-4">
-          {[
-            { k: t('roadmap_i1_k'), v: t('roadmap_i1_v'), p: 1.0 },
-            { k: t('roadmap_i2_k'), v: t('roadmap_i2_v'), p: 1.0 },
-            { k: t('roadmap_i3_k'), v: t('roadmap_i3_v'), p: 0.2 },
-            { k: t('roadmap_i4_k'), v: t('roadmap_i4_v'), p: 0 },
-            { k: t('roadmap_i5_k'), v: t('roadmap_i5_v'), p: 0 },
-          ].map((x) => (
-            <div
-              key={x.k}
-              className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm flex items-start gap-4"
-            >
-              <ProgressDot value={x.p} />
-              <div>
-                <div className="text-xs text-zinc-500">{x.k}</div>
-                <div className="font-medium">{x.v}</div>
-              </div>
-            </div>
-          ))}
-          <div className="mt-4 text-xs text-zinc-500">{t('roadmap_disclaimer')}</div>
-          <div className="mt-2 text-xs text-zinc-500">{t('roadmap_airdrop_note')}</div>
         </div>
       </section>
 

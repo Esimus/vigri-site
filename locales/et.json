@@ -954,7 +954,6 @@
 
   "nav_why": "Miks",
   "nav_tokenomics": "Tokenoomika",
-  "nav_roadmap": "Teekaart",
   "nav_how": "Kuidas osta",
   "nav_contract": "Leping",
   "nav_about": "Vigrist",
@@ -990,19 +989,6 @@
   "reset_request.submit": "Saada lähtestuslink",
   "reset_request.info": "Saadame parooli lähtestamise lingi, kui see e-post on registreeritud.",
 
-  "roadmap_title": "Teejuht (2025 – 2026)",
-  "roadmap_disclaimer": "Ajagraafik on ligikaudne ja võib muutuda sõltuvalt audititest, partneritest ja turutingimustest.",
-  "roadmap_airdrop_note": "“Early Supporters Airdrop” on väike jaotus meie varasema kogukonna pikaajalistele toetajatele (täpsem teave on toodud dokumentatsioonis).",
-  "roadmap_i1_k": "okt 2025",
-  "roadmap_i1_v": "$VIGRI lepingu arendus, testimine ja silumine Devnetis. Veebisaidi vigri.ee arendus, NFT eelmüügi struktuur, esmane dokumentatsioon ja sisu. NFT struktuuri ja üldise preemiasüsteemi loogika kujundamine.",
-  "roadmap_i2_k": "nov–dets 2025",
-  "roadmap_i2_v": "Veebisaidi ja NFT ostuliideste arenduse lõpetamine. Serveri infrastruktuuri seadistamine, projekti üleviimine lokaalsest keskkonnast. NFT eelmüügi nutilepingu arendus ja testimine. Dokumentatsiooni, lightpaper’i ja välisesitlusmaterjalide ettevalmistus. Esmane airdrop’i ja sisemiste soovitusmehhanismide seadistamine.",
-  "roadmap_i3_k": "I kv 2026",
-  "roadmap_i3_v": "$VIGRI lepingu arenduse, testimise ja silumise jätkamine Devnetis. Meeskonna moodustamine (veebr–märts). Platvormi arhitektuur v0, tehnilise ulatuse täpsustamine. Klõpsatav UI-prototüüp, NFT mehhaanika ja $VIGRI tokeni integratsiooni väljatöötamine. Töö kõigi NFT kategooriate disainide loomisega.",
-  "roadmap_i4_k": "II kv 2026 — Reveal Event",
-  "roadmap_i4_v": "$VIGRI lepingu üleviimine mainnet’i, täiendav testimine ja silumine põhivõrgus. NFT kollektsiooni Vigri ametlik avamine: offline-sündmus ja disainide avalikustamine.",
-  "roadmap_i5_k": "III kv – sügis 2026",
-  "roadmap_i5_v": "$VIGRI tokeni noteerimise ettevalmistamine ja käivitamine DEX-is (Raydium / Orca). Algne likviidsus ja avatud kauplemine.\n\nAvalik MVP: põhilised Club Pages ja Passes & Experiences v0, piiratud piloot. Avaliku funktsionaalsuse testimise algus ja tagasiside kogumine kogukonnalt.",
 
   "beyond.title": "Digitaalsest kaugemale",
   "beyond.text": "VIGRI ei ole ainult token ja digitaalne platvorm. Meie pikaajaline nägemus on luua Rahvusvaheline treeningu- ja rehabilitatsioonikeskus professionaalsetele sportlastele ja tantsijatele. Esimene keskus on plaanitud Eestisse — reaalne samm tervise ja taastumise suunas. See on pikaajaline eesmärk, mida arendame järk-järgult, avatult ja läbipaistvalt.",
