@@ -7,6 +7,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { LanguageSwitcher, ProfileMenu } from '@/components/nav';
 import { NotificationsBell } from '@/components/notifications';
 import VigriLogo from '@/components/VigriLogo';
+import ThemeToggle from '@/components/nav/ThemeToggle';
 
 export default function PublicHeader() {
   const { lang, setLang, t } = useI18n();
@@ -149,7 +150,7 @@ export default function PublicHeader() {
 
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             {me ? (
               <div className="flex items-center gap-2">
                 <ProfileMenu />
@@ -192,6 +193,7 @@ export default function PublicHeader() {
               </div>
             ) : (
               <>
+                <ThemeToggle />
                 <LanguageSwitcher lang={lang} onChange={setLang} />
                 <Link href="/?auth=login" className="btn btn-outline px-3.5 py-1.5 text-[13px] leading-5">
                   {t('common.sign_in') || 'Sign in'}
