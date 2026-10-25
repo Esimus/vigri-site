@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { CONFIG, explorerQS, isMainnet, clusterLabel } from '../lib/config';
+import { CONFIG, explorerQS } from '../lib/config';
 import Link from 'next/link';
 import Image from 'next/image';
 import BeyondDigital from '@/components/BeyondDigital';
@@ -12,15 +12,11 @@ import AuthModal from '@/components/AuthModal';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import VerifyBanner from '@/components/VerifyBanner';
 import PublicHeader from '@/components/layout/PublicHeader';
-import PresaleWidget from '@/components/home/PresaleWidget';
 
-type MeUser = { email: string } | null;
-
-export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
+export default function HomeClient() {
   const { t } = useI18n();
 
   const [copied, setCopied] = useState<string>('');
-  const [me] = useState<MeUser>(initialMe);
 
   // verification banner state
   const [verifyLoading, setVerifyLoading] = useState(false);
@@ -72,12 +68,6 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
       return () => clearTimeout(id);
     }
   }, [verify, closeVerify]);
-
-  const openAuth = (mode: 'login' | 'signup') => {
-    const q = new URLSearchParams(sp?.toString() || '');
-    q.set('auth', mode);
-    router.push(`${pathname}?${q.toString()}`, { scroll: false });
-  };
 
   return (
     <main>
@@ -180,26 +170,6 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
               </p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* NFT collection */}
-      <section id="home-nft" className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mx-auto max-w-xl">
-          <div className="relative">
-            {/* NFT purchase widget */}
-            <div className="rounded-3xl border border-zinc-400 surface-accent shadow-md px-6 pb-6 pt-8">
-              <PresaleWidget t={t} me={me} openAuth={openAuth} />
-            </div>
-            {!isMainnet && (
-              <div className="absolute -bottom-4 -left-4 rotate-2 badge-primary">
-                {clusterLabel} / test page
-              </div>
-            )}
-          </div>
-          <p className="mt-6 text-xs leading-5 text-zinc-500">
-            {t('disclaimer')}
-          </p>
         </div>
       </section>
 

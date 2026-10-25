@@ -3,6 +3,7 @@
 
 import PublicHeader from '@/components/layout/PublicHeader';
 import NftList from '@/components/NftList';
+import NftProgress from '@/components/NftProgress';
 import { useI18n } from '@/hooks/useI18n';
 
 export default function NftPublicPage() {
@@ -21,6 +22,8 @@ export default function NftPublicPage() {
           <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-300">
             {t('nft_public_intro')}
           </p>
+
+          <NftProgress />
 
           <NftList mode="public" />
         </div>
