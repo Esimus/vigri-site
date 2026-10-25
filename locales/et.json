@@ -1465,5 +1465,8 @@
   "nft_progress_admin": "Administraatori väljastatud NFT-d",
   "nft_progress_tests": "Välja jäetud testostud",
   "nft_progress_method": "Andmeid kontrollitakse Solana põhivõrgu tehingute alusel. Kogutud summast on maha arvatud tuvastatud testmaksed. Näitaja kajastab kogutud vahendeid, mitte rahakoti praegust saldot.",
-  "nft_progress_checked": "Viimati kontrollitud:"
+  "nft_progress_checked": "Viimati kontrollitud:",
+  "nft_progress_reference": "Arvestuslik võrdlussumma:",
+  "nft.collection_since": "NFT-de väljastamise algusest",
+  "nft.issued_short": "Väljastatud"
 }

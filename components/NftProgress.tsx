@@ -1,5 +1,6 @@
 'use client';
 
+import { useId, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { z } from 'zod';
 import { useI18n } from '@/hooks/useI18n';
@@ -40,6 +41,9 @@ async function fetchProgress(url: string) {
 
 export default function NftProgress() {
   const { t, lang } = useI18n();
+  const detailsId = useId();
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const { data, error, isValidating, mutate } = useSWR<
     z.infer<typeof progressSchema>, Error
   >('/api/nft/progress', fetchProgress, {
@@ -50,7 +54,11 @@ export default function NftProgress() {
   });
 
   const fmt = new Intl.NumberFormat(lang, { maximumFractionDigits: 9 });
-  const fmtPercent = new Intl.NumberFormat(lang, { maximumFractionDigits: 6 });
+  const formatPercent = (value: number) => new Intl.NumberFormat(lang,
+    value > 0 && value < 0.01
+      ? { maximumSignificantDigits: 2 }
+      : { maximumFractionDigits: 2 },
+  ).format(value);
   const formatSol = (value: string) => `${fmt.format(Number(value))} SOL`;
   const metrics = data ? [
     {
@@ -70,18 +78,23 @@ export default function NftProgress() {
   ] : [];
 
   return (
-    <section className="card rounded-2xl p-4 sm:p-5" aria-label={t('nft_progress_title')}>
+    <section className="@container card min-w-0 rounded-2xl p-3 sm:p-4" aria-label={t('nft_progress_title')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold tracking-tight">
+        <h2 className="text-sm font-semibold tracking-tight">
           {t('nft_progress_title')}
         </h2>
         <button
           type="button"
-          className="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="min-h-8 rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
           disabled={isValidating}
+          aria-label={t(isValidating ? 'nft_progress_refreshing' : 'nft_progress_refresh')}
+          title={t(isValidating ? 'nft_progress_refreshing' : 'nft_progress_refresh')}
           onClick={() => { void mutate(); }}
         >
-          {t(isValidating ? 'nft_progress_refreshing' : 'nft_progress_refresh')}
+          <span className="text-lg leading-none sm:hidden" aria-hidden="true">↻</span>
+          <span className="hidden sm:inline">
+            {t(isValidating ? 'nft_progress_refreshing' : 'nft_progress_refresh')}
+          </span>
         </button>
       </div>
 
@@ -97,21 +110,27 @@ export default function NftProgress() {
             </p>
           )}
 
-          <div className="mt-4 grid gap-5 md:grid-cols-2 md:gap-8">
+          <div className="mt-2 grid min-w-0 gap-3 @min-[36rem]:grid-cols-2 @min-[36rem]:gap-6">
             {metrics.map((metric) => (
               <div key={metric.key} className="min-w-0">
-                <h3 className="text-sm font-medium">
-                  {t(`nft_progress_${metric.key}_label`)}
+                <h3 className="text-xs font-medium">
+                  <button type="button"
+                    className="flex min-h-7 w-full items-center justify-between gap-2 rounded text-left hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-blue-500 dark:hover:text-blue-400"
+                    aria-expanded={detailsOpen} aria-controls={detailsId}
+                    onClick={() => { detailsRef.current?.toggleAttribute('open'); }}>
+                    {t(`nft_progress_${metric.key}_label`)}
+                    <span aria-hidden="true">{detailsOpen ? '▴' : '▾'}</span>
+                  </button>
                 </h3>
                 <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1 tabular-nums">
-                  <span className="text-2xl font-semibold tracking-tight">{metric.value}</span>
+                  <span className="text-xl font-semibold tracking-tight">{metric.value}</span>
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {t('nft_progress_of')} {metric.limit}
+                    {t(metric.key === 'funding' ? 'nft_progress_reference' : 'nft_progress_of')} {metric.limit}
                   </span>
                 </div>
-                <div className="mt-3 flex items-center gap-3">
+                <div className="mt-2 flex items-center gap-2">
                   <div
-                    className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700"
+                    className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700"
                     role="progressbar"
                     aria-label={t(`nft_progress_${metric.key}_label`)}
                     aria-valuemin={0}
@@ -121,25 +140,30 @@ export default function NftProgress() {
                   >
                     <div className="h-full bg-blue-600 dark:bg-blue-400" style={{ width: `${metric.percent}%` }} />
                   </div>
-                  <span className="text-xs tabular-nums text-zinc-600 dark:text-zinc-300">
+                  <span className="shrink-0 text-[11px] tabular-nums text-zinc-600 dark:text-zinc-300">
                     {metric.percent === 0 && metric.positive
-                      ? `<${fmtPercent.format(0.000001)}`
-                      : fmtPercent.format(metric.percent)}%
+                      ? `<${fmt.format(0.000001)}`
+                      : formatPercent(metric.percent)}%
                   </span>
                 </div>
-                <p className="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                  {t(`nft_progress_${metric.key}_note`)}
-                </p>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 border-t border-zinc-200 pt-3 text-xs dark:border-zinc-700">
-            <details>
-              <summary className="w-fit cursor-pointer font-medium">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-zinc-200 pt-2 text-[11px] dark:border-zinc-700">
+            <details ref={detailsRef} id={detailsId} className="min-w-0 open:w-full"
+              onToggle={(event) => setDetailsOpen(event.currentTarget.open)}>
+              <summary className="min-h-7 w-fit cursor-pointer py-1 font-medium">
                 {t('nft_progress_details')}
               </summary>
-              <dl className="mt-3 grid gap-x-8 gap-y-2 md:grid-cols-2">
+              <div className="mt-2 grid gap-2 @min-[36rem]:grid-cols-2">
+                {metrics.map((metric) => (
+                  <p key={metric.key} className="leading-5 text-zinc-500 dark:text-zinc-400">
+                    {t(`nft_progress_${metric.key}_note`)}
+                  </p>
+                ))}
+              </div>
+              <dl className="mt-3 grid gap-x-6 gap-y-2 text-xs @min-[36rem]:grid-cols-2">
                 {[
                   ['gross', formatSol(data.funding.grossReceiptsSol)],
                   ['excluded', formatSol(data.funding.excludedTestSol)],
@@ -147,7 +171,7 @@ export default function NftProgress() {
                   ['admin', fmt.format(data.collection.adminMints)],
                   ['tests', fmt.format(data.funding.excludedTestPurchases)],
                 ].map(([key, value]) => (
-                  <div key={key} className="flex items-baseline justify-between gap-3">
+                  <div key={key} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                     <dt className="text-zinc-600 dark:text-zinc-300">{t(`nft_progress_${key}`)}</dt>
                     <dd className="shrink-0 font-medium tabular-nums">{value}</dd>
                   </div>
@@ -157,7 +181,7 @@ export default function NftProgress() {
                 {t('nft_progress_method')}
               </p>
             </details>
-            <p className="mt-3 text-zinc-500 dark:text-zinc-400">
+            <p className="text-zinc-500 dark:text-zinc-400">
               {t('nft_progress_checked')}{' '}
               <time dateTime={data.checkedAt}>
                 {new Intl.DateTimeFormat(lang, {

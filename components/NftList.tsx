@@ -183,8 +183,29 @@ type NftListApiResp = { ok: boolean; items: Item[] };
 
 type NftListMode = 'dashboard' | 'public';
 
-export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) {
+function NftLaunchTimer() {
   const { t } = useI18n();
+  const presale = usePresaleCountdown();
+  return (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-zinc-600 dark:text-zinc-300">
+          <span>{t('nft.collection_since')}</span>
+          <div role="timer" aria-live="off" aria-label={t('nft.collection_since')}
+            className="flex flex-wrap gap-3 tabular-nums">
+            {[
+              { v: presale.d, l: t('nft.timer.d') },
+              { v: presale.h, l: t('nft.timer.h') },
+              { v: presale.m, l: t('nft.timer.m') },
+              { v: presale.s, l: t('nft.timer.s') },
+            ].map(({ v, l }) => (
+              <span key={l}><b>{v}</b> {l}</span>
+            ))}
+          </div>
+        </div>
+  );
+}
+
+export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) {
+  const { t, lang } = useI18n();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const detailsPrefix = mode === 'public' ? '/nft' : '/dashboard/nft';
@@ -284,8 +305,6 @@ export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) 
     { revalidateOnFocus: false }
   );
 
-  const presale = usePresaleCountdown();
-
   const hasItems = Array.isArray(items) && items.length > 0;
 
   // small i18n helper with fallback
@@ -295,34 +314,36 @@ export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) 
   };
 
   const skeletonCards = (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 gap-3 @min-[38rem]:grid-cols-2 @min-[60rem]:grid-cols-3">
       {Array.from({ length: 6 }).map((_, idx) => (
-        <div key={idx} className="card p-3 md:p-4 flex flex-col rounded-2xl animate-pulse">
-          <div
-            className="relative w-full mb-3 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/70"
-            style={{ aspectRatio: '3 / 4' }}
-          />
-          <div className="h-3 w-2/3 rounded-full bg-zinc-100/60 dark:bg-zinc-800/60 mb-2" />
-          <div className="h-2.5 w-full rounded-full bg-zinc-100/50 dark:bg-zinc-800/50 mb-1" />
-          <div className="h-2.5 w-4/5 rounded-full bg-zinc-100/50 dark:bg-zinc-800/50 mb-4" />
-          <div className="mt-auto h-8 w-full rounded-2xl bg-zinc-100/70 dark:bg-zinc-800/70" />
+        <div key={idx} className="card min-w-0 animate-pulse rounded-2xl p-3">
+          <div className="flex gap-3">
+            <div className="aspect-[3/4] w-[86px] shrink-0 rounded-xl bg-zinc-200 dark:bg-zinc-700" />
+            <div className="min-w-0 flex-1 space-y-3 py-1">
+              <div className="h-4 w-2/3 rounded bg-zinc-200 dark:bg-zinc-700" />
+              <div className="h-3 rounded bg-zinc-200 dark:bg-zinc-700" />
+              <div className="h-3 w-3/4 rounded bg-zinc-200 dark:bg-zinc-700" />
+            </div>
+          </div>
+          <div className="mt-3 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-700" />
         </div>
       ))}
     </div>
   );
 
   return (
-    <div className="space-y-3">
+    <div className="@container min-w-0 space-y-3">
+      {hasItems && <NftLaunchTimer />}
+
       {/* stage 1: skeleton grid while list is loading */}
       {items === null && skeletonCards}
 
       {/* stage 2: real cards once base list loaded */}
       {hasItems && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 gap-3 @min-[38rem]:grid-cols-2 @min-[60rem]:grid-cols-3">
           {items!.map((i) => {
             const owned = (i.ownedQty || 0) > 0;
             const src = `/images/nft/${pngNameFor(i.id)}`;
-            const showCountdown = presale.isPresale && i.id !== 'nft-ws-20';
 
             // Unified AML / KYC badge state (shared rules)
             const { blockedByAml, showKycBadge } = getKycBadgeStateForNftList({
@@ -369,65 +390,65 @@ export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) 
             const progressColor = pct > 70 ? '#EF4444' : pct >= 30 ? '#F59E0B' : '#10B981';
 
             return (
-              <div key={i.id} className="card p-3 md:p-4 flex flex-col rounded-2xl">
-                {/* Preview with overlays */}
-                <div className="relative w-full mb-3" style={{ aspectRatio: '3 / 4' }}>
-                  <Image
-                    src={src}
-                    alt={i.name}
-                    fill
-                    sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 320px"
-                    className="object-cover rounded-xl border"
-                    priority={false}
-                  />
-
-                  {/* Owned chip (top-right) */}
-                  {owned && (
-                    <div className="absolute top-2 right-2 chip shadow">
-                      {t('nft.owned')}: <b className="ml-1">{i.ownedQty}</b>
+              <div key={i.id} className="card min-w-0 flex flex-col rounded-2xl p-3 transition-shadow hover:shadow-md">
+                <div className="flow-root min-w-0">
+                  <Link href={`${detailsPrefix}/${i.id}`}
+                    className="relative float-left mr-3 block aspect-[3/4] w-[86px] overflow-hidden rounded-xl border border-zinc-200 focus-visible:outline-2 focus-visible:outline-blue-500 dark:border-zinc-700">
+                    <Image src={src} alt={i.name} fill sizes="86px"
+                      className="object-contain" priority={false} />
+                  </Link>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold leading-5">
+                      <Link href={`${detailsPrefix}/${i.id}`} className="hover:underline">
+                        {i.name}
+                      </Link>
+                    </h3>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-75">
+                      {typeof total === 'number' && total > 0 && (
+                        <span>{t('nft.total')}: {total}</span>
+                      )}
+                      {owned && <span>{t('nft.owned')}: <b>{i.ownedQty}</b></span>}
                     </div>
-                  )}
+                    {/* Price + after-date pill */}
+                    {(() => {
+                      const hasSol = solPrice !== null && solPrice > 0;
+                      const hasEur = i.eurPrice > 0;
 
-                  {/* Micro countdown (bottom-left) */}
-                  {showCountdown && (
-                    <div className="absolute left-2 bottom-2 text-white text-shadow-sm">
-                      <div className="text-[10px] font-semibold uppercase tracking-wide mb-0.5 drop-shadow">
-                        {t('nft.badge.presale')}
-                      </div>
-                      <div className="text-[10px] leading-none opacity-80 -mt-[6px]">
-                        {t('nft.badge.presale_since')}
-                      </div>
-                      <div className="flex gap-2 mt-[4px]">
-                        {[
-                          { v: presale.d, l: t('nft.timer.d') },
-                          { v: presale.h, l: t('nft.timer.h') },
-                          { v: presale.m, l: t('nft.timer.m') },
-                          { v: presale.s, l: t('nft.timer.s') },
-                        ].map(({ v, l }) => (
-                          <div key={l} className="flex flex-col items-center leading-none drop-shadow">
-                            <div className="text-[11px] font-semibold tabular-nums">{v}</div>
-                            <div className="text-[8px] font-light opacity-90 leading-[0.95]">{l}</div>
+                      if (!hasSol && !hasEur) {
+                        return <div className="text-xs md:text-sm opacity-70 mb-2">{t('nft.badge.invite')}</div>;
+                      }
+
+                      return (
+                        <div className="mt-2">
+                          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[13px] leading-5">
+                            <span>
+                              {t('nft.price')}: {hasSol ? <b>{solPrice} SOL</b> : <span className="opacity-70">—</span>}
+                            </span>
+                            {hasSol && eurNow !== null && (
+                              <span className="text-[11px] leading-4 opacity-70">
+                                ≈ {eurNow.toFixed(0)}€ (CoinGecko)
+                              </span>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                          {hasSol && (
+                            <div className="mt-1 flex">
+                              <span className="chip chip--sm max-w-full whitespace-normal">{t('nft.after')}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
-                {/* Title row + total */}
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="font-semibold text-sm md:text-base">{i.name}</div>
-                  {typeof total === 'number' && total > 0 && (
-                    <div className="chip shrink-0" title={t('nft.total')}>
-                      {t('nft.total')}: {total}
-                    </div>
-                  )}
+                  </div>
+
+                  {/* Short resume (💬) */}
+                  {resumeKey && <div className="mt-2 text-xs leading-5 opacity-80">{t(resumeKey)}</div>}
                 </div>
 
                 {/* Collapsible features */}
                 {featureKeys.length > 0 ? (
                   <details
-                    className="mb-2 rounded-lg"
+                    className="mt-3 mb-2 rounded-lg"
                     open={!!expanded[i.id]}
                     onToggle={(e) =>
                       setExpanded((s) => ({
@@ -436,10 +457,10 @@ export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) 
                       }))
                     }
                   >
-                    <summary className="cursor-pointer select-none text-[11px] md:text-xs opacity-80 underline underline-offset-4">
+                    <summary className="cursor-pointer select-none py-1 text-xs opacity-80 underline underline-offset-4">
                       {expanded[i.id] ? t('nft.hide') ?? 'Hide features' : t('nft.show') ?? 'Show features'}
                     </summary>
-                    <ul className="mt-2 text-[10px] md:text-xs opacity-80 list-disc pl-4 space-y-1">
+                    <ul className="mt-2 text-xs leading-5 opacity-80 list-disc pl-4 space-y-1">
                       {featureKeys.map((k, idx) => (
                         <li key={idx}>{t(k)}</li>
                       ))}
@@ -449,68 +470,41 @@ export default function NftList({ mode = 'dashboard' }: { mode?: NftListMode }) 
                   <div className="text-xs md:text-sm opacity-70 mb-2">{i.blurb}</div>
                 )}
 
-                {/* Short resume (💬) */}
-                {resumeKey && <div className="text-[11px] md:text-xs opacity-80 mb-2">{t(resumeKey)}</div>}
-
-                {/* Price + after-date pill */}
-                {(() => {
-                  const hasSol = solPrice !== null && solPrice > 0;
-                  const hasEur = i.eurPrice > 0;
-
-                  if (!hasSol && !hasEur) {
-                    return <div className="text-xs md:text-sm opacity-70 mb-2">{t('nft.badge.invite')}</div>;
-                  }
-
-                  return (
-                    <div className="text-xs md:text-sm mb-2 flex items-center gap-2 flex-wrap">
-                      <div>
-                        {t('nft.price')}: {hasSol ? <b>{solPrice} SOL</b> : <span className="opacity-70">—</span>}
-                        {hasSol && eurNow !== null && (
-                          <span className="ml-2 text-[11px] opacity-70">
-                            ≈ {eurNow.toFixed(0)}€ (CoinGecko)
-                          </span>
-                        )}
-                      </div>
-                      {hasSol && <span className="chip">{t('nft.after')}</span>}
-                    </div>
-                  );
-                })()}
-
                 {/* Availability (global summary) */}
                 {showAvailability && (
                   <div className="space-y-1.5 mb-3">
                     <div className="text-[11px] md:text-xs opacity-80">{t('nft.availability')}</div>
-                    <SalesBar t={t} limited={total} minted={sold} progressColor={progressColor} />
+                    <SalesBar t={t} limited={total} minted={sold} progressColor={progressColor} mintedLabel={t('nft.issued_short')} locale={lang} />
                   </div>
                 )}
 
                 {/* Meta chips */}
-                <div className="flex flex-wrap gap-2 text-[10px] md:text-xs opacity-70 mb-3">
+                <div className="flex flex-wrap gap-1.5 text-xs opacity-80 mb-3">
                   {blockedByAml && (
-                    <span className="chip" title={tr('nft.amlBlocked', 'Blocked by AML')} aria-label="AML blocked">
+                    <span className="chip chip--sm max-w-full whitespace-normal" title={tr('nft.amlBlocked', 'Blocked by AML')} aria-label="AML blocked">
                       ⛔ {tr('nft.amlBlocked', 'Blocked')}
                     </span>
                   )}
 
                   {showKycBadge && (
-                    <span className="chip" title={t('nft.kyc')} aria-label="KYC">
+                    <span className="chip chip--sm max-w-full whitespace-normal" title={t('nft.kyc')} aria-label="KYC">
                       🔒 {t('nft.kyc')}
                     </span>
                   )}
 
                   {(i.eurPrice <= 0 || i.id === 'nft-ws-20') && (
-                    <span className="chip" title={t('nft.badge.invite')} aria-label="Invite">
+                    <span className="chip chip--sm max-w-full whitespace-normal" title={t('nft.badge.invite')} aria-label="Invite">
                       🔑 {t('nft.badge.invite')}
                     </span>
                   )}
 
-                  <span className="chip" title={i.vesting || 'No vesting'}>
+                  <span className="chip chip--sm max-w-full whitespace-normal" title={i.vesting || 'No vesting'}>
                     {t('nft.vesting')}: {i.vesting ? t('yes') : t('no')}
                   </span>
                 </div>
 
                 <div className="mt-auto">
-                  <Link href={`${detailsPrefix}/${i.id}`} className="btn btn-outline w-full justify-center rounded-2xl">
+                  <Link href={`${detailsPrefix}/${i.id}`} className="btn btn-outline min-h-9 w-full justify-center rounded-xl px-3 py-1.5 text-xs leading-5">
                     {t('nft.details')}
                   </Link>
                 </div>

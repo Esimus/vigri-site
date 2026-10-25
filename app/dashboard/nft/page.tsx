@@ -10,7 +10,7 @@ import { WalletBannerMain } from '@/components/wallet';
 export default function NftPage() {
   
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-3">
       {/* Wallet */}
       <WalletBannerMain />
 

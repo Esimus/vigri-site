@@ -1465,5 +1465,8 @@
   "nft_progress_admin": "NFTs issued by the administrator",
   "nft_progress_tests": "Excluded test purchases",
   "nft_progress_method": "Figures are checked against Solana mainnet transactions. Raised funds are NFT purchase payments minus the identified test payments. This is cumulative funding, not the current wallet balance.",
-  "nft_progress_checked": "Last verified:"
+  "nft_progress_checked": "Last verified:",
+  "nft_progress_reference": "Reference total:",
+  "nft.collection_since": "Since NFT launch",
+  "nft.issued_short": "Issued"
 }

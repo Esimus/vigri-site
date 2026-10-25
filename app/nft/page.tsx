@@ -13,13 +13,13 @@ export default function NftPublicPage() {
     <>
       <PublicHeader />
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="space-y-4">
-          <h1 className="text-2xl md:text-3xl font-semibold">
+      <main className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-6 pt-3 lg:pt-5">
+        <div className="min-w-0 space-y-3">
+          <h1 className="min-h-9 pl-12 text-xl leading-9 font-semibold tracking-tight lg:pl-0 lg:text-2xl">
             {t('nft_public_title')}
           </h1>
 
-          <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-300">
+          <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-300">
             {t('nft_public_intro')}
           </p>
 
