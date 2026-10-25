@@ -45,13 +45,13 @@ export function LanguageSwitcher({
       {/* trigger as a regular text link */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1 text-sm leading-tight focus:outline-none"
+        className="inline-flex items-center gap-1 py-2 text-[13px] leading-[18px] font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         aria-haspopup="listbox"
         aria-expanded={open}
         title="Change language"
         type="button"
       >
-        {lang.toUpperCase()} <span aria-hidden className={`transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
+        {lang.toUpperCase()} <span aria-hidden className={`text-[10px] transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
       </button>
 
       {open && (
@@ -69,7 +69,7 @@ export function LanguageSwitcher({
                     onChange(l.code);
                     setOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 ${
+                  className={`w-full text-left px-3 py-2 text-[13px] leading-[18px] hover:bg-zinc-100 ${
                     l.code === lang ? "font-semibold" : ""
                   }`}
                   role="option"

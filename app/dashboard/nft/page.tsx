@@ -2,6 +2,7 @@
 'use client';
 
 import NftList from '@/components/NftList';
+import NftProgress from '@/components/NftProgress';
 import NftIntro from '@/components/NftIntro';
 import MyNftsStrip from '@/components/MyNftsStrip';
 import { WalletBannerMain } from '@/components/wallet';
@@ -9,7 +10,7 @@ import { WalletBannerMain } from '@/components/wallet';
 export default function NftPage() {
   
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-3">
       {/* Wallet */}
       <WalletBannerMain />
 
@@ -17,6 +18,8 @@ export default function NftPage() {
       <div className="flex items-start justify-between gap-3">
         <NftIntro />
       </div>
+
+      <NftProgress />
 
       {/* My NFTs + list */}
       <MyNftsStrip />

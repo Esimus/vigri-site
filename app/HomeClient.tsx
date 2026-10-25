@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../hooks/useI18n';
-import { CONFIG, explorerQS, isMainnet, clusterLabel } from '../lib/config';
+import { CONFIG, explorerQS } from '../lib/config';
 import Link from 'next/link';
 import Image from 'next/image';
 import BeyondDigital from '@/components/BeyondDigital';
@@ -12,16 +12,11 @@ import AuthModal from '@/components/AuthModal';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import VerifyBanner from '@/components/VerifyBanner';
 import PublicHeader from '@/components/layout/PublicHeader';
-import { ProgressDot } from '@/components/ui/ProgressDot';
-import PresaleWidget from '@/components/home/PresaleWidget';
 
-type MeUser = { email: string } | null;
-
-export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
+export default function HomeClient() {
   const { t } = useI18n();
 
   const [copied, setCopied] = useState<string>('');
-  const [me] = useState<MeUser>(initialMe);
 
   // verification banner state
   const [verifyLoading, setVerifyLoading] = useState(false);
@@ -74,12 +69,6 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
     }
   }, [verify, closeVerify]);
 
-  const openAuth = (mode: 'login' | 'signup') => {
-    const q = new URLSearchParams(sp?.toString() || '');
-    q.set('auth', mode);
-    router.push(`${pathname}?${q.toString()}`, { scroll: false });
-  };
-
   return (
     <main>
       {verify && (
@@ -98,121 +87,90 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
 
       <AuthModal />
 
-      {/* Floating auth strip under header (global, no layout shift) */}
-      <div className="relative z-20">
-        <div className="mx-auto max-w-6xl px-4">
-          {/* zero-height wrapper so this doesn't push content */}
-          <div className="relative h-0">
-            <div className="absolute right-4 md:right-0 top-2 md:top-4 flex items-center gap-2 floating-auth px-2 py-1">
-              <a
-                href={CONFIG.TELEGRAM_URL}
-                target="_blank"
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm hover:bg-zinc-100"
-              >
-                {t('btn_telegram')}
-              </a>
-
-              <button
-                type="button"
-                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
-                disabled
-              >
-                {t('btn_trade')} <span aria-hidden>→</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Hero */}
-      <section id="home" className="relative overflow-hidden -mt-6 md:-mt-8 hero-blobs">
-        <div className="relative z-10 mx-auto max-w-6xl px-4 pt-16 pb-10 md:pt-20 md:pb-12 grid md:grid-cols-2 gap-12 items-center">
+      <section id="home" className="relative overflow-hidden hero-blobs">
+        <div
+          id="about"
+          className="relative z-10 mx-auto max-w-6xl scroll-mt-24 px-4 pt-10 pb-6 md:pt-12 grid md:grid-cols-2 gap-8 lg:gap-10 items-center"
+        >
           <div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+            <h1 className="text-[32px] sm:text-[42px] font-extrabold tracking-tight leading-[1.15]">
               {t('hero_title')}
             </h1>
-            <p className="mt-5 text-lg text-zinc-600">{t('hero_subtitle')}</p>
+            <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-300">
+              {t('hero_subtitle')}
+            </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                className="btn btn-primary rounded-2xl opacity-60 cursor-not-allowed"
-                disabled
+              <Link
+                href="/channels"
+                className="btn btn-primary px-3.5 py-1.5 text-[13px] leading-5"
               >
-                {t('btn_buy_on_dex')}
-              </button>
-              <a href={CONFIG.TELEGRAM_URL} target="_blank" className="btn btn-outline rounded-2xl">
-                {t('btn_community')}
-              </a>
-              <a href="#tokenomics" className="btn btn-outline rounded-2xl">
-                {t('btn_tokenomics')}
-              </a>
+                {t('home_about_community')}
+              </Link>
+              <Link
+                href="/clubs"
+                className="btn btn-outline px-3.5 py-1.5 text-[13px] leading-5"
+              >
+                {t('home_about_clubs')}
+              </Link>
             </div>
-            <div className="mt-6 text-xs text-zinc-500">{t('disclaimer')}</div>
           </div>
 
-          <div className="relative">
-            {/* Auth CTA above presale card */}
-            <div className="rounded-3xl border border-zinc-400 surface-accent shadow-md px-6 pb-6 pt-8">
-              <PresaleWidget t={t} me={me} openAuth={openAuth} />
-            </div>
-            {!isMainnet && (
-              <div className="absolute -bottom-4 -left-4 rotate-2 badge-primary">
-                {clusterLabel} / test page
-              </div>
-            )}
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 surface-accent p-5 sm:p-6">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {t('home_about_status_title')}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+              {t('home_about_status_current')}
+            </p>
+            <p className="mt-3 text-sm leading-6 font-medium">
+              {t('home_about_status_next')}
+            </p>
+            <p className="mt-4 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+              {t('home_about_status_note')}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Utility */}
-      <section id="utility" className="relative mx-auto max-w-6xl px-4 section">
-        <h2 className="text-2xl font-bold tracking-tight">{t('why_title')}</h2>
-        <p className="mt-3 text-zinc-600 max-w-3xl">{t('why_intro')}</p>
+      {/* App concept */}
+      <section id="utility" className="mx-auto max-w-6xl px-4 pt-4 pb-8 md:pt-6 md:pb-10">
+        <div className="grid xl:grid-cols-[minmax(0,1fr)_18rem] gap-4 xl:gap-10 items-start">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t('app_idea_title')}
+            </h2>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600 dark:text-zinc-300">
+              {t('app_idea_intro')}
+            </p>
+          </div>
 
-        {/* Mobile figure (football) */}
-        <div className="xl:hidden mt-6 flex justify-center">
           <Image
             src="/images/figures/figure-football.png"
             alt=""
             width={1232}
             height={928}
-            priority={false}
             aria-hidden
-            className="hidden xl:block w-[22.5rem] h-auto pointer-events-none select-none absolute -top-10 right-12 translate-x-10 drop-shadow-xl"
-            sizes="(min-width:1280px) 360px, 0px"
+            className="block w-40 sm:w-48 xl:w-72 xl:-mt-[5.25rem] xl:relative xl:z-10 h-auto justify-self-center xl:justify-self-end pointer-events-none select-none drop-shadow-xl"
+            sizes="(min-width: 1280px) 288px, (min-width: 640px) 192px, 160px"
           />
         </div>
 
-        {/* Decorative figure (desktop only) */}
-        <Image
-          src="/images/figures/figure-football.png"
-          alt=""
-          width={360}
-          height={360}
-          priority={false}
-          aria-hidden
-          style={{ height: 'auto' }}
-          className="hidden xl:block pointer-events-none select-none absolute -top-10 right-12 translate-x-10 drop-shadow-xl"
-          sizes="(min-width:1280px) 360px, 0px"
-        />
-
-        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { t: t('why_card_payments_title'), d: t('why_card_payments_desc') },
-            { t: t('why_card_passes_title'), d: t('why_card_passes_desc') },
-            { t: t('why_card_crowd_title'), d: t('why_card_crowd_desc') },
-            { t: t('why_card_merch_title'), d: t('why_card_merch_desc') },
-            { t: t('why_card_status_title'), d: t('why_card_status_desc') },
-            { t: t('why_card_clubpages_title'), d: t('why_card_clubpages_desc') },
-          ].map((x) => (
-            <div key={x.t} className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm">
-              <div className="font-semibold">{x.t}</div>
-              <div className="mt-1.5 text-sm text-zinc-600">{x.d}</div>
+        <div className="mt-4 grid md:grid-cols-3 gap-5">
+          {['discover', 'follow', 'support'].map((item) => (
+            <div
+              key={item}
+              className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-card shadow-sm"
+            >
+              <h3 className="font-semibold">
+                {t(`app_idea_${item}_title`)}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                {t(`app_idea_${item}_desc`)}
+              </p>
             </div>
           ))}
         </div>
-
-        <div className="mt-8 text-sm text-zinc-500">{t('why_social_fund')}</div>
       </section>
 
       {/* Why name + Tokenomics with right image column (compact spacing) */}
@@ -364,33 +322,6 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
         </div>
       </section>
 
-      {/* Roadmap */}
-      <section id="roadmap" className="mx-auto max-w-6xl px-4 section -mt-6 md:-mt-10 scroll-mt-24">
-        <h2 className="text-2xl font-bold tracking-tight">{t('roadmap_title')}</h2>
-        <div className="mt-6 grid gap-4">
-          {[
-            { k: t('roadmap_i1_k'), v: t('roadmap_i1_v'), p: 1.0 },
-            { k: t('roadmap_i2_k'), v: t('roadmap_i2_v'), p: 1.0 },
-            { k: t('roadmap_i3_k'), v: t('roadmap_i3_v'), p: 0.2 },
-            { k: t('roadmap_i4_k'), v: t('roadmap_i4_v'), p: 0 },
-            { k: t('roadmap_i5_k'), v: t('roadmap_i5_v'), p: 0 },
-          ].map((x) => (
-            <div
-              key={x.k}
-              className="p-5 rounded-2xl border border-zinc-200 bg-white shadow-sm flex items-start gap-4"
-            >
-              <ProgressDot value={x.p} />
-              <div>
-                <div className="text-xs text-zinc-500">{x.k}</div>
-                <div className="font-medium">{x.v}</div>
-              </div>
-            </div>
-          ))}
-          <div className="mt-4 text-xs text-zinc-500">{t('roadmap_disclaimer')}</div>
-          <div className="mt-2 text-xs text-zinc-500">{t('roadmap_airdrop_note')}</div>
-        </div>
-      </section>
-
       {/* Beyond digital */}
       <section className="mx-auto max-w-6xl px-4 pt-4 pb-6 md:pt-2 md:pb-4">
         <BeyondDigital t={t} />
@@ -402,6 +333,9 @@ export default function HomeClient({ initialMe }: { initialMe: MeUser }) {
           <div>
             <div className="font-semibold">VIGRI • Lumiros</div>
             <div className="mt-2 text-sm text-zinc-600 max-w-md">{t('footer_note')}</div>
+            <Link href="/contact" className="mt-3 inline-block text-sm hover:underline">
+              {t('footer_contact')}
+            </Link>
           </div>
 
           <div className="md:pl-6">

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/hooks/useI18n';
+import { useThemePreference } from '@/hooks/useThemePreference';
 
 // Build 1–2 initials from user name or email (fallback to "U")
 function makeInitials(name?: string | null, email?: string | null) {
@@ -37,18 +38,6 @@ const tChain = (t: (k: string) => string, keys: string[], fb: string) => {
 };
 
 // Cookie helpers (client-side)
-function readCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const m = document.cookie.match(
-    new RegExp('(?:^|; )' + name.replace(/([$?*|{}\\^])/g, '\\$1') + '=([^;]*)'),
-  );
-  if (!m || typeof m[1] !== 'string') return null;
-  try {
-    return decodeURIComponent(m[1]);
-  } catch {
-    return null;
-  }
-}
 function writeCookie(name: string, value: string, days = 365) {
   if (typeof document === 'undefined') return;
   const maxAge = days * 24 * 60 * 60;
@@ -94,26 +83,6 @@ function pickAvatarUrl(j: MeResponse | null): string | null {
   return null;
 }
 
-// Theme helpers
-type ThemePref = 'auto' | 'light' | 'dark';
-function applyTheme(pref: ThemePref) {
-  const isDark =
-    pref === 'dark' ||
-    (pref === 'auto' &&
-      typeof window !== 'undefined' &&
-      window.matchMedia &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  const root = document.documentElement;
-  root.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  root.classList.toggle('dark', isDark);
-
-  try {
-    const maxAge = 365 * 24 * 60 * 60;
-    document.cookie = `vigri_theme_resolved=${isDark ? 'dark' : 'light'}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
-  } catch {}
-}
-
 export default function ProfileMenu() {
   const { t } = useI18n();
 
@@ -125,10 +94,7 @@ export default function ProfileMenu() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // theme preference
-  const [theme, setTheme] = useState<ThemePref>(() => {
-    const v = readCookie('vigri_theme');
-    return v === 'light' || v === 'dark' || v === 'auto' ? v : 'auto';
-  });
+  const { theme, changeTheme } = useThemePreference();
 
   // panel position
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -190,19 +156,6 @@ export default function ProfileMenu() {
     };
   }, []);
 
-  // apply theme on mount and whenever preference changes
-  useEffect(() => {
-    applyTheme(theme);
-
-    if (theme !== 'auto') return;
-    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
-    const handler = () => applyTheme('auto');
-    mq?.addEventListener?.('change', handler);
-    return () => {
-      mq?.removeEventListener?.('change', handler);
-    };
-  }, [theme]);
-
   // open/close with position recalculation and viewport clamping
   const toggle = () => {
     if (!open && btnRef.current) {
@@ -235,15 +188,6 @@ export default function ProfileMenu() {
       window.removeEventListener('resize', onResize);
     };
   }, [open]);
-
-  const changeTheme = (next: ThemePref) => {
-    setTheme(next);
-    writeCookie('vigri_theme', next, 365);
-    applyTheme(next);
-    try {
-      window.dispatchEvent(new CustomEvent('vigri:theme', { detail: { theme: next } }));
-    } catch {}
-  };
 
   const panel =
     open && (

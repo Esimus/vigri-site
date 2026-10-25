@@ -15,10 +15,12 @@ type Props = {
   progressColor?: string;
   /** Optional wrapper class */
   className?: string;
+  mintedLabel?: string;
+  locale?: string;
 };
 
 export default function SalesBar({
-  t, limited, minted, fallbackTotal, progressColor, className,
+  t, limited, minted, fallbackTotal, progressColor, className, mintedLabel, locale,
 }: Props) {
   const { sold, left, pct } = useMemo(() => {
     const tot = Number.isFinite(limited as number)
@@ -26,9 +28,12 @@ export default function SalesBar({
       : Number(fallbackTotal || 0);
     const s = Math.min(Number(minted || 0), tot);
     const l = Math.max(tot - s, 0);
-    const p = tot > 0 ? Math.round((s / tot) * 100) : 0;
+    const p = tot > 0 ? (s / tot) * 100 : 0;
     return { sold: s, left: l, pct: p };
   }, [limited, minted, fallbackTotal]);
+
+  const fmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
+  const pctText = pct > 0 && pct < 0.01 ? `<${fmt.format(0.01)}` : fmt.format(pct);
 
   return (
     <div className={className}>
@@ -38,8 +43,8 @@ export default function SalesBar({
           style={{ width: `${pct}%`, ...(progressColor ? { backgroundColor: progressColor } : {}) }}
         />
       </div>
-      <div className="flex items-center justify-between text-[11px] md:text-xs opacity-80 mt-2">
-        <span>{t('nft.sold_short')}: <b>{sold}</b> ({pct}%)</span>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[11px] opacity-80 mt-1.5">
+        <span>{mintedLabel ?? t('nft.sold_short')}: <b>{sold}</b> ({pctText}%)</span>
         <span>{t('nft.available_short')}: <b>{left}</b></span>
       </div>
     </div>
