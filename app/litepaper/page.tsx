@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import PublicHeader from '@/components/layout/PublicHeader';
+import TokenParameters from '@/components/TokenParameters';
 import { useI18n } from '@/hooks/useI18n';
 
 export default function LitepaperPage() {
@@ -67,76 +68,7 @@ export default function LitepaperPage() {
           </div>
         </section>
 
-        {/* Key numbers */}
-        <section className="space-y-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            {t('litepaper.metrics_heading')}
-          </h2>
-
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            <div className="card p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">
-                {t('litepaper.metrics_total_supply_label')}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-zinc-900">
-                10 000 000 000
-              </p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t('litepaper.metrics_total_supply_note')}
-              </p>
-            </div>
-
-            <div className="card p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">
-                {t('litepaper.metrics_tge_price_label')}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-zinc-900">€0.0008</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t('litepaper.metrics_tge_price_note')}
-              </p>
-            </div>
-
-            <div className="card p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">
-                {t('litepaper.metrics_public_label')}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-zinc-900">30%</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t('litepaper.metrics_public_note')}
-              </p>
-            </div>
-
-            <div className="card p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">
-                {t('litepaper.metrics_liquidity_label')}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-zinc-900">30%</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t('litepaper.metrics_liquidity_note')}
-              </p>
-            </div>
-
-            <div className="card p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">
-                {t('litepaper.metrics_claim_label')}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-zinc-900">15%</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t('litepaper.metrics_claim_note')}
-              </p>
-            </div>
-
-            <div className="card p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">
-                {t('litepaper.metrics_founder_label')}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-zinc-900">10%</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t('litepaper.metrics_founder_note')}
-              </p>
-            </div>
-          </div>
-        </section>
+        <TokenParameters t={t} />
 
         {/* Download section */}
         <section className="space-y-4 border-t border-zinc-200 pt-8">

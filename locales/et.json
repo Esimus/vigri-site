@@ -909,7 +909,7 @@
   "legal_privacy_section8_title": "8. Privaatsuspoliitika muutmine",
   "legal_privacy_section8_p1": "Võime seda poliitikat aeg-ajalt uuendada. Kehtiv versioon on alati kättesaadav veebisaidil aadressil https://vigri.ee/privacy. Jätkates veebisaidi kasutamist pärast uuendatud poliitika avaldamist, nõustud selle uue versiooniga.",
 
-  "litepaper.tagline": "VIGRI · Litepaper v0.1",
+  "litepaper.tagline": "VIGRI · Litepaper",
   "litepaper.title": "VIGRI — Web3-ökosüsteem spordi ja tantsu toetamiseks",
   "litepaper.lead": "VIGRI on Web3-ökosüsteem, mis toetab spordi- ja tantsuklubisid. Eesmärk on aidata klubidel areneda jätkusuutlikult ning anda fännidele võimalus selles teekonnas teadlikult ja läbipaistvalt osaleda. VIGRI token Solana plokiahelas ja NFT-kaardid on vaid tööriistad: need aitavad koguda vahendeid, fikseerida osalust ja luua klubide ning toetajate vahel pikaajalisi suhteid.",
 
@@ -920,30 +920,30 @@
   "litepaper.block_why_text": "VIGRI NFT-kaardid on sissepääs ökosüsteemi. Need kinnistavad varajast osalust, annavad õiguse 100% Claim’ile VIGRI tokenitesse TGE hetkel ning lisavad teatud tasemetel sooduskupongid, füüsilised kaardid ja koostöökoode (DUO / TRIO / QUATTRO / WS-key).",
 
   "litepaper.block_launch_title": "Tokeni käivitamise mudel",
-  "litepaper.block_launch_text": "Tokeni käivitamine on täielikult seotud NFT-eelmüügiga. TGE hind fikseeritakse ette ja põhineb ainult tegelikel eelmüügi vahenditel; erarunde ega varjatud jaotusi ei ole. Kõigi NFT-tasemete Claim-kohustused on täielikult arvestatud tokenoomikas.",
+  "litepaper.block_launch_text": "Mudel kasutab NFT-de Claim-õiguste arvutamiseks arvestuslikku hinda 0,0008 € ühe VIGRI kohta. Claim’i jaoks on ette nähtud kuni 15% koguemissioonist avaliku jaotuse 30% sees. Likviidsuse loomine sõltub tegelikult kaasatud vahenditest.",
 
   "litepaper.block_vision_title": "Pikaajaline visioon",
   "litepaper.block_vision_text": "Lisaks digitaalsele kihile on VIGRI suunatud ka pärisprojektide toetamisele, sealhulgas rahvusvahelisele spordi- ja tantsukeskusele Soome lahe rannikul, mida arendatakse samm-sammult selgete eesmärkide ja mittefinantsiliste soodustustega.",
 
-  "litepaper.metrics_heading": "Põhinäitajad TGE hetkel",
+  "litepaper.metrics_heading": "Emissioon ja majandusmudel",
 
-  "litepaper.metrics_total_supply_label": "Kogupakkumine",
-  "litepaper.metrics_total_supply_note": "VIGRI (fikseeritud)",
+  "litepaper.metrics_total_supply_label": "Emiteeritud VIGRI",
+  "litepaper.metrics_total_supply_note": "Juba emiteeritud tokenid.",
 
-  "litepaper.metrics_tge_price_label": "TGE hind",
-  "litepaper.metrics_tge_price_note": "täielikult kaetud NFT-eelmüügi vahenditega",
+  "litepaper.metrics_tge_price_label": "Mudeli arvestuslik hind",
+  "litepaper.metrics_tge_price_note": "Ühe VIGRI kohta. NFT-de Claim-õiguste arvutamise alus, mitte praegune turuhind.",
 
   "litepaper.metrics_public_label": "Avalik jaotus",
-  "litepaper.metrics_public_note": "Claim + kogukonna mehhanismid",
+  "litepaper.metrics_public_note": "Veel kuni 15% koguemissioonist on mõeldud kogukonna mehhanismidele: sooduskupongid, airdrop’id, soovituspreemiad ja turundustegevused. Mõlemad osad sisalduvad avalikus 30% jaotuses.",
 
   "litepaper.metrics_liquidity_label": "Likviidsus- ja börsireserv",
-  "litepaper.metrics_liquidity_note": "algne likviidsus + pikaajaline tugi",
+  "litepaper.metrics_liquidity_note": "Mudeli järgi on see tokenite osa mõeldud esimeste likviidsusfondide loomiseks ja nende hilisemaks täiendamiseks.",
 
-  "litepaper.metrics_claim_label": "Claim’i puul",
-  "litepaper.metrics_claim_note": "katab 100% NFT Claim’i õigustest",
+  "litepaper.metrics_claim_label": "NFT Claim",
+  "litepaper.metrics_claim_note": "Kuni 15% koguemissioonist on mudelis ette nähtud kõigi NFT-kategooriate omanike VIGRI saamise õiguste katmiseks, sealhulgas WS-20.",
 
   "litepaper.metrics_founder_label": "Asutaja reserv",
-  "litepaper.metrics_founder_note": "lukus 4 / 8 aasta vestinguga",
+  "litepaper.metrics_founder_note": "Plaan: kogu reserv on lukustatud esimesed 4 aastat pärast TGE-d, seejärel vabaneb pool. Ülejäänud pool vabaneb 8 aastat pärast TGE-d. Lukustamist ja järkjärgulist vabastamist ei ole veel tehniliselt rakendatud.",
 
   "litepaper.download_heading": "Täielik litepaper",
   "litepaper.download_text": "Täielik litepaper kirjeldab üksikasjalikult ökosüsteemi, NFT-mehaanikat, tokenoomikat, likviidsusmudelit ja projekti pikaajalist visiooni. Saad dokumendi alla laadida sobivas keeles:",
@@ -1468,5 +1468,31 @@
   "nft_progress_checked": "Viimati kontrollitud:",
   "nft_progress_reference": "Arvestuslik võrdlussumma:",
   "nft.collection_since": "NFT-de väljastamise algusest",
-  "nft.issued_short": "Väljastatud"
+  "nft.issued_short": "Väljastatud",
+  "nav_token": "Token",
+  "token_page_title": "$VIGRI token",
+  "token_page_intro": "$VIGRI on kavandatud vahendina projektis osalemiseks ning spordi- ja tantsuklubide ja loominguliste algatuste rahaliseks toetamiseks. Selle sidumine tulevase VIGRI rakendusega seisab veel ees.",
+  "token_page_status_title": "Praegune seis",
+  "token_page_status_text": "10 miljardit VIGRI tokenit on juba emiteeritud. Edasine arendus puudutab tokeni kasutamist rakenduses. Tokenite lukustamist ja järkjärgulist vabastamist ei ole veel tehniliselt rakendatud.",
+  "token_page_details_title": "Tehniline teave",
+  "token_page_mint": "Tokeni aadress (Mint)",
+  "token_page_program": "Programmi aadress",
+  "token_page_metadata": "Metaandmed (Arweave)",
+  "token_page_open": "Ava",
+  "token_page_copy": "Kopeeri",
+  "token_page_copied": "Kopeeritud",
+  "token_page_copy_error": "Kopeerimine ebaõnnestus. Vali aadress ja kopeeri see käsitsi.",
+  "token_page_docs": "Projekti dokumendid",
+  "token_model_allocation_title": "Tokenite jaotus",
+  "token_model_allocation_note": "Koguemissiooni osakaalud projekti majandusmudeli järgi. Lisateabe nägemiseks ava vastav rida.",
+  "token_model_purpose": "Otstarve",
+  "token_model_share": "Osakaal",
+  "token_model_total": "Kokku",
+  "token_model_claim_math": "Litepaper’is kirjeldatud tiraažide ja Claim-õiguste järgi on maksimum 1,45 miljardit VIGRI, reservi ülempiir aga 1,5 miljardit. Varuks jääb 50 miljonit VIGRI. See katab tokenikohustused, mitte tokeni hinna rahalise tagatise.",
+  "token_model_ecosystem_label": "Ökosüsteemi arendus",
+  "token_model_ecosystem_note": "VIGRI rakenduse ja seotud Lumirosi teenuste arendus ja hooldus: taristu, turvalisus, integratsioonid ja klubide tööriistad.",
+  "token_model_partners_label": "Strateegilised partnerid ja saadikud",
+  "token_model_partners_note": "Tokenite osa partneritele, saadikutele ja olulistele panustajatele. Mudel näeb ette järkjärgulise vabastamise ning avalikult teatatud tingimused.",
+  "token_model_future_label": "Tulevaste algatuste reserv",
+  "token_model_future_note": "Reserv uute projektide ja algatuste jaoks, mis vastavad VIGRI ja Lumirosi missioonile."
 }

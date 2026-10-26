@@ -64,6 +64,7 @@ export default function PublicHeader() {
     { href: '/#about', label: safeT('nav_about', 'About Vigri') },
     { href: '/clubs', label: safeT('nav_clubs', 'For participants') },
     { href: '/nft', label: safeT('nav_nft', 'NFT') },
+    { href: '/token', label: safeT('nav_token', 'Token') },
     { href: '/channels', label: safeT('nav_channels', 'Community') },
   ];
 

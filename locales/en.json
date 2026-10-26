@@ -909,7 +909,7 @@
   "legal_privacy_section8_title": "8. Changes to this Privacy Policy",
   "legal_privacy_section8_p1": "We may update this Policy from time to time. The current version is always available on the Website at https://vigri.ee/privacy. By continuing to use the Website after an updated Policy is published, you accept its new version.",
 
-  "litepaper.tagline": "VIGRI · Litepaper v0.1",
+  "litepaper.tagline": "VIGRI · Litepaper",
   "litepaper.title": "VIGRI — Web3 ecosystem for sports and dance",
   "litepaper.lead": "VIGRI is a Web3 ecosystem that supports sports and dance clubs. Its goal is to help clubs grow sustainably and to let fans take part in this journey in a conscious and transparent way. The VIGRI token on the Solana blockchain and NFT cards are just tools: they help raise funds, record participation and build long-term relationships between clubs and supporters.",
 
@@ -920,30 +920,30 @@
   "litepaper.block_why_text": "VIGRI NFT cards are the entry point into the ecosystem. They fix early participation, give the right to a 100% Claim into VIGRI tokens at TGE and, for selected tiers, add discount vouchers, physical cards and cooperative code mechanics (DUO / TRIO / QUATTRO / WS-key).",
 
   "litepaper.block_launch_title": "Token launch model",
-  "litepaper.block_launch_text": "The token launch is fully tied to the NFT presale. The TGE price is fixed in advance and is based only on real presale funds, with no private rounds and no hidden allocations. Claim obligations for all NFT tiers are fully accounted for inside the tokenomics.",
+  "litepaper.block_launch_text": "The model uses a calculation price of €0.0008 per VIGRI to determine NFT Claim entitlements. Up to 15% of the total supply is allocated to Claim within the 30% public distribution. Liquidity formation depends on the funds actually raised.",
 
   "litepaper.block_vision_title": "Long-term vision",
   "litepaper.block_vision_text": "Beyond the digital layer, VIGRI is aimed at supporting real-world projects, including an International Training & Rehabilitation Center for Sports and Dance on the coast of the Gulf of Finland, developed step by step with transparent milestones and non-financial perks.",
 
-  "litepaper.metrics_heading": "Key token metrics at TGE",
+  "litepaper.metrics_heading": "Supply and economic model",
 
-  "litepaper.metrics_total_supply_label": "Total supply",
-  "litepaper.metrics_total_supply_note": "VIGRI (fixed)",
+  "litepaper.metrics_total_supply_label": "VIGRI issued",
+  "litepaper.metrics_total_supply_note": "Tokens already issued.",
 
-  "litepaper.metrics_tge_price_label": "TGE price",
-  "litepaper.metrics_tge_price_note": "fully backed by NFT presale funds",
+  "litepaper.metrics_tge_price_label": "Model calculation price",
+  "litepaper.metrics_tge_price_note": "Per VIGRI. Used to calculate NFT Claim entitlements, not a current market quote.",
 
-  "litepaper.metrics_public_label": "Public allocation",
-  "litepaper.metrics_public_note": "Claim + community mechanics",
+  "litepaper.metrics_public_label": "Public distribution",
+  "litepaper.metrics_public_note": "Up to another 15% of the total supply is for community mechanisms: discount vouchers, airdrops, referral rewards and marketing activities. Both parts are included in the public 30%.",
 
   "litepaper.metrics_liquidity_label": "Liquidity and exchange reserve",
-  "litepaper.metrics_liquidity_note": "initial pool + long-term support",
+  "litepaper.metrics_liquidity_note": "Under the model, this token allocation is intended for the first liquidity pools and a reserve for subsequent additions.",
 
-  "litepaper.metrics_claim_label": "Claim pool",
-  "litepaper.metrics_claim_note": "covers 100% of NFT claim rights",
+  "litepaper.metrics_claim_label": "NFT Claim",
+  "litepaper.metrics_claim_note": "Up to 15% of the total supply is reserved in the model for VIGRI entitlements across all NFT categories, including WS-20.",
 
   "litepaper.metrics_founder_label": "Founder reserve",
-  "litepaper.metrics_founder_note": "time-locked with 4 / 8 year vesting",
+  "litepaper.metrics_founder_note": "Plan: lock the entire reserve for the first 4 years after TGE, then unlock half. The remaining half unlocks 8 years after TGE. Token locking and vesting have not yet been implemented.",
 
   "litepaper.download_heading": "Full litepaper",
   "litepaper.download_text": "The full litepaper describes the ecosystem, NFT mechanics, tokenomics, liquidity model and long-term vision in detail. You can download the document in your preferred language:",
@@ -1468,5 +1468,31 @@
   "nft_progress_checked": "Last verified:",
   "nft_progress_reference": "Reference total:",
   "nft.collection_since": "Since NFT launch",
-  "nft.issued_short": "Issued"
+  "nft.issued_short": "Issued",
+  "nav_token": "Token",
+  "token_page_title": "$VIGRI Token",
+  "token_page_intro": "$VIGRI is intended as a way to participate in the project and provide financial support for sports and dance clubs, as well as creative initiatives. Its connection to the future VIGRI app has yet to be implemented.",
+  "token_page_status_title": "Current stage",
+  "token_page_status_text": "10 billion VIGRI have been issued. Further development concerns the token’s use in the app. Token locking and vesting have not yet been implemented.",
+  "token_page_details_title": "Technical information",
+  "token_page_mint": "Token address (Mint)",
+  "token_page_program": "Program address",
+  "token_page_metadata": "Metadata (Arweave)",
+  "token_page_open": "Open",
+  "token_page_copy": "Copy",
+  "token_page_copied": "Copied",
+  "token_page_copy_error": "Could not copy. Select and copy the address manually.",
+  "token_page_docs": "Project documents",
+  "token_model_allocation_title": "Token distribution",
+  "token_model_allocation_note": "Shares of the total supply under the project’s economic model. Expand each row for details.",
+  "token_model_purpose": "Purpose",
+  "token_model_share": "Supply share",
+  "token_model_total": "Total",
+  "token_model_claim_math": "Using the supplies and Claim entitlements in the litepaper, the maximum is 1.45 billion VIGRI against a reserve cap of 1.5 billion. This leaves 50 million VIGRI. It covers token obligations, not cash backing for the token price.",
+  "token_model_ecosystem_label": "Ecosystem development",
+  "token_model_ecosystem_note": "Development and maintenance of the VIGRI app and related Lumiros services: infrastructure, security, integrations and tools for clubs.",
+  "token_model_partners_label": "Strategic partners and ambassadors",
+  "token_model_partners_note": "An allocation for partners, ambassadors and key contributors. The model provides for vesting and publicly announced terms.",
+  "token_model_future_label": "Future initiatives reserve",
+  "token_model_future_note": "A reserve for new projects and initiatives aligned with the mission of VIGRI and Lumiros."
 }
