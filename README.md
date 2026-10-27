@@ -8,7 +8,7 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Key features
 
-- **Next.js App Router** (Next.js 16.4.2)
+- **Next.js App Router** (Next.js 16.4.3)
 - **Wallet UI integration** with persistent wallet connection, wallet menu, disconnect, and address copy
 - **Modern Solana transaction pipeline** (Kit-based, no Anchor/web3.js)
 - **i18n (EN / RU / ET)** via JSON dictionaries in `locales/`
@@ -25,12 +25,12 @@ Web platform for the **VIGRI** project: public pages + user dashboard with **KYC
 
 ## Tech stack
 
-- **Frontend / Server:** Next.js (App Router) 16.4.2, React 19.3.1, TypeScript 6.0.3
+- **Frontend / Server:** Next.js (App Router) 16.4.3, React 19.3.1, TypeScript 6.0.3
 - **Styling:** Tailwind CSS v4.3.3
 - **Database:** PostgreSQL + Prisma 7.10.1
 - **Solana:** `@solana/kit` 7.1.1, `@solana/wallet-account-signer` 7.1.1
 - **Wallets:** `@wallet-ui/react` 4.3.0, Wallet Standard app integration
-- **Email:** Nodemailer 10.1.7
+- **Email:** Nodemailer 10.2.1
 - Removed legacy `@solana/web3.js`, Anchor dependency, and custom Phantom/Solflare hooks from the frontend
 - **Ops (production):** Nginx + PM2
 
